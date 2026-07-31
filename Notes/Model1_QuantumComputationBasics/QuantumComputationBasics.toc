@@ -1,0 +1,12 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}量子力学的公理体系(四大假设)}{1}{section.1}%
+\contentsline {subsection}{\numberline {1.1}公设 1: 态空间公设}{1}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}公设 2: 演化公设}{1}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}公设 3: 测量公设}{2}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}公设 4: 复合系统公设}{2}{subsection.1.4}%
+\contentsline {section}{\numberline {2}量子比特}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}单量子比特}{3}{subsection.2.1}%
+\contentsline {section}{\numberline {3}量子测量}{3}{section.3}%
+\contentsline {section}{\numberline {4}量子逻辑门}{3}{section.4}%
+\contentsline {section}{\numberline {5}量子力学基本约束}{3}{section.5}%
+\contentsline {section}{\numberline {6}量子算法的评价框架}{3}{section.6}%

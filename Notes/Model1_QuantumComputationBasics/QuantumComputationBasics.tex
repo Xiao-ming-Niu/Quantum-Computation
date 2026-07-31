@@ -1,0 +1,192 @@
+\documentclass[utf8]{article} %中文文档类
+\usepackage[left=2.50cm, right=2.50cm, top=2.50cm, bottom=2.50cm]{geometry} % 页边距
+\usepackage{indentfirst} % 首行缩进
+\usepackage{fancyhdr,fancybox} % 设置页眉、页脚
+\usepackage{ctexcap} % 标题是中文的
+\usepackage{helvet} % 用来指定beamer使用的字体
+\usepackage{hyperref} % bookmarks 
+\usepackage{multicol} % 分栏
+\usepackage{cite} % 引用
+
+\usepackage{graphicx} % 图片
+\usepackage{subcaption} % 子图
+\usepackage{multirow} % 表格
+\usepackage{float} % 浮动体
+\usepackage{booktabs} % 三线表
+\usepackage{longtable} % 长表格
+\usepackage{diagbox} % 表头斜线
+\usepackage{multirow} % 表格合并
+\usepackage{makecell} % 表格换行
+\usepackage{enumitem} % 枚举环境宏包
+\usepackage{framed} % 边框包
+
+\usepackage{amsmath, amsfonts, amssymb} % 数学公式、符号
+\numberwithin{equation}{section}   % 编号从一级标题开始
+\usepackage[english]{babel} % 数学公式标准
+\usepackage{bm} % 加粗方程字体 
+\usepackage{caption} % 标题
+\usepackage{color} % 配色
+\usepackage[braket]{qcircuit} % 启用狄拉克符号支持, 用于绘制电路图
+\usepackage{physics} % 量子力学中的符号加载
+
+\newtheorem{Def}{\hskip 2em {\color{green} 定义}}[subsection]
+\newtheorem{Thm}{\hskip 2em {\color{blue} 定理}}[subsection]
+\newtheorem{Lem}{\hskip 2em {\color{magenta} 引理}}[subsection]
+\newtheorem{Prop}{\hskip 2em {\color{cyan} 命题}}[subsection]
+\newtheorem{Note}{\hskip 2em {\color{red} 注}}[subsection]
+\newtheorem{Cor}{\hskip 2em {\color{cyan} 推论}}[subsection]
+\newtheorem{Eg}{\hskip 2em {\color{black} 例}}[subsection]
+\newenvironment{Proof}{{\noindent\it Proof:}\quad}{\hfill $\sharp $\par}
+\allowdisplaybreaks
+
+% 页眉页脚设置
+\usepackage{fancyhdr}
+\usepackage{lastpage} % 获得总页数
+\pagestyle{fancy}
+\fancyfoot{}
+\lhead{\textit{Quantum Computation Basics}}\chead{}\rhead{\textit{\thepage\ of \pageref{LastPage}}}
+\lfoot{}\cfoot{}\rfoot{}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% 标题设置
+\title{\textbf{量子计算数学基础}}
+\date{\today}
+\author{\textbf{STU\quad 牛晓铭}}
+
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black
+} % 使目录为黑色字
+\begin{document}  
+\maketitle
+\renewcommand{\contentsname}{} 
+\tableofcontents
+\thispagestyle{empty}
+	
+\newpage
+\setcounter{page}{1}
+\section{量子力学的公理体系(四大假设)}
+与经典的 Newton 力学不同, 量子力学并不试图从「直觉」出发, 而是从四条数学公设出发, 推导出一切可观测的结论. 后续的所有算法, 协议和约束都建立在此四大公设基础之上.
+\begin{Def}[四大假设概述]
+    任何量子力学系统由以下四条公设完全描述: 
+    \begin{enumerate}[label=\textbf{公设 \arabic*: }, leftmargin=*]
+    \item \textbf{态空间公设} —— 系统状态由 Hilbert 空间中的单位向量描述;
+    \item \textbf{演化公设} —— 封闭系统的演化由酉变换(或 Schrödinger 方程)描述;
+    \item \textbf{测量公设} —— 测量由一组测量算子描述, 结果满足概率规则;
+    \item \textbf{复合系统公设} —— 复合系统的态空间为子系统态空间的张量积.
+    \end{enumerate}
+\end{Def}
+
+\subsection{公设 1: 态空间公设}
+
+\begin{Thm}
+    任意一个孤立的物理系统都与一个称为系统\textbf{状态空间(state space)}的复内积向量空间(即希尔伯特空间)相联系.系统完全由\textbf{状态向量(state vector)}来描述,它是系统空间里的一个单位向量.
+\end{Thm}
+
+最重要的量子系统是 \emph{量子比特(quantum bit, qubit)}, 其态空间为 $\mathcal{H} = \mathbb{C}^2$.
+
+\begin{Eg}[qubit]
+    一个 qubit 的状态可以写作: 
+    \begin{equation*}
+        \ket{\psi} = \alpha\ket{0} + \beta\ket{1},
+        \quad \alpha, \beta \in \mathbb{C},\quad |\alpha|^2 + |\beta|^2 = 1
+    \end{equation*}
+    其中 $\{\ket{0}, \ket{1}\}$ 是 $\mathbb{C}^2$ 的一组标准正交基, 
+    通常取 $\ket{0} = \begin{bmatrix}1\\0\end{bmatrix}$, $\ket{1} = \begin{bmatrix}0\\1\end{bmatrix}$.
+\end{Eg}
+
+与经典比特的区别是本质性的: 经典比特在任何时刻要么是 0 要么是 1, 
+而 qubit 可以处于 $\alpha\ket{0} + \beta\ket{1}$ 的\emph{叠加态}.
+但注意: 叠加是数学意义上的线性组合, 而非「同时处于 0 和 1」—— 后者是常见的误解.
+
+\subsection{公设 2: 演化公设}
+
+\begin{Thm}
+    封闭量子系统的演化可用\textbf{酉变换(unitary transformation)}来描述.也就是说,系统在$t_1$时所处的状态$\ket{\psi}$和在$t_2$时所处的状态$\ket{\psi'}$是通过一个仅于时间$t_1$和$t_2$有关的酉算子$U$联系起来的,即
+	\begin{equation}
+        \ket{\psi'}=U\ket{\psi}
+    \end{equation}
+    等价地, 连续时间演化满足 Schrödinger 方程: 
+    \begin{equation}
+        i\hbar \frac{d}{dt} \ket{\psi(t)} = H(t) \ket{\psi(t)}
+    \end{equation}
+    在该方程中,$\hbar$是一个物理常数,称为\textbf{普朗克常数(Planck's constant)}.实践中,经常把因子放入,取$\hbar=1$.H是一个称为封闭系统哈密顿量的固定厄米算子.
+\end{Thm}
+
+\begin{Note}
+    在量子计算中，我们通常考虑离散时间演化的酉门而非连续时间 Schrödinger 方程。
+    但 Hamiltonian 模拟需要从 Schrödinger 方程出发构造酉门。
+\end{Note}
+
+\subsection{公设 3: 测量公设}
+
+\begin{Thm}
+    量子测量由一组测量算子 $\{M_m\}$ 描述, 满足 \emph{完备性关系} $\sum_m M_m^\dagger M_m = I$.
+    对状态 $\ket{\psi}$ 进行测量: 
+    \begin{enumerate}
+        \item 结果 $m$ 出现的概率为 $p(m) = \mel{\psi}{M_m^\dagger M_m}{\psi}$;
+        \item 测量后的系统状态坍缩为 $\displaystyle\frac{M_m \ket{\psi}}{\sqrt{p(m)}}$.
+    \end{enumerate}
+\end{Thm}
+
+完备性方程表达了概率加起来为1的事实:
+	\[ 1=\sum_{m}p(m)=\sum_{m}\mel{\psi}{M_m^\dagger M_m}{\psi} \]
+这个方程对所有的$\ket{\psi}$都成立,并且等价于完备性方程.但是直接检验完备性方程要容易得多.
+
+\begin{Note}
+    测量是量子力学中唯一「非酉」的操作。测量后状态发生了不可逆的改变 ——
+    这是量子算法设计中必须考虑的核心约束.
+\end{Note}
+
+\begin{Def}
+	\textbf{相位因子(phase factor)}是一个复数因子,形式为$e^{i \theta}$.\par 
+	考虑状态
+	\[ e^{i \theta}\ket{\psi} \]
+	其中$\ket{\psi}$是状态向量,$\theta$是一个实数.$e^{i \theta}$称为\textbf{全局相位因子(global phase factor)}.\par 
+	考虑状态
+	\[ \frac{\ket{0}+\ket{1}}{\sqrt{2}}\quad \frac{\ket{0}-\ket{1}}{\sqrt{2}} \]
+	两个状态中$\ket{1}$的振幅分别为$\frac{1}{\sqrt{2}},-\frac{1}{\sqrt{2}}$.若存在实数$\theta$,使得
+	\[ a=e^{i \theta}b \]
+	则称两个振幅a和b相差一个\textbf{相对相位(relative phase)}.若两个状态的每个振幅都由一个相位因子相联系,则称这两个状态在该基下相差一个相对相位.
+\end{Def}
+\begin{Note}
+	若忽略掉全局相位因子$e^{i \theta}$,状态$e^{i \theta}\ket{\psi}$等于$\ket{\psi}$.对这两种状态的测量统计结果是相同的.假设$M_m$是一个与某个量子测量相关的测量算子,并注意到出现结果m的概率分别为$\mel{\psi}{M_m^\dagger M_m}{\psi}$和$\mel{\psi}{M_m^\dagger M_m}{\psi}=\mel{\psi}{e^{-i \theta}M_m^\dagger M_me^{i \theta}}{\psi}$.因此从观测角度,这两个状态是相同的.
+\end{Note}
+
+\subsection{公设 4: 复合系统公设}
+
+\begin{Thm}
+    复合物理系统的状态空间是分物理系统的状态空间的张量积.此外,若系统编号为1到n,且系统i的状态被准备为$\ket{\psi_i}$,则整个系统的联合状态是
+	\begin{equation}
+        \ket{\psi_1}\otimes\ket{\psi_2}\otimes\cdots\otimes\ket{\psi_n}
+    \end{equation}
+\end{Thm}
+
+张量积结构是量子计算中「指数爆炸」的根源: $n$ 个 qubit 的态空间维度为 $2^n$.
+这也是量子计算之所以有潜力的数学基础 —— $n=50$ 时, 态空间维度已经超过 $10^{15}$.
+
+\section{量子比特}
+\subsection{单量子比特}
+量子比特(qubit)是量子计算的基本信息单元, 其数学形式为 $\mathbb{C}^2$ 中的单位向量: 
+
+\begin{equation}
+    \ket{\psi} = \alpha\ket{0} + \beta\ket{1},
+    \quad |\alpha|^2 + |\beta|^2 = 1,
+    \quad \alpha, \beta \in \mathbb{C}
+\end{equation}
+
+\begin{Note}[整体相位]
+    态 $\ket{\psi}$ 和 $e^{i\theta}\ket{\psi}$ 在物理上不可区分.
+    因此 $\ket{\psi}$ 的自由度实际上是 2(而非 4 —— 因为 $\alpha, \beta$ 各有实部和虚部, 但整体相位消除了一维, 归一化条件又消除了一维).
+\end{Note}
+
+\section{量子测量}
+
+\section{量子逻辑门}
+
+\section{量子力学基本约束}
+
+\section{量子算法的评价框架}
+
+
+\end{document}
