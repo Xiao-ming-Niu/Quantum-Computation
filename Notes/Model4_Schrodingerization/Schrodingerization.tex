@@ -1,0 +1,617 @@
+\documentclass[utf8]{article} %中文文档类
+\usepackage[left=2.50cm, right=2.50cm, top=2.50cm, bottom=2.50cm]{geometry} % 页边距
+\usepackage{indentfirst} % 首行缩进
+\usepackage{fancyhdr,fancybox} % 设置页眉、页脚
+\usepackage{ctexcap} % 标题是中文的
+\usepackage{helvet} % 用来指定beamer使用的字体
+\usepackage{hyperref} % bookmarks 
+\usepackage{multicol} % 分栏
+\usepackage{cite} % 引用
+
+\usepackage{graphicx} % 图片
+\usepackage{subcaption} % 子图
+\usepackage{multirow} % 表格
+\usepackage{float} % 浮动体
+\usepackage{booktabs} % 三线表
+\usepackage{longtable} % 长表格
+\usepackage{diagbox} % 表头斜线
+\usepackage{multirow} % 表格合并
+\usepackage{makecell} % 表格换行
+\usepackage{enumitem} % 枚举环境宏包
+\usepackage{framed} % 边框包
+
+\usepackage{amsmath, amsfonts, amssymb} % 数学公式、符号
+\numberwithin{equation}{section}   % 编号从一级标题开始
+\usepackage[english]{babel} % 数学公式标准
+\usepackage{bm} % 加粗方程字体 
+\usepackage{caption} % 标题
+\usepackage{color} % 配色
+\usepackage[braket]{qcircuit} % 启用狄拉克符号支持, 用于绘制电路图
+\usepackage{physics} % 量子力学中的符号加载
+
+\newtheorem{Def}{\hskip 2em {\color{green} 定义}}[subsection]
+\newtheorem{Thm}{\hskip 2em {\color{blue} 定理}}[subsection]
+\newtheorem{Lem}{\hskip 2em {\color{magenta} 引理}}[subsection]
+\newtheorem{Prop}{\hskip 2em {\color{cyan} 命题}}[subsection]
+\newtheorem{Note}{\hskip 2em {\color{red} 注}}[subsection]
+\newtheorem{Cor}{\hskip 2em {\color{cyan} 推论}}[subsection]
+\newtheorem{Eg}{\hskip 2em {\color{black} 例}}[subsection]
+\newenvironment{Proof}{{\noindent\it Proof:}\quad}{\hfill $\sharp $\par}
+\allowdisplaybreaks
+
+% 页眉页脚设置
+\usepackage{fancyhdr}
+\usepackage{lastpage} % 获得总页数
+\pagestyle{fancy}
+\fancyfoot{}
+\lhead{\textit{Schrodingerization}}\chead{}\rhead{\textit{\thepage\ of \pageref{LastPage}}}
+\lfoot{}\cfoot{}\rfoot{}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% 标题设置
+\title{\textbf{Model4 薛定谔化方法}}
+\date{\today}
+\author{\textbf{STU\quad 牛晓铭}}
+
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black
+} % 使目录为黑色字
+\begin{document}  
+\maketitle
+\renewcommand{\contentsname}{} 
+\tableofcontents
+\thispagestyle{empty}
+	
+\newpage
+\setcounter{page}{1}
+\section{引言: 从线性代数到微分方程}
+
+前三个模块建立了量子算法从"语言"到"构件"再到"统一框架"的完整链条:
+Module1 给出了量子计算的语言(量子比特、测量、门), Module2 介绍了 QFT、QPE、振幅放大与
+Trotter 型哈密顿量模拟四类原语, Module3 用 block-encoding、qubitization 与 QSP/QSVT
+把它们统一到"矩阵函数变换"的框架之下. 本模块完成最后一块拼图: 把这些构件用于
+\textbf{科学计算}, 特别是偏微分方程(PDE)与线性代数的量子求解.
+
+\begin{Note}[两条主线]
+    \begin{enumerate}
+        \item \textbf{HHL 算法}(Session 8): 用量子相位估计求解线性方程组 $Ax = b$,
+        是"微分方程 $\to$ 线性代数 $\to$ 量子线路"路线的代表;
+        \item \textbf{薛定谔化方法}(Session 9): 把一般线性 ODE/PDE 通过
+        \textbf{warped phase transformation} 转化为薛定谔方程, 从而直接套用
+        哈密顿量模拟 —— 这是 PDE 量子模拟的现代通用框架.
+    \end{enumerate}
+    两条主线共享同一套底层构件(block-encoding、哈密顿量模拟、振幅放大),
+    因此在进入正题之前, 本模块先对几类常用哈密顿量模拟方法做一次综述, 作为两者的共同基础.
+\end{Note}
+
+\section{HHL 算法: 求解线性方程组}
+
+\subsection{问题设定}
+
+\begin{Def}[量子线性方程组问题 (QLSP)]
+    给定 $n$ 比特矩阵 $A \in \mathbb{C}^{N\times N}$($N = 2^n$)与归一化右端向量
+    $\ket{b} = U_b \ket{0^n}$, 求解
+    \begin{equation}
+        A x = b.
+    \end{equation}
+    由于解 $x = A^{-1}b$ 一般不归一化, 目标不是恢复 $x$ 本身, 而是制备\textbf{归一化解态}
+    \begin{equation}
+        \ket{x} = \frac{A^{-1}\ket{b}}{\norm{A^{-1}\ket{b}}},
+    \end{equation}
+    并使其与真实解满足 $\norm{\ket{x} - \ket{\bar{x}}} \le \varepsilon$.
+\end{Def}
+
+\begin{Note}[厄米假设与膨胀]
+    不失一般性可假设 $A$ 是厄米矩阵: 否则求解其\textbf{厄米膨胀}
+    \begin{equation}
+        \bar{A} = \begin{pmatrix} 0 & A \\ A^\dagger & 0 \end{pmatrix}
+        = \ket{1}\bra{0}\otimes A + \ket{0}\bra{1}\otimes A^\dagger,
+        \qquad
+        \bar{A}\ket{0}\ket{x} = \ket{1}\ket{b},
+    \end{equation}
+    把矩阵维数扩大一倍(增加一个辅助比特)即可. 以下假设 $A$ 厄米且
+    $0 < \lambda_0 \le \dots \le \lambda_{N-1} < 1$,
+    条件数 $\kappa := \norm{A}\norm{A^{-1}} = 1/\lambda_0$.
+\end{Note}
+
+\subsection{算法描述}
+
+设 $A = \sum_j \lambda_j \ket{v_j}\bra{v_j}$ 为谱分解, $\ket{b} = \sum_j \beta_j \ket{v_j}$.
+解可以写成 $A^{-1}\ket{b} = \sum_j \beta_j \lambda_j^{-1}\ket{v_j}$, 因此算法只需
+"读出"每个本征值 $\lambda_j$ 并乘上系数 $\lambda_j^{-1}$ —— 这正是 QPE 擅长的任务.
+
+\begin{Def}[HHL 三步骤]
+    记 $U = e^{i2\pi A}$(由哈密顿量模拟实现), HHL 算法由三步组成:
+    \begin{enumerate}
+        \item \textbf{QPE}: 施加 $U_{\mathrm{QPE}}$ 于 $d$ 比特相位寄存器与系统寄存器,
+        把本征值编码到相位寄存器:
+        \begin{equation}
+            U_{\mathrm{QPE}} \ket{0^d}\ket{v_j} = \ket{\lambda_j}\ket{v_j},
+            \qquad
+            U_{\mathrm{QPE}} \ket{0^d}\ket{b} = \sum_j \beta_j \ket{\lambda_j}\ket{v_j};
+        \end{equation}
+        \item \textbf{受控旋转}: 以相位寄存器为控制, 对信号比特施加旋转
+        \begin{equation}
+            U_{\mathrm{CR}} \ket{0}\ket{\lambda_j}
+            = \Big(\sqrt{1 - C^2/\lambda_j^2}\,\ket{0} + \frac{C}{\lambda_j}\ket{1}\Big)\ket{\lambda_j},
+        \end{equation}
+        其中常数 $C$ 满足 $0 < C \le \lambda_0$(见 \ref{subsec:hhl-cr} 节);
+        \item \textbf{逆 QPE(uncomputation)}: 施加 $U_{\mathrm{QPE}}^\dagger$ 把相位寄存器
+        复位为 $\ket{0^d}$, 使之成为可复用的工作寄存器.
+    \end{enumerate}
+    整体记为 $U_{\mathrm{HHL}}$, 电路如下:
+    \begin{equation*}
+    \Qcircuit @C=1em @R=.8em {
+        \lstick{\ket{0}} & \qw & \qw & \ctrl{1} & \qw & \qw & \meter & \rstick{0/1} \qw \\
+        \lstick{\ket{0^d}} & \gate{U_{\mathrm{QPE}}} & \gate{U_{\mathrm{CR}}} & \gate{U_{\mathrm{QPE}}^\dagger} & \qw & \qw & \qw & \qw \\
+        \lstick{\ket{b}} & \qw & \qw & \qw & \qw & \qw & \qw & \rstick{\ket{x}} \qw
+    }
+    \end{equation*}
+    其中 $U_{\mathrm{QPE}}$ 同时(受控地)作用于系统寄存器, 系统寄存器穿过其方框;
+    $U_{\mathrm{CR}}$ 表示以相位寄存器(内容为 $\lambda_j$)为控制的旋转
+    (电路图中的控制线示意其控制关系, 实际的受控目标在相位寄存器上).
+\end{Def}
+
+\begin{Thm}[HHL 的输出]
+    上述电路实现
+    \begin{equation}
+        U_{\mathrm{HHL}} \ket{0}\ket{b}
+        = \sum_j \beta_j \Big(\sqrt{1 - C^2/\lambda_j^2}\,\ket{0}
+        + \frac{C}{\lambda_j}\ket{1}\Big)\ket{v_j}.
+    \end{equation}
+    测量信号比特: 得到 $1$ 时系统寄存器处于(归一化的)
+    \begin{equation}
+        \ket{x} \propto \sum_j \beta_j \frac{C}{\lambda_j}\ket{v_j} = C A^{-1}\ket{b},
+    \end{equation}
+    即所求近似解(常数 $C$ 在归一化后消失).
+\end{Thm}
+
+\begin{Note}[恢复解的范数]
+    成功概率 $p(1) = \norm{C A^{-1}\ket{b}}^2$, 因此通过估计 $p(1)$
+    (重复运行电路)可以恢复 $\norm{A^{-1}\ket{b}}$.
+\end{Note}
+
+\subsection{受控旋转的实现} \label{subsec:hhl-cr}
+
+\begin{Prop}[按旋转角的受控旋转]
+    设 $0 \le \theta < 1$ 有 $d$ 位定点表示 $\theta = (0.\theta_{d-1}\cdots\theta_0)$.
+    由 $e^{-i\theta Y}$ 的分解, 旋转角 $\theta$ 的受控旋转可写为
+    \begin{equation}
+        U = \sum_{j \in [2^d]} \exp\big(-i (0.j_{d-1}\cdots j_0) Y\big) \otimes \ket{j}\bra{j},
+    \end{equation}
+    即一串以单个比特为控制的 $Y$ 旋转 $R_y(\theta/2^{k})$, 共 $O(d)$ 个门.
+\end{Prop}
+
+\begin{Note}[$U_{\mathrm{CR}}$ 的完整构造]
+    为把本征值 $\lambda_j$(相位寄存器中的 $d'$ 位定点数)转化为旋转角, 取
+    \begin{equation}
+        \theta_j = \arcsin(C/\lambda_j),
+    \end{equation}
+    用经典算术电路实现映射 $U_{\mathrm{angle}}: \ket{\lambda_j} \mapsto \ket{\theta_j}$
+    (需要 $O(\mathrm{poly}(d'))$ 个门与额外工作寄存器), 施加旋转后再用
+    $U_{\mathrm{angle}}^\dagger$ 做 uncomputation. 由此
+    \[ \sin\theta_j = C/\lambda_j, \qquad
+       U_{\mathrm{CR}}\ket{0}\ket{\lambda_j}
+       = \big(\cos\theta_j\ket{0} + \sin\theta_j\ket{1}\big)\ket{\lambda_j}. \]
+\end{Note}
+
+\subsection{复杂度分析}
+
+\begin{Thm}[HHL 的查询复杂度]
+    设 $A$ 厄米正定, $\lambda_0 = 1/\kappa$, 取 $C = 1/\kappa$ 最大化成功概率. 则
+    \begin{enumerate}
+        \item 成功概率: 最坏情形
+        \begin{equation}
+            p(1) = \norm{C A^{-1}\ket{b}}^2 \ge \frac{C^2}{\norm{A^{-1}}^2} = \Omega(\kappa^{-2});
+        \end{equation}
+        \item 精度: 为把归一化解估计到相对精度 $\varepsilon$, QPE 需要
+        \textbf{乘法精度} $\varepsilon/\kappa$(因为 $\lambda_j^{-1}$ 的误差
+        $\delta_j$ 使解产生相对误差 $O(\delta_j/\lambda_j) \le O(\varepsilon)$),
+        因此单次运行对 $U = e^{i2\pi A}$ 的查询数为 $O(\kappa/\varepsilon)$;
+        \item 总复杂度: 重复 $O(\kappa^2)$ 次(AA 之前)得最坏情形
+        $O(\kappa^3/\varepsilon)$; 用振幅放大(见 Module2)把重复次数降为
+        $O(\kappa)$, 得
+        \begin{equation}
+            \text{HHL 查询复杂度} = O\!\Big(\frac{\kappa^2}{\varepsilon}\Big)
+            \quad(\text{含 AA}), \qquad
+            O\!\Big(\frac{\kappa}{\varepsilon}\Big)
+            \quad(\text{最佳情形: } \norm{A^{-1}\ket{b}} = \Omega(1)).
+        \end{equation}
+    \end{enumerate}
+\end{Thm}
+
+\begin{Proof}[思路]
+    AA 的适用性: 由 $U_{\mathrm{HHL}}\ket{0}\ket{b}$ 的形式,
+    好态由单个信号比特 $\ket{1}$ 标志, 反射算子即 $R_{\mathrm{good}} = Z \otimes I$;
+    关于初态的反射由 $U_0 = U_{\mathrm{HHL}}(I \otimes U_b)$ 构造.
+    最坏情形的 $O(\kappa^3/\varepsilon)$ 到 $O(\kappa^2/\varepsilon)$ 的改进正是
+    振幅放大把 $O(\kappa^2)$ 次重复降为 $O(\kappa)$ 次的结果.
+\end{Proof}
+
+\subsection{HHL 的现代替代: QSVT-HHL}
+
+\begin{Note}[QPE 路线与 QSVT 路线的对比]
+    HHL 的精度依赖 $1/\varepsilon$ 来自 QPE 的位数; Module3 的 QSVT 直接
+    用多项式逼近 $f(x) = \kappa/x$, 无需相位寄存器, 也无须逐比特读出本征值:
+    \begin{enumerate}
+        \item \textbf{多项式度}: 在区间 $[-1,-1/\kappa]\cup[1/\kappa,1]$ 上逼近
+        $\kappa/x$ 的奇多项式度数为 $O(\kappa\log(\kappa/\varepsilon))$;
+        \item \textbf{查询复杂度}: 对 $U_A$ 及其逆为
+        $O(\kappa^2\log(\kappa/\varepsilon))$(一般情形);
+        \item \textbf{精度依赖}: $\log(1/\varepsilon)$ 代替 $1/\varepsilon$;
+        \item \textbf{无需膨胀}: QSVT 直接处理非厄米矩阵(奇异值变换),
+        HHL 的 QPE 路线要求 $A$ 厄米(否则先膨胀).
+    \end{enumerate}
+    两种路线的对比总结如下(设系统规模 $N = 2^n$):
+    \begin{center}
+    \begin{tabular}{ccc}
+        \toprule
+        方法 & 精度依赖 & 条件 \\
+        \midrule
+        HHL(QPE) & $\mathrm{poly}(\log N, \kappa, 1/\varepsilon)$ & 需厄米 + 哈密顿量模拟 \\
+        QSVT-HHL & $\mathrm{poly}(\log N, \kappa, \log(1/\varepsilon))$ & 只需 block-encoding \\
+        \bottomrule
+    \end{tabular}
+    \end{center}
+\end{Note}
+
+\begin{Note}[HHL 的讨论]
+    (1) \textbf{与经典迭代法的对比}: HHL 单次查询 $A$ 的代价若为
+    $\mathrm{poly}(n)$(如稀疏矩阵的哈密顿量模拟), 则总门复杂度
+    $O(\mathrm{poly}(n)\,\kappa^2/\varepsilon)$, 当 $n$ 足够大时优于经典
+    $O(N)$ 量级的迭代法; (2) \textbf{查询下界}: 一般 QLSP 求解器至少需要
+    $\Omega(\kappa)$ 次查询(由 no-fast-forwarding 论证); (3) \textbf{读出问题}:
+    HHL 输出的是量子态, 计算期望值 $\bra{x}O\ket{x}$ 还需 $O(1/\varepsilon^2)$ 次采样.
+\end{Note}
+
+\section{常用哈密顿量模拟方法综述}
+
+哈密顿量模拟是 HHL 与薛定谔化的共同底层构件, 本模块先对前两个模块已建立的方法做统一梳理,
+并补充一种基于泰勒级数的方法, 便于后续对比.
+
+\subsection{问题与输入模型}
+
+\begin{Def}[哈密顿量模拟问题]
+    给定厄米矩阵 $H$(或经 block-encoding 访问的 $\alpha$-归一化版本), 制备
+    $e^{-iHt}\ket{\psi_0}$ 到精度 $\varepsilon$. 复杂度以对
+    $U_H$(或稀疏 oracle)的\textbf{查询数}与\textbf{电路深度}衡量.
+\end{Def}
+
+\begin{Note}[评判标准]
+    理想方法应同时满足: (1) 对时间 $t$ 与精度 $\varepsilon$ 的依赖尽可能弱;
+    (2) 查询数少; (3) 电路结构简单(辅助比特少、门类型基本), 适合当前含噪硬件.
+    四类常用方法的定位如下.
+\end{Note}
+
+\subsection{Trotter/Suzuki 乘积公式}
+
+回顾 Module2: 对 $H = \sum_j H_j$, 一阶 Lie--Trotter 公式
+$S_1(\tau) = \prod_j e^{-i\tau H_j}$, 二阶对称公式
+$S_2(\tau) = e^{-i\tau H_1/2}e^{-i\tau H_2}e^{-i\tau H_1/2}$,
+以及 $p$ 阶 Suzuki 组合公式. 达到精度 $\varepsilon$ 所需步数
+
+\begin{equation}
+    L = O\!\Big(\frac{(t\Lambda)^{1+1/p}}{\varepsilon^{1/p}}\Big),
+\end{equation}
+
+其中 $\Lambda = \sum_j \norm{H_j}$ 为 1-范数; 每步调用各 $H_j$ 的演化
+(交换子型误差界可显著改善对系统规模的依赖).
+
+\begin{Note}[Trotter 的定位]
+    优点: 电路结构就是"轮流演化各局部项", 辅助比特为 $O(1)$, 适合 NISQ;
+    缺点: 误差对 $t$ 是多项式(非指数)依赖, 长时演化代价高;
+    且要求每个 $e^{-i\tau H_j}$ 本身容易实现.
+\end{Note}
+
+\subsection{Taylor 级数法与 LCU}
+
+把指数函数展开为 Taylor 级数并截断, 再以 LCU(Module3)合成:
+
+\begin{equation}
+    e^{-iHt} = \sum_{k=0}^{\infty} \frac{(-iHt)^k}{k!}
+    \;\approx\; \sum_{k=0}^{K} \frac{(-it)^k}{k!} H^k,
+\end{equation}
+
+其中每项 $H^k$ 可用 $k$ 次 $U_H$ 的受控版本实现. 由于 $k!$ 项系数快速衰减,
+截断阶数 $K = O\!\big(\tau + \frac{\log(1/\varepsilon)}{\log\log(1/\varepsilon)}\big)$
+($\tau = \Lambda t$)即可达到精度 $\varepsilon$; 查询复杂度为
+
+\begin{equation}
+    O\!\Big(\tau\, \frac{\log(\tau/\varepsilon)}{\log\log(\tau/\varepsilon)}\Big),
+\end{equation}
+
+这是 Berry--Childs--Cleve--Kothari--Somma 的截断 Taylor 级数方法.
+其优点是精度指数依赖(乘性因子 $\log(1/\varepsilon)$), 缺点是 select oracle
+需要对 $H^k$ 的幂做受控, 电路较深, 且成功概率需要振幅放大补偿.
+
+\subsection{Qubitization 与 QSVT 方法}
+
+回顾 Module3: 对 $H$ 的 $(\alpha, m)$-block-encoding $U_H$, qubitization 迭代
+把每个本征方向化为旋转, 再用 QSP 相位因子实现 Jacobi--Anger 展开
+$\cos(\lambda t) = J_0(t) + 2\sum_{k\ge1}(-1)^k J_{2k}(t)T_{2k}(\lambda)$,
+$\sin(\lambda t) = 2\sum_{k\ge0}(-1)^k J_{2k+1}(t)T_{2k+1}(\lambda)$,
+Bessel 系数在 $k \gtrsim \Lambda t$ 后超指数衰减. 由此得到
+
+\begin{equation}
+    \text{电路深度} = O\!\Big(\Lambda t + \log\frac{1}{\varepsilon}\Big),
+\end{equation}
+
+查询数与之同阶. 该复杂度匹配哈密顿量模拟的查询下界
+$\Omega(\Lambda t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$,
+是目前的\textbf{最优方法}(时间与精度为加性关系).
+
+\subsection{对比与选择}
+
+\begin{center}
+\begin{tabular}{lcccl}
+    \toprule
+    方法 & 查询/深度 & 精度依赖 & 辅助比特 & 适用场景 \\
+    \midrule
+    Trotter/Suzuki & $O\big(t^{1+1/p}\varepsilon^{-1/p}\big)$ & 多项式 & $O(1)$ & NISQ, 短时 \\
+    Taylor + LCU & $O\big(t\frac{\log(t/\varepsilon)}{\log\log(t/\varepsilon)}\big)$ & 指数 & $O(\log K)$ & 容错, 长时 \\
+    Qubitization/QSVT & $O(t + \log(1/\varepsilon))$ & 指数 & $O(m+1)$ & 容错, 最优 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{Note}[薛定谔化管线中的选择]
+    薛定谔化把 PDE 化为 $i\partial_t v = H_{\mathrm{eff}} v$ 后, $H_{\mathrm{eff}}$
+    通常可写成"移位算子与对角算子之和"的形式, 自然获得 block-encoding,
+    因此 QSVT 路线(或对其结构定制的高阶 Trotter)是首选;
+    对含噪中间尺度设备, Trotter 仍是务实的备选.
+\end{Note}
+
+\section{薛定谔化方法}
+
+\subsection{动机: PDE 的量子模拟}
+
+一般的线性发展方程(热方程、对流扩散方程、Fokker--Planck 方程、Black--Scholes 方程等)
+在空间离散化后具有形式
+
+\begin{equation}
+    \frac{du}{dt} = L u, \qquad \text{或更一般地} \quad
+    \frac{du}{dt} = A(t) u + f(t),
+\end{equation}
+
+其中 $L$ 或 $A$ 一般\textbf{不是厄米矩阵}(热方程: $L$ 厄米但演化 $e^{-tL}$ 非酉;
+对流方程: $A$ 甚至反厄米). 量子模拟的困难正在于此: 标准的哈密顿量模拟
+只处理 $i\partial_t u = Hu$ 型($H$ 厄米、演化酉)的方程.
+
+\begin{Note}[两条历史路线]
+    \begin{enumerate}
+        \item \textbf{线性化 + 线性方程组}: 对 $u_t = Lu$ 做时间离散
+        (如隐式欧拉 $(I + \Delta t L)u^{n+1} = u^n$), 每步调用 HHL 求解线性方程组,
+        共 $M = T/\Delta t$ 步 —— 需要 $M$ 次线性方程组求解, 每次都要
+        block-encoding 与误差控制;
+        \item \textbf{薛定谔化(Schrödingerisation)}: 把 $u_t = Lu$ \textbf{整体}转化为
+        一个薛定谔方程, 只做\textbf{一次}哈密顿量模拟, 无需时间离散.
+    \end{enumerate}
+    本节的薛定谔化方法由 Jin--Liu--Yu 于 2023--2024 年提出, 是第二条路线的现代实现.
+\end{Note}
+
+\subsection{Warped phase transformation: 半正定情形}
+
+\begin{Thm}[薛定谔化: 热方程型] \label{thm:schrodingerization}
+    设 $u_t = -Lu$, 其中 $L = L^\dagger \succeq 0$($L$ 半正定厄米, 例如
+    $L = -\Delta$ 加边界条件). 引入辅助变量 $p \ge 0$ 与\textbf{warped phase transformation}
+    \begin{equation}
+        v(t, p) = e^{-p}\, u(t),
+    \end{equation}
+    则 $v$ 满足
+    \begin{equation}
+        \partial_p v = -v, \qquad
+        \partial_t v = -Lv = L\,\partial_p v.
+    \end{equation}
+    对 $p$ 做 Fourier 变换($p \to \xi$, $\partial_p \to i\xi$), 得
+    \begin{equation}
+        i\, \partial_t \hat{v}(t, \xi) = -\xi L\, \hat{v}(t, \xi),
+    \end{equation}
+    这是哈密顿量为 $H(\xi) = -\xi L$ 的薛定谔方程; 对每个 $\xi$, $H(\xi)$
+    是厄米算子, 演化 $e^{-iH(\xi)t}$ 是酉的. 原解由
+    \begin{equation}
+        u(t) = e^{p} v(t, p) \quad \text{对任意 } p \ge 0, \qquad
+        \text{或} \quad
+        u(t) = \int_0^\infty v(t, p)\, dp
+    \end{equation}
+    恢复.
+\end{Thm}
+
+\begin{Proof}
+    由 $v = e^{-p}u$ 直接求导: $\partial_p v = -e^{-p}u = -v$,
+    以及 $\partial_t v = e^{-p}(-Lu) = -Lv$. 另一方面
+    $L\partial_p v = L(-v) = -Lv$, 故 $\partial_t v = L\partial_p v$.
+    Fourier 变换后 $\partial_p \to i\xi$, 得
+    $\partial_t \hat v = L \cdot (i\xi)\hat v = i\xi L \hat v$,
+    两边乘 $i$ 即 $i\partial_t\hat v = -\xi L\hat v$.
+    $H(\xi) = -\xi L$ 的厄米性来自 $\xi \in \mathbb{R}$ 与 $L$ 厄米.
+\end{Proof}
+
+\begin{Note}[为什么叫"warped phase"]
+    $v = e^{-p}u$ 相当于在振幅上附加了指数衰减权重 $e^{-p}$;
+    $p$ 方向的"相位扭曲"在 Fourier 变换后把非酉算子 $L$ 变成了厄米算子
+    $-\xi L$, 代价是增加一个维度(辅助变量 $\xi$).
+    直观上: 耗散演化被"提升"到高维空间后变为保范演化, 通过额外的维度
+    记录耗散的历史.
+\end{Note}
+
+\subsection{一般线性系统}
+
+对一般的(非厄米、非自治、带源项)系统, 薛定谔化按如下方式推广:
+
+\begin{Thm}[一般情形的薛定谔化]
+    设 $u_t = A(t)u + f(t)$, 把 $A$ 分解为厄米部分与反厄米部分
+    \begin{equation}
+        A = H_1 - iH_2, \qquad
+        H_1 = \frac{A + A^\dagger}{2}, \qquad
+        H_2 = \frac{i(A^\dagger - A)}{2},
+    \end{equation}
+    即 $H_1$, $H_2$ 均厄米(稳定性条件: $-H_1 \succeq 0$, 对应耗散).
+    做 warped phase transformation $v = e^{-p}u$ 并 Fourier 变换后, 得到
+    \begin{equation}
+        i\, \partial_t \hat v(t, \eta) = \big(\eta H_1 + H_2\big)\, \hat v(t, \eta),
+    \end{equation}
+    哈密顿量 $H_{\mathrm{eff}}(\eta) = \eta H_1 + H_2$ 对每个 $\eta$ 厄米.
+\end{Thm}
+
+\begin{Note}[三种情形的处理]
+    \begin{enumerate}
+        \item \textbf{非厄米部分}: $A$ 的反厄米部分被吸收进 $H_2$;
+        若需要更一般的处理, 也可以用\textbf{厄米膨胀}
+        $H_A = \begin{pmatrix} 0 & A \\ A^\dagger & 0 \end{pmatrix}$
+        把非厄米矩阵嵌入厄米矩阵;
+        \item \textbf{非齐次项 $f(t)$}: 用 \textbf{Duhamel 原理}
+        (Module1)把源项化为对演化算子的积分, 再以 LCU 合成;
+        \item \textbf{非自治系统 $A(t)$}: 把时间 $t$ 视为额外维度
+        (引入 $t$ 的副本), 将非自治问题化为高一个维度的自治问题.
+    \end{enumerate}
+\end{Note}
+
+\subsection{薛定谔化的五步流程}
+
+\begin{Def}[量子模拟 PDE 的标准流程]
+    \begin{enumerate}
+        \item \textbf{薛定谔化}: 用 warped phase transformation 把 $u_t = Lu$
+        化为 $i\partial_t v = H_{\mathrm{eff}} v$(本模块核心);
+        \item \textbf{空间离散化}: 对 $x$ 与辅助变量 $\xi$ 做有限差分/谱离散
+        (注意 $\xi$ 的截断区间与网格由精度要求决定);
+        \item \textbf{Block-encoding}: 把离散后的 $H_{\mathrm{eff}}$ 表示成
+        移位算子与对角算子之和, 构造 $(\alpha, m)$-block-encoding;
+        \item \textbf{哈密顿量模拟}: 用 Trotter 或 qubitization/QSVT 制备
+        $\ket{\Psi(T)} = e^{-iH_{\mathrm{eff}}T}\ket{\Psi(0)}$;
+        \item \textbf{测量读出}: 对 $p$(或 $\xi$)方向做逆 Fourier 变换,
+        通过期望值测量提取 $u(x, T)$(需要 $O(1/\varepsilon^2)$ 次重复).
+    \end{enumerate}
+    其中步骤 3、4 分别对应 Module3 与本节前面的综述.
+\end{Def}
+
+\subsection{例子: 热方程}
+
+\begin{Eg}[一维热方程]
+    考虑 $u_t = u_{xx}$, $x \in (0,1)$, Dirichlet 边界 $u(0,t) = u(1,t) = 0$.
+    二阶中心差分离散化($h = 1/(N+1)$)给出 $u_t = -L_h u$, 其中
+    \begin{equation}
+        L_h = \frac{1}{h^2}
+        \begin{pmatrix}
+            2 & -1 & & \\ -1 & 2 & \ddots & \\ & \ddots & \ddots & -1 \\ & & -1 & 2
+        \end{pmatrix},
+    \end{equation}
+    且 $L_h$ 的特征值为
+    \begin{equation}
+        \lambda_k(L_h) = \frac{4}{h^2}\sin^2\frac{k\pi}{2(N+1)}, \qquad k = 1, \dots, N.
+    \end{equation}
+    由定理 \ref{thm:schrodingerization}, 薛定谔化的哈密顿量为
+    \begin{equation}
+        H_{\mathrm{eff}}(\xi) = -\xi L_h,
+    \end{equation}
+    对每个 $\xi$ 厄米, 演化 $e^{-iH_{\mathrm{eff}}t}$ 可直接模拟.
+    电路中 $\xi$ 的取值编码在一个辅助寄存器中, $H_{\mathrm{eff}}$ 的
+    block-encoding 由 $L_h$ 的三对角结构(或移位算子分解)给出,
+    随后施加 Trotter/QSVT 演化与逆 Fourier 变换读出 $u(x,T)$.
+\end{Eg}
+
+\begin{Note}[耗散与酉演化的关系]
+    半离散热方程的解满足 $\norm{u(t)} \le \norm{u(0)}$(能量单调衰减),
+    但 $e^{-tL_h}$ 本身非酉. 薛定谔化后 $e^{-iH_{\mathrm{eff}}t}$ 是酉的,
+    耗散信息被"编码"进 $\xi$ 方向: 测量 $\xi$ 方向后, 概率集中在
+    与原解一致的分量上 —— 这正是 $e^{-p}$ 权重的作用.
+\end{Note}
+
+\subsection{例子: 对流方程与迎风格式}
+
+\begin{Eg}[一维对流方程]
+    考虑 $u_t + c\,u_x = 0$, $c > 0$. 迎风(upwind)差分
+    $du_j/dt = -\frac{c}{h}(u_j - u_{j-1})$ 给出
+    \begin{equation}
+        u_t = A u, \qquad A = -\frac{c}{h}\,(I - S_-),
+    \end{equation}
+    其中 $S_-$ 为向后移位算子. 迎风格式数值稳定但 $A$ 非厄米; 分解
+    \begin{equation}
+        A = \frac{A + A^\dagger}{2} + \frac{A - A^\dagger}{2} = S + K,
+    \end{equation}
+    $S = S^\dagger$ 厄米, $K = -K^\dagger$ 反厄米, 二者都是移位算子的线性组合,
+    block-encoding 容易构造. 按 $A = H_1 - iH_2$ 取 $H_1 = S$,
+    $H_2 = iK$, 薛定谔化后的哈密顿量为
+    \begin{equation}
+        H_{\mathrm{eff}}(\eta) = \eta S + iK,
+    \end{equation}
+    对每个 $\eta$ 厄米, 可直接模拟.
+\end{Eg}
+
+\subsection{复杂度与量子优势}
+
+\begin{Thm}[薛定谔化的复杂度(离散化后)]
+    设空间网格 $h$, 维数 $d$, 模拟时间 $T$, 精度 $\varepsilon$.
+    Hu--Jin--Liu--Zhang(2024)对显式电路的分析给出:
+    \begin{enumerate}
+        \item 热方程($u_t = \Delta u$): 门复杂度
+        $\widetilde O\!\Big(\frac{d^2 T^2 \norm{u(0)}^3}{h^4 \varepsilon^3 \norm{u(T)}^3}\Big)$,
+        当维数 $d > 5$ 时优于经典方法;
+        \item 对流方程(迎风): 门复杂度
+        $\widetilde O\!\Big(\frac{d T^2 \sum_\alpha c_\alpha^2 \norm{u(0)}^3}{h^2 \varepsilon^3 \norm{u(T)}^3}\Big)$,
+        当维数 $d > 4$ 时优于经典方法.
+    \end{enumerate}
+    经典有限差分在 $d$ 维上的代价随 $d$ 指数增长(维度灾难),
+    而薛定谔化的门复杂度对 $d$ 是多项式 —— 高维问题是量子优势的来源.
+\end{Thm}
+
+\begin{Note}[与 HHL 路线的对比]
+    隐式欧拉 + HHL 路线每时间步调用一次线性方程组求解(共 $M = T/\Delta t$ 次),
+    每次都要 QPE 与误差控制; 薛定谔化把整个 $[0,T]$ 上的演化合并为
+    \textbf{一次}酉演化, 时间离散的误差被消除, 且不要求空间离散化算子的
+    厄米性(迎风格式可直接处理). 两条路线共享 block-encoding 与
+    哈密顿量模拟构件, 区别在于"线性化 + 迭代"与"高维酉化"的取舍.
+\end{Note}
+
+\section{文献与延伸}
+
+\begin{Note}[本模块参考的讲义]
+    \begin{itemize}
+        \item M4S8\_HHL.pdf, Session 8: HHL ii, 2026(本模块 §2 的课件来源);
+        \item M4S9\_Schrodingerization.pdf, Session 9: PDE 的量子模拟, 2026
+        (本模块 §4 的课件来源);
+        \item Lin Lin, \emph{Lecture Notes on Quantum Algorithms for Scientific
+        Computation}(HHL 的完整推导见第 4.3 节).
+    \end{itemize}
+\end{Note}
+
+\begin{Note}[经典文献]
+    \begin{enumerate}
+        \item A. W. Harrow, A. Hassidim, S. Lloyd, \emph{Quantum algorithm for linear
+        systems of equations}, Physical Review Letters 103, 150502 (2009);
+        \item A. M. Childs, R. Kothari, R. D. Somma, \emph{Quantum algorithm for systems
+        of linear equations with exponentially improved dependence on precision},
+        SIAM Journal on Computing 46, 1920 (2017);
+        \item A. Gilyén, Y. Su, G. H. Low, N. Wiebe, \emph{Quantum singular value
+        transformation and beyond}, STOC 2019;
+        \item D. W. Berry, A. M. Childs, R. Cleve, R. Kothari, R. D. Somma,
+        \emph{Simulating Hamiltonian dynamics with a truncated Taylor series},
+        Physical Review Letters 114, 090502 (2015);
+        \item G. H. Low, I. L. Chuang, \emph{Hamiltonian simulation by qubitization},
+        Quantum 3, 163 (2019).
+    \end{enumerate}
+\end{Note}
+
+\begin{Note}[薛定谔化方法的文献]
+    \begin{enumerate}
+        \item S. Jin, N. Liu, Y. Yu, \emph{Quantum simulation of partial differential
+        equations via Schrödingerisation}(提出 warped phase transformation 与一般框架),
+        Physical Review A 108, 032603 (2023);
+        \item S. Jin, N. Liu, Y. Yu, \emph{Quantum Simulation of Partial Differential
+        Equations via Schrödingerization}, Physical Review Letters 133, 230602 (2024);
+        \item J. Hu, S. Jin, N. Liu, L. Zhang, \emph{Quantum circuits for partial
+        differential equations via Schrödingerisation}(首个显式电路实现:
+        热方程与迎风格式对流方程, 含复杂度分析),
+        Quantum 8, 1563 (2024);
+        \item S. Jin, N. Liu, Y. Yu, \emph{Quantum circuits for the heat equation with
+        physical boundary conditions via Schrödingerisation}(Duhamel 原理 + LCU 处理
+        非齐次边界项), 2024;
+        \item S. Jin, N. Liu, Y. Yu, \emph{Quantum simulation of the Fokker--Planck
+        equation via Schrödingerization}(时间分裂与移位算子对角化), 2024;
+        \item 后续进展: Maxwell 方程、带物理边界条件的界面问题、分数阶热方程
+        (Caffarelli--Silvestre 延拓 + 薛定谔化)、量子态基态/热态制备等;
+        薛定谔化同样适用于模拟(连续变量)量子硬件.
+    \end{enumerate}
+\end{Note}
+
+\end{document}

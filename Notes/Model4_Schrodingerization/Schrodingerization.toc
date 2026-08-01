@@ -1,0 +1,23 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}引言: 从线性代数到微分方程}{1}{section.1}%
+\contentsline {section}{\numberline {2}HHL 算法: 求解线性方程组}{1}{section.2}%
+\contentsline {subsection}{\numberline {2.1}问题设定}{1}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}算法描述}{1}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}受控旋转的实现}{2}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}复杂度分析}{3}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}HHL 的现代替代: QSVT-HHL}{3}{subsection.2.5}%
+\contentsline {section}{\numberline {3}常用哈密顿量模拟方法综述}{4}{section.3}%
+\contentsline {subsection}{\numberline {3.1}问题与输入模型}{4}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Trotter/Suzuki 乘积公式}{4}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Taylor 级数法与 LCU}{4}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Qubitization 与 QSVT 方法}{5}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}对比与选择}{5}{subsection.3.5}%
+\contentsline {section}{\numberline {4}薛定谔化方法}{5}{section.4}%
+\contentsline {subsection}{\numberline {4.1}动机: PDE 的量子模拟}{5}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Warped phase transformation: 半正定情形}{6}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}一般线性系统}{6}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}薛定谔化的五步流程}{7}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}例子: 热方程}{7}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}例子: 对流方程与迎风格式}{7}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}复杂度与量子优势}{8}{subsection.4.7}%
+\contentsline {section}{\numberline {5}文献与延伸}{8}{section.5}%
