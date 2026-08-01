@@ -49,7 +49,7 @@
 \renewcommand{\headrulewidth}{0.4pt}
 
 % 标题设置
-\title{\textbf{量子计算数学基础}}
+\title{\textbf{Model1 量子计算数学基础}}
 \date{\today}
 \author{\textbf{STU\quad 牛晓铭}}
 
@@ -180,13 +180,627 @@
     因此 $\ket{\psi}$ 的自由度实际上是 2(而非 4 —— 因为 $\alpha, \beta$ 各有实部和虚部, 但整体相位消除了一维, 归一化条件又消除了一维).
 \end{Note}
 
-\section{量子测量}
+\subsection{Bloch 球表示}
 
-\section{量子逻辑门}
+\begin{Eg}[单量子比特的 Bloch 球表示]
+利用归一化条件 $|\alpha|^2 + |\beta|^2 = 1$, 任意单量子比特态可以写成
+\begin{equation}
+    \ket{\psi} = e^{i\gamma}\left(\cos\frac{\theta}{2}\,\ket{0} + e^{i\varphi}\sin\frac{\theta}{2}\,\ket{1}\right),
+    \qquad \theta \in [0, \pi],\ \varphi, \gamma \in [0, 2\pi).
+\end{equation}
+忽略不可观测的全局相位 $e^{i\gamma}$ 后, 态由 $(\theta, \varphi)$ 完全确定, 可与单位球面上的点一一对应:
+\begin{equation}
+    \mathbf{a} = (\sin\theta\cos\varphi,\ \sin\theta\sin\varphi,\ \cos\theta) \in S^2.
+\end{equation}
+该单位球面称为 \textbf{Bloch 球}. 其中 $\ket{0}$, $\ket{1}$ 分别对应北极和南极;
+$\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\ket{0}-\ket{1})$ 对应 $x$ 轴上的两个点.
+\end{Eg}
 
-\section{量子力学基本约束}
+\begin{Note}
+    Bloch 球表明单量子比特的(物理可区分)态空间是二维曲面 $S^2$.
+    量子门的作用可以理解为 Bloch 球上的旋转(见第 \ref{sec:gates} 节).
+\end{Note}
+
+\subsection{多量子比特与张量积}
+
+\begin{Thm}
+    $n$ 个量子比特组成的复合系统的态空间为
+    \begin{equation}
+        \mathcal{H} = (\mathbb{C}^2)^{\otimes n} \cong \mathbb{C}^{2^n},
+    \end{equation}
+    维数为 $2^n$(而非 $2n$). 若各子系统的状态为 $\ket{\psi_i}$, 则复合系统处于\textbf{乘积态(product state)}
+    \[ \ket{\psi_1}\otimes\ket{\psi_2}\otimes\cdots\otimes\ket{\psi_n}. \]
+\end{Thm}
+
+\begin{Def}[计算基]
+    对 $x = x_1\cdots x_n \in \{0,1\}^n$, 记
+    \begin{equation}
+        \ket{x} := \ket{x_1}\otimes\cdots\otimes\ket{x_n},
+    \end{equation}
+    集合 $\{\ket{x}: x \in \{0,1\}^n\}$ 称为 $\mathbb{C}^{2^n}$ 的\textbf{计算基(computational basis)}.
+    张量积符号常被省略: $\ket{01} \equiv \ket{0,1} \equiv \ket{0}\otimes\ket{1}$, $\ket{0^n} \equiv \ket{0}^{\otimes n}$.
+\end{Def}
+
+\begin{Eg}[两量子比特与 Bell 态]
+    两量子比特的态空间为 $\mathbb{C}^4$, 标准基为
+    \[ \ket{00},\ \ket{01},\ \ket{10},\ \ket{11}. \]
+    \textbf{Bell 态}(又称 EPR 对)定义为
+    \begin{equation}
+        \ket{\Phi^+} = \frac{1}{\sqrt{2}}\big(\ket{00} + \ket{11}\big).
+    \end{equation}
+    Bell 态无法写成任意乘积态 $\ket{a}\otimes\ket{b}$ 的形式(见第 \ref{sec:constraints} 节),
+    这种性质称为\textbf{纠缠(entanglement)}, 是量子计算区别于经典计算的核心资源之一.
+\end{Eg}
+
+\begin{Def}[多比特 Pauli 算子]
+    作用于第 $i$ 个量子比特（$i = 1, \dots, n$）的 Pauli 算子 $P \in \{X, Y, Z\}$ 定义为
+    \begin{equation}
+        P_i := I^{\otimes (i-1)} \otimes P \otimes I^{\otimes (n-i)}.
+    \end{equation}
+    例如两比特系统上 $X_1 = X \otimes I$, $X_2 = I \otimes X$.
+\end{Def}
+
+\subsection{密度算子}
+
+\begin{Def}[密度算子]
+    若量子系统以概率 $p_i$ 处于纯态 $\ket{\psi_i}$($\sum_i p_i = 1$), 则系统的\textbf{密度算子(density operator)}为
+    \begin{equation}
+        \rho := \sum_i p_i \ket{\psi_i}\bra{\psi_i}.
+    \end{equation}
+    纯态 $\ket{\psi}$ 的密度算子为秩 1 矩阵 $\rho = \ket{\psi}\bra{\psi}$.
+\end{Def}
+
+\begin{Thm}
+    算子 $\rho$ 是某个系综的密度算子, 当且仅当满足
+    \begin{enumerate}
+        \item $\rho = \rho^\dagger$(厄米性);
+        \item $\rho \succeq 0$(半正定性);
+        \item $\Tr \rho = 1$(迹归一).
+    \end{enumerate}
+    若 $\rho^2 = \rho$, 则 $\rho$ 为纯态; 否则称为\textbf{混合态(mixed state)}.
+    $n$ 量子比特系统的\textbf{最大混合态}为 $\rho = I/2^n$.
+\end{Thm}
+
+\begin{Prop}[密度算子形式下的公设]
+    密度算子形式下, 四大公设可以改写为:
+    \begin{enumerate}
+        \item 演化: $\rho \to U\rho U^\dagger$;
+        \item 测量: 结果 $m$ 的概率 $p(m) = \Tr(M_m^\dagger M_m \rho)$, 测量后态为
+        $\rho_m = \dfrac{M_m \rho M_m^\dagger}{p(m)}$;
+        \item 期望值: $\langle M \rangle = \Tr(M\rho)$.
+    \end{enumerate}
+    密度算子自动体现全局相位的不可观测性: $\ket{\psi}$ 与 $e^{i\theta}\ket{\psi}$ 对应同一个 $\rho$.
+\end{Prop}
+
+\begin{Def}[部分迹与约化密度算子]
+    对复合系统 $\mathcal{H}_{AB} = \mathcal{H}_A \otimes \mathcal{H}_B$ 上的算子 $T$,
+    定义关于系统 $B$ 的\textbf{部分迹(partial trace)}
+    \begin{equation}
+        \Tr_B T := \sum_i (I_A \otimes \bra{e_i})\, T\, (I_A \otimes \ket{e_i}),
+    \end{equation}
+    其中 $\{\ket{e_i}\}$ 是 $\mathcal{H}_B$ 的一组标准正交基.
+    系统 $A$ 的\textbf{约化密度算子(reduced density operator)}为 $\rho_A := \Tr_B \rho_{AB}$.
+    特别地, 若 $\rho_{AB} = \rho_1 \otimes \rho_2$, 则 $\Tr_B \rho_{AB} = \rho_1$.
+    只作用在子系统 $A$ 上的可观测量 $M = M_A \otimes I_B$ 的测量统计只依赖于 $\rho_A$:
+    \[ p(m) = \Tr\big(P_m \rho_A\big), \qquad \langle M \rangle = \Tr\big(M_A \rho_A\big). \]
+\end{Def}
+
+\begin{Eg}[Bell 态的约化密度算子]
+    Bell 态 $\ket{\Phi^+}$ 的密度算子为
+    \[ \rho_{AB} = \frac{1}{2}\big(\ket{00}\bra{00} + \ket{00}\bra{11} + \ket{11}\bra{00} + \ket{11}\bra{11}\big). \]
+    对系统 $B$ 求部分迹: 对角项 $\Tr_B \ket{00}\bra{00} = \ket{0}\bra{0}$,
+    非对角项 $\Tr_B \ket{00}\bra{11} = \braket{0|1}\,\ket{0}\bra{1} = 0$, 于是
+    \[ \rho_A = \Tr_B \rho_{AB} = \frac{1}{2}\big(\ket{0}\bra{0} + \ket{1}\bra{1}\big) = \frac{I}{2}. \]
+    即复合系统的纯态(Bell 态)在子系统上表现为最大混合态 —— 纠缠的信息完全体现在
+    两个子系统之间的关联中, 而不在任何一个子系统内部.
+\end{Eg}
+
+\begin{Note}[纯化]
+    任意混合态都可以通过引入辅助(ancilla)比特纯化: 若 $\rho = \sum_j p_j \ket{\psi_j}\bra{\psi_j}$,
+    则
+    \[ \ket{\Psi} = \sum_j \sqrt{p_j}\ket{\psi_j}_A \ket{j}_B \qquad\Longrightarrow\qquad \Tr_B \ket{\Psi}\bra{\Psi} = \rho. \]
+\end{Note}
+
+\section{量子逻辑门} \label{sec:gates}
+
+\subsection{单量子比特门}
+
+\begin{Def}[Pauli 门]
+    \begin{equation}
+        X = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}, \qquad
+        Y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}, \qquad
+        Z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}.
+    \end{equation}
+    作用效果: $X\ket{0} = \ket{1}$, $X\ket{1} = \ket{0}$(\textbf{比特翻转});
+    $Z\ket{0} = \ket{0}$, $Z\ket{1} = -\ket{1}$(\textbf{相位翻转}).
+    性质: $X^2 = Y^2 = Z^2 = I$, $XY = iZ$, 且任意两个不同的 Pauli 算子反对易
+    ($\{P, Q\} := PQ + QP = 0$). $\{I, X, Y, Z\}$ 构成 $\mathbb{C}^{2\times 2}$ 的一组基.
+\end{Def}
+
+\begin{Def}[Hadamard 门、相位门与 T 门]
+    \begin{equation}
+        H = \frac{1}{\sqrt{2}} \begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}, \qquad
+        S = \begin{pmatrix} 1 & 0 \\ 0 & i \end{pmatrix}, \qquad
+        T = \begin{pmatrix} 1 & 0 \\ 0 & e^{i\pi/4} \end{pmatrix}.
+    \end{equation}
+    作用: $H\ket{0} = \ket{+}$, $H\ket{1} = \ket{-}$(生成叠加态);
+    $S\ket{1} = i\ket{1}$, $T\ket{1} = e^{i\pi/4}\ket{1}$.
+    性质: $H^2 = I$, $HXH = Z$, $HZH = X$; $S^2 = Z$, $T^2 = S$.
+\end{Def}
+
+\begin{Thm}[旋转门与 Bloch 球旋转]
+    对任意 $P \in \{X, Y, Z\}$ 与实数 $\theta$,
+    \begin{equation}
+        R_P(\theta) := e^{-i\theta P/2} = \cos\frac{\theta}{2}\, I - i\sin\frac{\theta}{2}\, P
+    \end{equation}
+    是酉算子, 对应 Bloch 球上绕 $P$ 轴旋转角度 $\theta$. 特别地
+    \begin{equation}
+        R_z(\theta) = \begin{pmatrix} e^{-i\theta/2} & 0 \\ 0 & e^{i\theta/2} \end{pmatrix}.
+    \end{equation}
+    任何单量子比特酉门都可以写成至多三个旋转门的复合(Euler 分解).
+\end{Thm}
+
+\subsection{多量子比特门}
+
+\begin{Def}[CNOT 门]
+    CNOT(受控非门)的作用为
+    \begin{equation}
+        \text{CNOT}\ket{a}\ket{b} = \ket{a}\ket{a \oplus b},
+        \qquad a \oplus b = (a + b) \bmod 2 \ \text{为异或(XOR)运算},
+    \end{equation}
+    其中 $\ket{a}$ 称为\textbf{控制比特}, $\ket{b}$ 称为\textbf{目标比特}.
+    在计算基 $\{\ket{00}, \ket{01}, \ket{10}, \ket{11}\}$ 下的矩阵表示为
+    \begin{equation}
+        \text{CNOT} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0 \end{pmatrix}.
+    \end{equation}
+    电路表示为
+    \begin{equation*}
+    \Qcircuit @C=1em @R=.8em {
+        \lstick{\ket{a}} & \ctrl{1} & \rstick{\ket{a}} \qw \\
+        \lstick{\ket{b}} & \targ & \rstick{\ket{a \oplus b}} \qw
+    }
+    \end{equation*}
+\end{Def}
+
+\begin{Def}[受控酉门]
+    对任意酉算子 $U$, \textbf{受控-$U$ 门}定义为
+    \begin{equation}
+        CU = \ket{0}\bra{0} \otimes I + \ket{1}\bra{1} \otimes U.
+    \end{equation}
+    CNOT 即 $U = X$ 的情形. 空圈表示以 $\ket{0}$ 为控制态, 可用于实现量子版的条件语句(量子 if).
+\end{Def}
+
+\begin{Def}[SWAP 门与 Toffoli 门]
+    SWAP 门交换两个比特的状态: $\text{SWAP}\ket{a}\ket{b} = \ket{b}\ket{a}$, 电路为
+    \begin{equation*}
+    \Qcircuit @C=1em @R=.8em {
+        \lstick{\ket{a}} & \qswap & \qw & \rstick{\ket{b}} \qw \\
+        \lstick{\ket{b}} & \qswap \qwx & \qw & \rstick{\ket{a}} \qw
+    }
+    \end{equation*}
+    (SWAP 门由两条导线上、下对齐的两个 $\times$ 符号及连接它们的竖线构成.)
+    \textbf{Toffoli 门}(受控受控非门, CCNOT)的作用为
+    \begin{equation}
+        \text{Toffoli}\ket{a}\ket{b}\ket{c} = \ket{a}\ket{b}\ket{c \oplus (a \wedge b)},
+    \end{equation}
+    电路为
+    \begin{equation*}
+    \Qcircuit @C=1em @R=.8em {
+        \lstick{\ket{a}} & \ctrl{1} & \rstick{\ket{a}} \qw \\
+        \lstick{\ket{b}} & \ctrl{1} & \rstick{\ket{b}} \qw \\
+        \lstick{\ket{c}} & \targ & \rstick{\ket{c \oplus (a \wedge b)}} \qw
+    }
+    \end{equation*}
+\end{Def}
+
+\subsection{通用门集}
+
+\begin{Def}
+    一个门集 $\mathcal{S}$ 是\textbf{通用(universal)}的, 若对任意 $n$ 比特酉算子 $U$ 与任意精度
+    $\varepsilon > 0$, 存在 $\mathcal{S}$ 中的门序列 $U_1, \dots, U_m$ 使得
+    $\norm{U - U_m\cdots U_1} \le \varepsilon$(范数取算子范数 $\norm{A} = \sup_{\norm{v}=1}\norm{Av}$).
+    注意通用性允许近似实现 —— 精确实现一般需要连续无穷多门.
+\end{Def}
+
+\begin{Thm}[通用门集的例子]
+    $\{H, T, \text{CNOT}\}$ 与 $\{H, \text{Toffoli}\}$ 都是通用门集.
+\end{Thm}
+
+\begin{Thm}[Solovay--Kitaev 定理]
+    设 $\mathcal{S}$, $\mathcal{T}$ 是两个对逆封闭的通用门集. 则用 $\mathcal{T}$ 中的门模拟
+    $\mathcal{S}$ 中 $m$ 个门构成的电路到精度 $\varepsilon$, 只需 $O\big(m \cdot \mathrm{polylog}(m/\varepsilon)\big)$ 个门;
+    且存在经典算法在 $O\big(m \cdot \mathrm{polylog}(m/\varepsilon)\big)$ 时间内找到该电路.
+    换言之, 通用门集的选择对量子算法的复杂度只造成多项式对数级别的差别.
+\end{Thm}
+
+\begin{Def}[Pauli 群与 Clifford 群]
+    $n$ 比特 \textbf{Pauli 群} $\mathcal{P}_n$ 由
+    $i^k\, P_1 \otimes \cdots \otimes P_n$($P_j \in \{I, X, Y, Z\}$, $k \in \{0, 1, 2, 3\}$)
+    组成, 共 $4^{n+1}$ 个元素.
+    \textbf{Clifford 群} $\mathcal{C}_n$ 是共轭作用下保持 Pauli 群不变的酉算子集合:
+    \begin{equation}
+        \mathcal{C}_n = \big\{C \in U(2^n) : C P C^\dagger \in \mathcal{P}_n,\ \forall P \in \mathcal{P}_n\big\},
+    \end{equation}
+    可由 $\{H, S, \text{CNOT}\}$ 生成.
+\end{Def}
+
+\begin{Note}[Gottesman--Knill 定理]
+    仅含 Clifford 门、初态与测量都在计算基上的量子电路, 可以在经典计算机上高效模拟.
+    因此通用量子计算必须引入非 Clifford 门; 容错量子计算中常用的通用门集是 \textbf{Clifford+T}.
+\end{Note}
+
+\subsection{量子电路与可逆计算}
+
+\begin{Def}[电路约定]
+    量子电路中时间从左向右流动, 每条线(wire)代表一个量子比特, 自上而下依次为第 $0, 1, \dots$ 个量子比特.
+    若干量子比特组成\textbf{寄存器(register)}: 承载主要计算状态的为\textbf{系统寄存器},
+    辅助计算过程、最终需要还原的为\textbf{工作寄存器(working register)},
+    用于控制其它门的为\textbf{控制寄存器}.
+\end{Def}
+
+\begin{Prop}[经典计算的量子化]
+    量子计算机至少与经典计算机一样强大: 任何经典电路都可以高效地用量子电路模拟.
+    关键在于把不可逆的经典门\textbf{可逆化}:
+    \begin{equation}
+        (x, y) \;\longrightarrow\; (x,\ y \oplus f(x)),
+    \end{equation}
+    存储所有中间计算步骤(即保存 $x$), 再用酉算子实现该可逆映射.
+\end{Prop}
+
+\begin{Def}[Oracle]
+    \textbf{Oracle(预言机)}是模拟布尔函数 $f: \{0,1\}^n \to \{0,1\}^m$ 的黑盒酉算子:
+    \begin{equation}
+        U_f \ket{x}\ket{y} = \ket{x}\ket{y \oplus f(x)}.
+    \end{equation}
+    若 $f$ 输出单比特, 也可用\textbf{相位 oracle} $U_f \ket{x} = (-1)^{f(x)}\ket{x}$,
+    这称为\textbf{相位反冲(phase kickback)}: $f(x)$ 的值以相位因子的形式返回,
+    可以同时作用于叠加态中的所有基态.
+\end{Def}
+
+\begin{Note}[Uncomputation]
+    经典计算中存储的中间结果在量子计算中不能直接丢弃: 残留的垃圾寄存器与系统寄存器之间存在纠缠,
+    会干扰后续计算. 处理方法是对可逆电路再施加一遍\textbf{逆运算}(uncomputation),
+    把工作寄存器恢复为 $\ket{0^m}$, 使其不再与系统纠缠, 从而可以复用.
+    这是量子算法设计中最重要的工程原则之一.
+\end{Note}
+
+\section{量子测量} \label{sec:measurement}
+
+\subsection{投影测量与可观测量}
+
+\begin{Thm}[Born 规则]
+    量子\textbf{可观测量(observable)}由态空间上的厄米算子 $M$ 描述, 其谱分解为
+    \begin{equation}
+        M = \sum_m m P_m,
+    \end{equation}
+    其中 $m \in \mathbb{R}$ 为特征值(因为 $M$ 厄米, 特征值必为实数, 从而可以解释为测量结果),
+    $P_m$ 为到特征子空间的投影算子($P_m^2 = P_m$, $P_m P_{m'} = 0$).
+    对处于纯态 $\ket{\psi}$ 的系统测量 $M$:
+    \begin{enumerate}
+        \item 测量结果必定是某个特征值 $m$, 概率为
+        \begin{equation}
+            p_m = \mel{\psi}{P_m}{\psi};
+        \end{equation}
+        \item 测量后系统坍缩到对应特征子空间, 即
+        \begin{equation}
+            \ket{\psi} \;\longrightarrow\; \frac{P_m \ket{\psi}}{\sqrt{p_m}}.
+        \end{equation}
+    \end{enumerate}
+\end{Thm}
+
+投影算子满足\textbf{完备性关系}(单位分解) $\sum_m P_m = I$, 从而
+\[ \sum_m p_m = \sum_m \mel{\psi}{P_m}{\psi} = \braket{\psi|\psi} = 1, \]
+即 $\{p_m\}$ 构成概率分布.
+
+\begin{Cor}[期望值]
+    测量结果的期望值为
+    \begin{equation}
+        \langle M \rangle := \sum_m m\, p_m = \sum_m m \mel{\psi}{P_m}{\psi}
+        = \mel{\psi}{\left(\sum_m m P_m\right)}{\psi} = \mel{\psi}{M}{\psi}.
+    \end{equation}
+\end{Cor}
+
+\begin{Eg}[测量 Pauli-$X$]
+    $X$ 的特征分解为 $X = \ket{+}\bra{+} - \ket{-}\bra{-}$, 特征值为 $\pm 1$,
+    其中 $\ket{\pm} = \frac{1}{\sqrt{2}}(\ket{0} \pm \ket{1})$.
+    对 $\ket{\psi} = \ket{0} = \frac{1}{\sqrt{2}}(\ket{+} + \ket{-})$ 测量 $X$:
+    \[ p_{+} = p_{-} = \frac{1}{2}, \qquad \langle X \rangle = 0. \]
+\end{Eg}
+
+\subsection{一般测量算子与 POVM}
+
+\begin{Thm}
+    一般地, 量子测量由一组\textbf{测量算子(measurement operators)} $\{M_m\}$ 描述,
+    满足\textbf{完备性关系}
+    \begin{equation}
+        \sum_m M_m^\dagger M_m = I.
+    \end{equation}
+    对状态 $\ket{\psi}$:
+    \begin{enumerate}
+        \item 结果 $m$ 出现的概率为 $p(m) = \mel{\psi}{M_m^\dagger M_m}{\psi}$;
+        \item 测量后的状态坍缩为 $\dfrac{M_m \ket{\psi}}{\sqrt{p(m)}}$.
+    \end{enumerate}
+    投影测量是 $M_m = P_m$ 的特殊情形. 完备性关系等价于 $\sum_m p(m) = 1$ 对所有 $\ket{\psi}$ 成立.
+\end{Thm}
+
+\begin{Def}[POVM]
+    令 $E_m := M_m^\dagger M_m$, 则 $E_m \succeq 0$ 且 $\sum_m E_m = I$.
+    算子族 $\{E_m\}$ 称为\textbf{正算子值测度(positive operator-valued measure, POVM)}.
+    对密度算子 $\rho$, 测量结果 $m$ 的概率为 $p(m) = \Tr(E_m \rho)$.
+    与投影测量不同, POVM 的元素 $E_m$ 不必是投影算子($E_m^2 \neq E_m$), 也不必相互正交.
+\end{Def}
+
+\begin{Thm}[Naimark 延拓定理]
+    任何 POVM $\{E_m\}$ 都可以通过在更大的 Hilbert 空间上的投影测量实现:
+    存在辅助空间 $\mathcal{H}_B$、纯态 $\ket{0}_B$ 与投影测量 $\{P_m\}$, 使得对任意 $\rho$,
+    \[ \Tr(E_m \rho) = \Tr\!\big(P_m (\rho \otimes \ket{0}\bra{0}_B)\big). \]
+    因此在量子算法设计中, 通常只需考虑投影测量.
+\end{Thm}
+
+\subsection{测量的两个基本原理}
+
+\begin{Prop}[测量延迟原理]
+    测量可以从量子电路的中间阶段移到电路的末尾: 若中间测量结果被用来对后续门作经典控制,
+    则该经典控制总可以等价地改写为量子控制, 并把测量推迟到电路末端.
+    推迟时需要额外的辅助比特来存储中间测量信息.
+\end{Prop}
+
+\begin{Eg}[测量延迟需要额外比特]
+    电路 $\ket{0} \xrightarrow{H} (\text{测量}) \xrightarrow{H}$ 以概率 $1/2$ 输出 $0$ 或 $1$;
+    若简单地删去中间测量并把两个 $H$ 连续作用, 则 $\ket{0} \xrightarrow{HH} \ket{0}$ 恒输出 $0$.
+    正确的做法是用 CNOT 把测量结果拷贝到辅助比特上, 保留中间信息后再推迟测量.
+\end{Eg}
+
+\begin{Prop}[隐式测量原理]
+    在电路末尾, 未被测量的量子比特可以假设为已被测量: 由约化密度算子的性质可知,
+    测量子系统 $A$ 的统计结果不依赖于子系统 $B$ 是否被测量.
+\end{Prop}
+
+\subsection{期望值的估计: Hadamard 检验}
+
+\begin{Eg}[实部]
+    Hadamard 检验用于估计酉算子 $U$ 在态 $\ket{\psi}$ 上的期望值 $\mel{\psi}{U}{\psi}$:
+    \begin{equation*}
+    \Qcircuit @C=1em @R=.8em {
+        \lstick{\ket{0}} & \gate{H} & \ctrl{1} & \gate{H} & \meter & \rstick{0/1} \qw \\
+        \lstick{\ket{\psi}} & \qw & \gate{U} & \qw & \qw & \qw
+    }
+    \end{equation*}
+    电路将 $\ket{0}\ket{\psi}$ 变换为
+    \[ \frac{1}{2}\ket{0}\big(\ket{\psi} + U\ket{\psi}\big) + \frac{1}{2}\ket{1}\big(\ket{\psi} - U\ket{\psi}\big), \]
+    因此测量第一个量子比特输出 $0$ 的概率为
+    \begin{equation}
+        p(0) = \frac{1}{2}\Big(1 + \Re \mel{\psi}{U}{\psi}\Big).
+    \end{equation}
+\end{Eg}
+
+\begin{Eg}[虚部]
+    在控制比特上、受控门之前施加相位门的共轭 $S^\dagger = \mathrm{diag}(1, -i)$:
+    \begin{equation*}
+    \Qcircuit @C=1em @R=.8em {
+        \lstick{\ket{0}} & \gate{H} & \gate{S^\dagger} & \ctrl{1} & \gate{H} & \meter & \rstick{0/1} \qw \\
+        \lstick{\ket{\psi}} & \qw & \qw & \gate{U} & \qw & \qw & \qw
+    }
+    \end{equation*}
+    此时电路将 $\ket{0}\ket{\psi}$ 变换为
+    \[ \frac{1}{2}\ket{0}\big(\ket{\psi} - iU\ket{\psi}\big) + \frac{1}{2}\ket{1}\big(\ket{\psi} + iU\ket{\psi}\big), \]
+    输出 $0$ 的概率为
+    \begin{equation}
+        p(0) = \frac{1}{2}\Big(1 + \Im \mel{\psi}{U}{\psi}\Big).
+    \end{equation}
+    结合实部、虚部两个电路, 即可完整恢复复数期望值
+    $\mel{\psi}{U}{\psi} = \Re\mel{\psi}{U}{\psi} + i\,\Im\mel{\psi}{U}{\psi}$.
+\end{Eg}
+
+\begin{Eg}[SWAP 检验]
+    SWAP 检验是 Hadamard 检验在 $U$ 取 SWAP 门时的特例, 用于估计两个量子态
+    $\ket{\psi}$, $\ket{\varphi}$ 的重叠度:
+    \begin{equation*}
+    \Qcircuit @C=1em @R=.8em {
+        \lstick{\ket{0}} & \gate{H} & \ctrl{1} & \gate{H} & \meter & \rstick{0/1} \qw \\
+        \lstick{\ket{\psi}} & \qw & \qswap & \qw & \qw & \qw \\
+        \lstick{\ket{\varphi}} & \qw & \qswap \qwx & \qw & \qw & \qw
+    }
+    \end{equation*}
+    其中受控 SWAP 门(又称 Fredkin 门)由控制比特同时控制两个目标比特上的交换操作.
+    测量第一个量子比特输出 $0$ 的概率为
+    \begin{equation}
+        p(0) = \frac{1}{2}\Big(1 + |\braket{\psi|\varphi}|^2\Big).
+    \end{equation}
+\end{Eg}
+
+\begin{Note}
+    SWAP 检验只能估计重叠度的模平方 $|\braket{\psi|\varphi}|^2$ —— 相位信息在测量中被丢弃.
+    若需要复数 $\braket{\psi|\varphi}$ 本身, 可用更精细的相位估计类方法(如 swap test 的推广).
+\end{Note}
+
+\subsection{测量与采样误差}
+
+\begin{Prop}
+    用测量估计期望值 $\langle M \rangle = \Tr(M\rho)$ 到\textbf{加性(additive)}精度 $\varepsilon$,
+    所需样本数满足
+    \begin{equation}
+        N \gtrsim \frac{\mathrm{Var}(M)}{\varepsilon^2},
+        \qquad \mathrm{Var}(M) := \langle M^2 \rangle - \langle M \rangle^2.
+    \end{equation}
+    例如估计单比特输出 $1$ 的概率 $p$(取 $M = \ket{1}\bra{1}$, 则 $\mathrm{Var} = p(1-p)$),
+    需要 $N \gtrsim p(1-p)/\varepsilon^2$ 次采样.
+\end{Prop}
+
+\begin{Note}
+    若 $p$ 接近 $0$ 或 $1$, 加性精度下采样次数很少; 但若要求\textbf{乘性(multiplicative)}精度
+    (相对误差 $\varepsilon$), 则 $N \gtrsim \dfrac{1-p}{p\,\varepsilon^2}$, 当 $p \to 0$ 时代价急剧增大.
+    这一观测是振幅放大(amplitude amplification)等技巧的出发点.
+\end{Note}
+
+\section{量子力学基本约束} \label{sec:constraints}
+
+\subsection{不可克隆定理}
+
+\begin{Thm}[不可克隆定理]
+    不存在酉算子 $U$ 能够对任意未知量子态 $\ket{\psi}$ 完成复制, 即不存在固定的辅助态 $\ket{s}$ 使得
+    \begin{equation}
+        U \ket{\psi}\ket{s} = \ket{\psi}\ket{\psi}, \qquad \forall\, \ket{\psi}.
+    \end{equation}
+\end{Thm}
+
+\begin{Proof}
+    假设这样的 $U$ 存在. 取两个态 $\ket{\psi_1}$, $\ket{\psi_2}$ 满足 $0 < |\braket{\psi_1|\psi_2}| < 1$, 则
+    \[ \braket{\psi_1|\psi_2} = \bra{\psi_1}\bra{s}\, U^\dagger U\, \ket{\psi_2}\ket{s}
+       = \braket{\psi_1|\psi_2}^2, \]
+    迫使 $\braket{\psi_1|\psi_2} \in \{0, 1\}$, 与假设矛盾.
+\end{Proof}
+
+\begin{Note}[两个例外]
+    不可克隆定理有两个重要例外:
+    \begin{enumerate}
+        \item \textbf{已知态的制备}: 若 $\ket{\psi} = U_\psi \ket{s}$ 且 $U_\psi$ 已知, 则
+        $(I \otimes U_\psi)\ket{\psi}\ket{s} = \ket{\psi}\ket{\psi}$;
+        \item \textbf{计算基上的经典信息}: $\text{CNOT}\ket{x}\ket{0} = \ket{x}\ket{x}$,
+        $x \in \{0,1\}$, 即经典比特可以复制.
+    \end{enumerate}
+    事实上, 酉算子可以复制一组\textbf{相互正交}的态, 而一般叠加态不能被复制.
+\end{Note}
+
+\begin{Note}[对科学计算的启示]
+    经典迭代算法(如求解线性方程组的迭代法)需要不断存储中间变量 $y \leftarrow x$,
+    这在量子计算中一般无法直接实现. 这迫使量子算法采用与经典算法本质不同的结构,
+    例如用振幅或相位编码信息、用 uncomputation 释放寄存器.
+\end{Note}
+
+\subsection{不可删除定理}
+
+\begin{Thm}[不可删除定理]
+    不存在酉算子 $U$ 将任意未知量子态重置为 $\ket{0^n}$:
+    \begin{equation}
+        U \ket{0^n}\ket{\psi} = \ket{0^n}\ket{0^n}, \qquad \forall\, \ket{\psi}.
+    \end{equation}
+\end{Thm}
+
+\begin{Proof}
+    若存在, 取正交态 $\ket{\psi_1}$, $\ket{\psi_2}$, 则由酉性
+    \[ 0 = \braket{\psi_1|\psi_2} = \bra{0^n}\bra{\psi_1}\, U^\dagger U\, \ket{0^n}\ket{\psi_2}
+       = \braket{0^n|0^n}^2 = 1, \]
+    矛盾.
+\end{Proof}
+
+\begin{Note}
+    更强的版本: 给定任意未知态的\textbf{两份拷贝}, 也不存在酉算子删除其中一份而保留另一份.
+    不可删除定理与不可克隆定理都是量子力学线性性的直接推论.
+\end{Note}
+
+\subsection{测量坍缩的不可逆性}
+
+\begin{Note}
+    测量是量子力学中唯一\textbf{非酉}、不可逆的操作: 坍缩过程丢失了叠加信息,
+    无法通过酉演化撤销. 这对算法设计构成核心约束:
+    \begin{enumerate}
+        \item 测量结果本质上是概率性的, 量子算法通常只能保证以足够高的概率给出正确答案,
+        或通过多次运行估计期望值;
+        \item 应尽量把测量推迟到电路末端(测量延迟原理), 中间过程保持酉性;
+        \item 中间测量结果的经典控制等价于量子控制, 但需要辅助比特保存信息.
+    \end{enumerate}
+\end{Note}
+
+\subsection{纠缠: 超越乘积态的约束与资源}
+
+\begin{Eg}[Bell 态不是乘积态]
+    设 $\ket{\Phi^+} = \ket{a}\otimes\ket{b}$ 是乘积态, 其中
+    $\ket{a} = \alpha_0\ket{0} + \alpha_1\ket{1}$, $\ket{b} = \beta_0\ket{0} + \beta_1\ket{1}$, 则
+    \[ \ket{\Phi^+} = \alpha_0\beta_0\ket{00} + \alpha_0\beta_1\ket{01} + \alpha_1\beta_0\ket{10} + \alpha_1\beta_1\ket{11}. \]
+    与定义 $\ket{\Phi^+} = \frac{1}{\sqrt{2}}(\ket{00} + \ket{11})$ 比较系数:
+    $\alpha_0\beta_1 = \alpha_1\beta_0 = 0$ 且 $\alpha_0\beta_0 = \alpha_1\beta_1 = 1/\sqrt{2} \neq 0$,
+    即 $\alpha_0, \alpha_1, \beta_0, \beta_1$ 必须全部非零, 矛盾.
+\end{Eg}
+
+\begin{Note}
+    复合系统的态空间 $\mathbb{C}^{2^n}$ 远大于乘积态构成的子集 —— 绝大多数量子态都是纠缠态.
+    纠缠既是量子计算的资源(量子纠错、量子通信、相位估计等依赖纠缠), 也带来约束:
+    例如 Bell 态的约化密度算子是最大混合态, 说明子系统中不含任何可被局部观测到的信息.
+\end{Note}
 
 \section{量子算法的评价框架}
+
+\subsection{量子算法的一般结构}
+
+\begin{Def}
+    一个典型量子算法的组成部分为:
+    \begin{enumerate}
+        \item 初态: 通常为计算基态 $\ket{0^n}$(或由已知制备程序 $U_x \ket{0^n}$ 得到的输入态 $\ket{x}$);
+        \item 酉电路: 由通用门集中的单、双比特门按时间顺序复合而成;
+        \item 末端测量: 在计算基上测量(部分)量子比特, 读取结果.
+    \end{enumerate}
+    系统中的量子比特分为系统寄存器与辅助(ancilla)寄存器; 辅助寄存器中经 uncomputation
+    可复位复用的称为工作寄存器. 由于酉性要求, 中间测量应推迟到末端(见第 \ref{sec:measurement} 节).
+\end{Def}
+
+\subsection{复杂度度量}
+
+\begin{Def}[高效算法]
+    设 $n$ 为输入规模（编码输入所需的量子比特数）. 若电路中的门数为 $O(\mathrm{poly}(n))$ 量级,
+    则称该算法为\textbf{高效的}. 由于测量结果具有概率性, 通常要求算法以足够高的概率
+    (如 $p > 2/3$)输出正确答案; 通过重复运行并取多数投票(Chernoff 界), 可以把错误概率压到任意小.
+\end{Def}
+
+\begin{Def}[三种复杂度]
+    \begin{enumerate}
+        \item \textbf{门复杂度(gate complexity)}: 电路中量子门的总数;
+        \item \textbf{查询复杂度(query complexity)}: 对黑盒 oracle 的调用次数
+        (例如 Grover 搜索对 oracle 的查询下界为 $\Omega(\sqrt{N})$);
+        \item \textbf{电路深度(circuit depth)}: 从输入到输出的任意路径上的最大门数,
+        近似对应真实运行时间(墙钟时间).
+    \end{enumerate}
+\end{Def}
+
+\begin{Note}
+    查询复杂度隐藏了 oracle 本身的实现代价, 门复杂度与查询复杂度之间可能存在巨大差距:
+    有些 oracle(如求逆矩阵对应的 oracle)实现起来极难.
+    因此分析算法时, 应同时确认其它组件不会主导总代价.
+    另外, 量子态只能保持有限时间(相干时间), 电路深度应尽量小, 即使这意味着需要重复运行更多次.
+\end{Note}
+
+\subsection{误差分析: 混合论证与误差线性增长}
+
+\begin{Prop}[混合论证]
+    设 $U_i$, $\tilde U_i$ 为酉算子且 $\norm{U_i - \tilde U_i} \le \varepsilon$($i = 1, \dots, K$), 则
+    \begin{equation}
+        \norm{U_K\cdots U_1 - \tilde U_K \cdots \tilde U_1} \le K \varepsilon.
+    \end{equation}
+    即若每个局部酉门都精确到 $\varepsilon$, 全局误差至多线性增长为 $K\varepsilon$:
+    要实现总精度 $\varepsilon_{\mathrm{tot}}$, 每个门的精度需达到 $\varepsilon_{\mathrm{tot}}/K$ 量级.
+\end{Prop}
+
+\begin{Proof}
+    使用望远镜级数展开:
+    \begin{equation*}
+        U_K\cdots U_1 - \tilde U_K\cdots\tilde U_1
+        = \sum_{i=1}^{K} U_K\cdots U_{i+1}\, (U_i - \tilde U_i)\, \tilde U_{i-1}\cdots \tilde U_1,
+    \end{equation*}
+    对每一项取算子范数, 由酉算子的范数不变性($\norm{U A} = \norm{A}$)与三角不等式即得结论.
+\end{Proof}
+
+\begin{Prop}[Hamiltonian 模拟的 Duhamel 原理]
+    设 $i\partial_t U = HU$, $i\partial_t \tilde U = H\tilde U + B(t)$, $U(0) = \tilde U(0) = I$,
+    其中 $H$ 厄米, $B(t)$ 任意, 则
+    \begin{equation}
+        \norm{U(t) - \tilde U(t)} \le \int_0^t \norm{B(s)}\, ds.
+    \end{equation}
+    这是混合论证的连续时间版本(常数变易法), 是分析 Trotter 分裂等 Hamiltonian 模拟误差的基础.
+\end{Prop}
+
+\subsection{容错计算与阈值定理}
+
+\begin{Thm}[阈值定理]
+    若单个量子门的噪声低于某个常数阈值(约为 $10^{-4}$ 量级, 依赖具体的错误模型与纠错码),
+    则可以通过量子纠错以任意期望精度、仅付出多项式对数级别的开销, 高效执行任意大的量子计算.
+\end{Thm}
+
+\begin{Note}
+    本系列讲义始终假设容错协议已经实现, 因此只需关心两类误差:
+    数学层面的\textbf{近似误差}(如 Trotter 分裂、函数多项式逼近带来的误差),
+    以及读出阶段的\textbf{蒙特卡洛(采样)误差}(由于测量结果本质随机).
+    后续章节对算法复杂度的评价都建立在这个框架之上.
+\end{Note}
 
 
 \end{document}

@@ -6,7 +6,27 @@
 \contentsline {subsection}{\numberline {1.4}公设 4: 复合系统公设}{2}{subsection.1.4}%
 \contentsline {section}{\numberline {2}量子比特}{3}{section.2}%
 \contentsline {subsection}{\numberline {2.1}单量子比特}{3}{subsection.2.1}%
-\contentsline {section}{\numberline {3}量子测量}{3}{section.3}%
-\contentsline {section}{\numberline {4}量子逻辑门}{3}{section.4}%
-\contentsline {section}{\numberline {5}量子力学基本约束}{3}{section.5}%
-\contentsline {section}{\numberline {6}量子算法的评价框架}{3}{section.6}%
+\contentsline {subsection}{\numberline {2.2}Bloch 球表示}{3}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}多量子比特与张量积}{3}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}密度算子}{4}{subsection.2.4}%
+\contentsline {section}{\numberline {3}量子逻辑门}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}单量子比特门}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}多量子比特门}{6}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}通用门集}{6}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}量子电路与可逆计算}{7}{subsection.3.4}%
+\contentsline {section}{\numberline {4}量子测量}{7}{section.4}%
+\contentsline {subsection}{\numberline {4.1}投影测量与可观测量}{7}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}一般测量算子与 POVM}{8}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}测量的两个基本原理}{9}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}期望值的估计: Hadamard 检验}{9}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}测量与采样误差}{10}{subsection.4.5}%
+\contentsline {section}{\numberline {5}量子力学基本约束}{10}{section.5}%
+\contentsline {subsection}{\numberline {5.1}不可克隆定理}{10}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}不可删除定理}{10}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}测量坍缩的不可逆性}{11}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}纠缠: 超越乘积态的约束与资源}{11}{subsection.5.4}%
+\contentsline {section}{\numberline {6}量子算法的评价框架}{11}{section.6}%
+\contentsline {subsection}{\numberline {6.1}量子算法的一般结构}{11}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}复杂度度量}{12}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}误差分析: 混合论证与误差线性增长}{12}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}容错计算与阈值定理}{12}{subsection.6.4}%

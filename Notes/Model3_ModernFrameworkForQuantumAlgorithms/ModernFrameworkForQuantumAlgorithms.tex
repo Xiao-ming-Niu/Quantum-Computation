@@ -1,0 +1,70 @@
+\documentclass[utf8]{article} %中文文档类
+\usepackage[left=2.50cm, right=2.50cm, top=2.50cm, bottom=2.50cm]{geometry} % 页边距
+\usepackage{indentfirst} % 首行缩进
+\usepackage{fancyhdr,fancybox} % 设置页眉、页脚
+\usepackage{ctexcap} % 标题是中文的
+\usepackage{helvet} % 用来指定beamer使用的字体
+\usepackage{hyperref} % bookmarks 
+\usepackage{multicol} % 分栏
+\usepackage{cite} % 引用
+
+\usepackage{graphicx} % 图片
+\usepackage{subcaption} % 子图
+\usepackage{multirow} % 表格
+\usepackage{float} % 浮动体
+\usepackage{booktabs} % 三线表
+\usepackage{longtable} % 长表格
+\usepackage{diagbox} % 表头斜线
+\usepackage{multirow} % 表格合并
+\usepackage{makecell} % 表格换行
+\usepackage{enumitem} % 枚举环境宏包
+\usepackage{framed} % 边框包
+
+\usepackage{amsmath, amsfonts, amssymb} % 数学公式、符号
+\numberwithin{equation}{section}   % 编号从一级标题开始
+\usepackage[english]{babel} % 数学公式标准
+\usepackage{bm} % 加粗方程字体 
+\usepackage{caption} % 标题
+\usepackage{color} % 配色
+\usepackage[braket]{qcircuit} % 启用狄拉克符号支持, 用于绘制电路图
+\usepackage{physics} % 量子力学中的符号加载
+
+\newtheorem{Def}{\hskip 2em {\color{green} 定义}}[subsection]
+\newtheorem{Thm}{\hskip 2em {\color{blue} 定理}}[subsection]
+\newtheorem{Lem}{\hskip 2em {\color{magenta} 引理}}[subsection]
+\newtheorem{Prop}{\hskip 2em {\color{cyan} 命题}}[subsection]
+\newtheorem{Note}{\hskip 2em {\color{red} 注}}[subsection]
+\newtheorem{Cor}{\hskip 2em {\color{cyan} 推论}}[subsection]
+\newtheorem{Eg}{\hskip 2em {\color{black} 例}}[subsection]
+\newenvironment{Proof}{{\noindent\it Proof:}\quad}{\hfill $\sharp $\par}
+\allowdisplaybreaks
+
+% 页眉页脚设置
+\usepackage{fancyhdr}
+\usepackage{lastpage} % 获得总页数
+\pagestyle{fancy}
+\fancyfoot{}
+\lhead{\textit{Modern Framework For Quantum Algorithms}}\chead{}\rhead{\textit{\thepage\ of \pageref{LastPage}}}
+\lfoot{}\cfoot{}\rfoot{}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% 标题设置
+\title{\textbf{Module3 现代量子算法统一框架}}
+\date{\today}
+\author{\textbf{STU\quad 牛晓铭}}
+
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black
+} % 使目录为黑色字
+\begin{document}  
+\maketitle
+\renewcommand{\contentsname}{} 
+\tableofcontents
+\thispagestyle{empty}
+	
+\newpage
+\setcounter{page}{1}
+\section{1}
+
+\end{document}
