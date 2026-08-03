@@ -28,6 +28,9 @@
 \usepackage{color} % 配色
 \usepackage[braket]{qcircuit} % 启用狄拉克符号支持, 用于绘制电路图
 \usepackage{physics} % 量子力学中的符号加载
+\usepackage{tikz} % 绘制示意图
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
 
 \newtheorem{Def}{\hskip 2em {\color{green} 定义}}[subsection]
 \newtheorem{Thm}{\hskip 2em {\color{blue} 定理}}[subsection]
@@ -36,7 +39,7 @@
 \newtheorem{Note}{\hskip 2em {\color{red} 注}}[subsection]
 \newtheorem{Cor}{\hskip 2em {\color{cyan} 推论}}[subsection]
 \newtheorem{Eg}{\hskip 2em {\color{black} 例}}[subsection]
-\newenvironment{Proof}{{\noindent\it Proof:}\quad}{\hfill $\sharp $\par}
+\newenvironment{Proof}[1][\relax]{{\noindent\it Proof\ifx\relax#1\relax\else\ (#1)\fi:}\quad}{\hfill $\sharp$\par}
 \allowdisplaybreaks
 
 % 页眉页脚设置
@@ -129,6 +132,26 @@ $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系
     \cdots \Big(\ket{0} + e^{2\pi i (0.j_{n-1}\cdots j_0)}\ket{1}\Big).
 \end{equation}
 
+\begin{Proof}[张量积形式的推导]
+    把二进制展开式代入定义, 指数因子按 $k_{n-1}, \dots, k_0$ 分离:
+    \begin{equation*}
+    \begin{aligned}
+        U_{\mathrm{FT}} \ket{j_{n-1}\cdots j_0}
+        &= \frac{1}{\sqrt{2^n}}\sum_{k_{n-1},\dots,k_0}
+           e^{2\pi i\big(k_0(0.j_{n-1}\cdots j_0) + \cdots + k_{n-1}(0.j_0)\big)}
+           \ket{k_{n-1}\cdots k_0} \\
+        &= \frac{1}{\sqrt{2^n}}
+           \Big(\sum_{k_{n-1}} e^{2\pi i k_{n-1}(0.j_0)}\ket{k_{n-1}}\Big)
+           \otimes \cdots \otimes
+           \Big(\sum_{k_0} e^{2\pi i k_0(0.j_{n-1}\cdots j_0)}\ket{k_0}\Big).
+    \end{aligned}
+    \end{equation*}
+    第二步把 $n$ 重求和写成张量积, 是因为第 $m$ 个指数因子只依赖对应的求和指标
+    $k_m$(与其它 $k$ 无关). 每个因子都是一个单比特叠加
+    \[ \sum_{k\in\{0,1\}} e^{2\pi i k\varphi}\ket{k} = \ket{0} + e^{2\pi i\varphi}\ket{1}, \]
+    代入即得上式. 注意张量积的因子顺序与输出比特 $k_{n-1}, \dots, k_0$ 一致.
+\end{Proof}
+
 注意: 第一个因子(对应 $\ket{k_{n-1}}$)只依赖最低比特 $j_0$, 而最后一个因子
 (对应 $\ket{k_0}$)依赖全部比特 —— 即\textbf{输出比特的位序与输入相反}.
 
@@ -163,6 +186,16 @@ QFT 电路(以 3 比特为例, 输出位序已反转, 需用 SWAP 门恢复):
     $n$ 比特 QFT 可以用 $O(n^2)$ 个单比特与受控门实现, 电路深度为 $O(n)$.
     逆变换 $U_{\mathrm{FT}}^\dagger$ 只需把所有受控旋转替换为共轭 $R_m^\dagger$ 并反向执行.
 \end{Thm}
+
+\begin{Proof}
+    设比特 $j_0, \dots, j_{n-1}$ 自下而上排列. 比特 $j_m$($m = 0, \dots, n-1$)
+    上需要 1 个 $H$ 门与 $m$ 个受控旋转 $R_2, \dots, R_{m+1}$
+    (分别以更低位为控制), 共 $\sum_{m=0}^{n-1}(m+1) = \frac{n(n+1)}{2}$ 个基本门;
+    恢复位序还需 $\lfloor n/2 \rfloor$ 个 SWAP 门, 因此总门数为 $O(n^2)$.
+    由于同列的门作用在不同的量子比特上、可以并行, 从输入到输出的最长路径
+    只经过 $O(n)$ 个门, 电路深度为 $O(n)$. 逆变换的论证完全相同:
+    受控旋转取共轭 $R_m^\dagger$(即旋转角变号), 位序恢复仍用 SWAP.
+\end{Proof}
 
 \section{量子相位估计 (QPE)}
 
@@ -262,26 +295,68 @@ $|1 - e^{i\varphi}| \ge 2|\varphi|/\pi$ 可得
 \end{equation}
 
 \begin{Thm}[QPE 的精度与成功概率]
-    设精度参数 $\varepsilon = 2^{-d}$, 相位寄存器比特数取
+    设精度参数 $\varepsilon = 2^{-d}$.
+    (1) \textbf{常数成功概率}: 取相位寄存器比特数 $t = d + O(1)$(例如 $t = d + 2$),
+    则 $T = 2^t = O(1/\varepsilon)$, 测量结果 $k_0$ 以\textbf{常数}概率(如 $\ge 3/4$)
+    满足 $\norm{\theta_0 - k_0/T}_1 \le \varepsilon$;
+    (2) \textbf{高成功概率}: 若要求一次运行的失败概率 $\le \varepsilon$, 取
     \begin{equation}
-        t = d + \lceil \log_2(\varepsilon^{-1}) \rceil,
+        t = d + \lceil \log_2(\varepsilon^{-1}) \rceil, \qquad
+        T = 2^t = O(\varepsilon^{-2}),
     \end{equation}
-    则最大模拟时间 $T = 2^t = O(\varepsilon^{-1})$, 且
-    \begin{equation}
-        P\Big(\norm{\theta_0 - k_0/T}_1 \le \varepsilon\Big) \ge 1 - \varepsilon,
-    \end{equation}
-    即测量得到的 $k_0$ 以概率 $\ge 1 - \varepsilon$ 给出 $\theta_0$ 的 $\varepsilon$ 近似.
-    总查询复杂度为 $O(T) = O(1/\varepsilon)$, 比 Hadamard 检验的 $O(1/\varepsilon^2)$ 平方级改进.
+    此时 $P\Big(\norm{\theta_0 - k_0/T}_1 \le \varepsilon\Big) \ge 1 - \varepsilon$.
+    两种情形下, QPE 的查询复杂度 $O(T)$ 都满足: 在常数成功概率下
+    $O(T) = O(1/\varepsilon)$, 比 Hadamard 检验的 $O(1/\varepsilon^2)$ 是\textbf{平方级改进}.
 \end{Thm}
 
 \begin{Proof}
-    由 $|\alpha_k| \le 1/(2T \norm{\theta_0 - k/T}_1)$, 对距离 $\theta_0$ 超过 $\varepsilon$ 的
-    $k$ 求和并用积分放缩:
-    \[ P \le \sum_{\norm{\theta_0 - k/T}_1 \ge \varepsilon} \frac{1}{4T^2 \norm{\theta_0 - k/T}_1^2}
-       \le \frac{1}{2T\varepsilon} + \frac{1}{2(T\varepsilon)^2}. \]
-    取 $T\varepsilon \ge 1$ 即得失败概率 $\le \varepsilon$ 量级. 这也是 Nielsen--Chuang
-    书中结论 $t = n + \lceil\log_2(2 + 1/(2\varepsilon))\rceil$ 的同一尺度.
+    (1) 单个振幅的界: 记 $\delta_k := \theta_0 - k/T$. 由几何级数求和公式
+    $\sum_{j\in[T]} q^j = (1-q^T)/(1-q)$ 与不等式 $|1 - e^{i\varphi}| \ge 2|\varphi|/\pi$,
+    \begin{equation}
+        |\alpha_k| = \Big|\frac{1 - e^{2\pi i T\delta_k}}{T(1 - e^{2\pi i \delta_k})}\Big|
+        \le \frac{1}{2T\, \norm{\theta_0 - k/T}_1}.
+    \end{equation}
+    (2) 失败概率的界: 由于 $k/T$ 在单位圆周上等距分布(间距 $1/T$), 用积分放缩
+    (距离 $\theta_0$ 超过 $\varepsilon$ 的项求和, 两侧各留一个距离约 $1/2$ 的边界项):
+    \begin{equation}
+        P\Big(\norm{\theta_0 - k_0/T}_1 \ge \varepsilon\Big)
+        \le \sum_{\norm{\theta_0 - k/T}_1 \ge \varepsilon}
+        \frac{1}{4T^2\, \norm{\theta_0 - k/T}_1^2}
+        \le \frac{1}{2T\varepsilon} + \frac{1}{2(T\varepsilon)^2}.
+    \end{equation}
+    (3) 情形 (1): 取 $t = d + c$($c$ 常数), 则 $T\varepsilon = 2^c$, 失败概率
+    $\le 2^{-c-1} + 2^{-2c-1}$; 取 $c = 2$ 得 $\le 1/8 + 1/32 = 5/32 < 1/4$;
+    (4) 情形 (2): 取 $t = d + \lceil\log_2(\varepsilon^{-1})\rceil$, 则
+    $T\varepsilon \ge \varepsilon^{-1}$, 失败概率 $\le \varepsilon/2 + \varepsilon^2/2 \le \varepsilon$.
+    这与 Nielsen--Chuang 的结论 $t = n + \lceil\log_2(2 + 1/(2\delta))\rceil$ 一致
+    ($n$ 为精度比特数, $\delta$ 为失败概率): 常数 $\delta$ 时 $t = n + O(1)$,
+    $\delta = \varepsilon$ 时 $t = n + \log_2(1/\varepsilon)$.
 \end{Proof}
+
+图 \ref{fig:qpe} 给出了测量概率 $p(k) = |\alpha_k|^2$ 的分布形状: 在
+$k_0 \approx T\theta_0$ 附近形成一个宽度约为 $1/T$ 的窄峰, 峰外概率迅速衰减
+(这是"以 $1/\varepsilon$ 的模拟时间换取 $1/\varepsilon$ 的相位精度"的几何直观).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.9\textwidth, height=5.2cm,
+    xlabel={$k$}, ylabel={$p(k) = |\alpha_k|^2$},
+    domain=0:63, samples=500, axis lines=middle,
+    xtick={0,22,44,63}, enlarge x limits=false, ymin=0, ymax=1.05
+]
+    \addplot[blue, thick]
+        { ( abs(sin(deg(3.14159*(22.4-x)))) / (64*abs(sin(deg(3.14159*(22.4-x)/64)))) )^2 };
+    \addplot[red, densely dashed] coordinates {(22.4,0) (22.4,1.05)};
+    \node[red] at (axis cs:24.5,0.92) {$k_0 \approx T\theta_0$};
+    \node[blue] at (axis cs:35,0.35) {宽度 $\sim 1/T$};
+\end{axis}
+\end{tikzpicture}
+\caption{QPE 测量概率分布($\theta_0 = 0.35$, $T = 64$): $p(k) = |\alpha_k|^2$ 在
+$k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $|\alpha_k| \to 1$.}
+\label{fig:qpe}
+\end{figure}
 
 \begin{Note}[量子中位数法与两个假设的放松]
     上述分析默认 $\ket{\psi}$ 恰为特征向量且相位有精确二进制表示.
@@ -306,6 +381,23 @@ $|1 - e^{i\varphi}| \ge 2|\varphi|/\pi$ 可得
     若 $p_0$ 很小需乘性精度, 复杂度为 $O(p_0^{-1/2}\varepsilon^{-1})$, 相对采样的
     $O(p_0^{-1}\varepsilon^{-2})$ 仍是平方级改进.
 \end{Prop}
+
+\begin{Proof}[特征态与特征值的验证]
+    在基 $\{\ket{\mathrm{good}}, \ket{\mathrm{bad}}\}$ 下 $G$ 的矩阵为
+    $[G] = \left(\begin{smallmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{smallmatrix}\right)$
+    (见定理 \ref{thm:grover} 的推导). 直接作用:
+    \[ G\ket{\pm} = \frac{1}{\sqrt{2}}\Big(
+       (\cos\theta \mp i\sin\theta)\ket{\mathrm{good}}
+       + (\sin\theta \pm i\cos\theta)\ket{\mathrm{bad}}\Big), \]
+    利用 $e^{\pm i\theta} = \cos\theta \pm i\sin\theta$ 与
+    $\sin\theta \pm i\cos\theta = \pm i e^{\pm i\theta}$, 得
+    \[ G\ket{\pm} = e^{\pm i\theta} \frac{1}{\sqrt{2}}\big(\ket{\mathrm{good}} \pm i\ket{\mathrm{bad}}\big)
+       = e^{\pm i\theta}\ket{\pm}. \]
+    故 $\ket{\pm}$ 是特征态、特征值为 $e^{\pm i\theta}$.
+    又初态 $\ket{\phi_0} = \sqrt{p_0}\ket{\mathrm{good}} + \sqrt{1-p_0}\ket{\mathrm{bad}}$
+    满足 $|\braket{\pm|\phi_0}|^2 = 1/2$(两个分支各半), 因此对 $G$ 做 QPE,
+    一次运行即(以概率 $1/2$)测出 $\theta$ 到精度 $\varepsilon$.
+\end{Proof}
 
 \section{振幅放大 (AA) 与最优振幅放大 (OAA)}
 
@@ -333,7 +425,7 @@ $U_f\ket{x} = (-1)^{f(x)}\ket{x}$ 等价于\textbf{反射算子}
 
 $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
 
-\begin{Thm}[Grover 迭代]
+\begin{Thm}[Grover 迭代] \label{thm:grover}
     记 $\theta = 2\arcsin(1/\sqrt{N})$, 分解
     $\ket{\phi_0} = \sin(\theta/2)\ket{x_0} + \cos(\theta/2)\ket{x_0^\perp}$.
     \textbf{Grover 算子} $G = R_0 R_{x_0}$ 在二维不变子空间
@@ -349,11 +441,54 @@ $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
 \end{Thm}
 
 \begin{Proof}
-    两个反射的乘积是旋转, 且 $\mathrm{span}\{\ket{x_0}, \ket{x_0^\perp}\}$ 是不变子空间:
-    $R_{x_0}$ 保持 $\ket{x_0^\perp}$ 并翻转 $\ket{x_0}$ 的符号, $R_0$ 保持 $\ket{\phi_0}$ 并翻转
-    其正交方向. 直接计算 $G\ket{\phi_0} = \sin(3\theta/2)\ket{x_0} + \cos(3\theta/2)\ket{x_0^\perp}$
-    可知角度从 $\theta/2$ 增为 $3\theta/2$, 每次迭代增加 $\theta$.
+    在基 $B = \{\ket{x_0}, \ket{x_0^\perp}\}$ 中逐块计算. 由
+    $\ket{\phi_0} = (\sin(\theta/2), \cos(\theta/2))^T$ 与 $R_0 = 2\ket{\phi_0}\bra{\phi_0} - I$,
+    \begin{equation}
+        [R_{x_0}]_B = \begin{pmatrix} -1 & 0 \\ 0 & 1 \end{pmatrix}, \qquad
+        [R_0]_B = \begin{pmatrix} -\cos\theta & \sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}.
+    \end{equation}
+    于是
+    \begin{equation}
+        [G]_B = [R_0R_{x_0}]_B
+        = \begin{pmatrix} -\cos\theta & \sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}
+        \begin{pmatrix} -1 & 0 \\ 0 & 1 \end{pmatrix}
+        = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}
+        = e^{-i\theta Y},
+    \end{equation}
+    即 $G$ 是旋转角 $\theta$ 的旋转, 两个反射的乘积确实是旋转(这是"$\mathrm{span}$ 不变"
+    的代数证明). 直接作用于初态:
+    \begin{equation*}
+    \begin{aligned}
+        G\ket{\phi_0}
+        &= \big(\sin(\theta/2)\cos\theta + \cos(\theta/2)\sin\theta\big)\ket{x_0}
+        + \big(\cos(\theta/2)\cos\theta - \sin(\theta/2)\sin\theta\big)\ket{x_0^\perp} \\
+        &= \sin(3\theta/2)\ket{x_0} + \cos(3\theta/2)\ket{x_0^\perp},
+    \end{aligned}
+    \end{equation*}
+    即角度从 $\theta/2$ 增为 $3\theta/2$; 旋转 $k$ 次后角度为
+    $(2k+1)\theta/2$, 得 $G^k\ket{\phi_0}$ 的表达式. 图 \ref{fig:grover} 给出其几何图像.
 \end{Proof}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=3.1]
+    \draw[->,thick] (-0.08,0) -- (1.3,0) node[right] {$\ket{x_0^\perp}$};
+    \draw[->,thick] (0,-0.08) -- (0,1.3) node[above] {$\ket{x_0}$};
+    \draw[->,very thick,blue] (0,0) -- ({cos(15)},{sin(15)}) node[above right] {$\ket{\phi_0}$};
+    \draw[->,very thick,red] (0,0) -- ({cos(45)},{sin(45)}) node[above] {$G\ket{\phi_0}$};
+    \draw[->,very thick,green!50!black] (0,0) -- ({cos(75)},{sin(75)}) node[right] {$G^2\ket{\phi_0}$};
+    \draw[thick,blue] ({0.55*cos(15)},{0.55*sin(15)}) arc (15:45:0.55);
+    \draw[thick,red] ({0.72*cos(45)},{0.72*sin(45)}) arc (45:75:0.72);
+    \node[blue] at ({0.66*cos(30)},{0.66*sin(30)}) {$\theta$};
+    \node[red] at ({0.84*cos(60)},{0.84*sin(60)}) {$\theta$};
+    \node at (0.80,0.10) {$\theta/2$};
+\end{tikzpicture}
+\caption{Grover 迭代的几何图像(取 $\theta/2 = 15^{\circ}$ 示意): 状态在
+$\mathrm{span}\{\ket{x_0},\ket{x_0^\perp}\}$ 内每次旋转角度 $\theta$;
+初态 $\ket{\phi_0}$ 与 $\ket{x_0^\perp}$ 的夹角为 $\theta/2$,
+迭代 $k$ 次后夹角为 $(2k+1)\theta/2$, 逐步趋向标记态 $\ket{x_0}$.}
+\label{fig:grover}
+\end{figure}
 
 \begin{Cor}[查询复杂度]
     取 $k = O\big(1/\theta\big) = O(\sqrt{N})$ 次迭代, 即可使 $\ket{x_0}$ 的振幅达到
@@ -384,6 +519,36 @@ Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
     \end{equation}
     于是 $k = O(1/\theta) = O(1/\sqrt{p})$ 次迭代后, 成功概率达到 $\Omega(1)$.
 \end{Thm}
+
+\begin{Proof}
+    记与 $\ket{\phi_0}$ 正交的单位向量
+    \begin{equation}
+        \ket{\phi_0^\perp} = \cos(\theta/2)\ket{\mathrm{good}} - \sin(\theta/2)\ket{\mathrm{bad}},
+    \end{equation}
+    则 $\{\ket{\phi_0}, \ket{\phi_0^\perp}\}$ 张成同一个二维子空间
+    (由 $\ket{\phi_0}$, $\ket{\mathrm{good}}$ 生成). 反射作用为
+    \begin{equation}
+        R_{\mathrm{good}}\ket{\mathrm{good}} = -\ket{\mathrm{good}}, \quad
+        R_{\mathrm{good}}\ket{\mathrm{bad}} = \ket{\mathrm{bad}}, \quad
+        R_0\ket{\phi_0} = \ket{\phi_0}, \quad
+        R_0\ket{\phi_0^\perp} = -\ket{\phi_0^\perp}.
+    \end{equation}
+    用 $\ket{\phi_0}$, $\ket{\phi_0^\perp}$ 展开 $\ket{\mathrm{good}} = \sin(\theta/2)\ket{\phi_0}
+    + \cos(\theta/2)\ket{\phi_0^\perp}$, $\ket{\mathrm{bad}} = \cos(\theta/2)\ket{\phi_0}
+    - \sin(\theta/2)\ket{\phi_0^\perp}$, 直接计算
+    \begin{equation}
+        [G] = \begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}
+        \quad \text{于基 } \{\ket{\phi_0}, \ket{\phi_0^\perp}\},
+    \end{equation}
+    故 $G^k\ket{\phi_0} = \cos(k\theta)\ket{\phi_0} + \sin(k\theta)\ket{\phi_0^\perp}$, 于是
+    \begin{equation}
+        \bra{\mathrm{good}}G^k\ket{\phi_0}
+        = \sin(\theta/2)\cos(k\theta) + \cos(\theta/2)\sin(k\theta)
+        = \sin\!\big((2k+1)\theta/2\big),
+    \end{equation}
+    其中最后一步用了正弦和角公式. Grover 搜索是其特例:
+    $\ket{\mathrm{good}} = \ket{x_0}$, $p = 1/N$, $\theta = 2\arcsin(1/\sqrt{N})$.
+\end{Proof}
 
 \begin{Eg}[信号比特场景]
     若 $U_0$ 需要 $m$ 个辅助(信号)比特, 即
@@ -486,24 +651,100 @@ Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
     步, 每步调用 $e^{-i\tau H_1}$, $e^{-i\tau H_2}$ 各一次.
 \end{Thm}
 
+\begin{Proof}[局部误差的推导(Taylor 积分余项)]
+    记 $\widetilde U(\tau) = e^{-i\tau H_1}e^{-i\tau H_2}$. 用带积分余项的 Taylor 展开,
+    逐矩阵元素求导: 精确演化 $U(\tau) = e^{-i\tau H}$ 满足 $U(0) = I$, $U'(0) = -iH$,
+    \[ U(\tau) = I - i\tau H - \int_0^{\tau} e^{-isH}H^2(\tau-s)\,ds; \]
+    近似演化满足 $\widetilde U(0) = I$, $\widetilde U'(0) = -iH$,
+    $\widetilde U''(0) = -e^{-isH_1}(H_1^2 + 2H_1H_2 + H_2^2)e^{-isH_2}\big|_{s=0}
+    = -(H_1^2 + 2H_1H_2 + H_2^2)$, 故
+    \[ \widetilde U(\tau) = I - i\tau H
+       - \int_0^{\tau} e^{-isH_1}(H_1^2 + 2H_1H_2 + H_2^2)e^{-isH_2}(\tau-s)\,ds. \]
+    相减并用三角不等式(各 $e^{-i\cdot}$ 因子范数为 1):
+    \begin{equation}
+        \norm{U(\tau) - \widetilde U(\tau)} \le
+        \big(\norm{H}^2 + \norm{H_1}^2 + 2\norm{H_1}\norm{H_2} + \norm{H_2}^2\big)
+        \int_0^{\tau}(\tau-s)\,ds
+        \le \tau^2\big(\norm{H_1} + \norm{H_2}\big)^2,
+    \end{equation}
+    其中最后一步用了 $\norm{H} \le \norm{H_1} + \norm{H_2}$ 与 $\int_0^\tau(\tau-s)ds = \tau^2/2$.
+    这给出局部误差 $O(\tau^2)$ 及显式常数 $\big(\norm{H_1}+\norm{H_2}\big)^2$.
+    $L$ 步复合的全局误差 $O(L\tau^2) = O(t^2/L)$ 来自 Module1 的混合论证
+    (每步误差线性累积). 图 \ref{fig:trotter} 给出乘积公式的结构示意.
+\end{Proof}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1.25]
+    \draw[->,thick] (-0.3,0) -- (12.6,0);
+    \foreach \i in {0,...,5}{
+        \draw[fill=blue!15] (\i*2,0.05) rectangle (\i*2+0.85,0.5);
+        \draw[fill=red!15] (\i*2+1.05,0.05) rectangle (\i*2+1.9,0.5);
+    }
+    \node at (0.42,0.95) {$e^{-i\tau H_1}$};
+    \node at (1.48,0.95) {$e^{-i\tau H_2}$};
+    \draw[<->] (0,-0.15) -- (2,-0.15) node[midway,below] {$\tau = t/L$};
+    \draw[<->] (0,-0.55) -- (12,-0.55) node[midway,below] {$t = L\tau$};
+\end{tikzpicture}
+\caption{一阶 Trotter 乘积公式: 时间区间 $[0,t]$ 划分为 $L$ 步, 每步交替演化
+$e^{-i\tau H_1}$ 与 $e^{-i\tau H_2}$; 单步误差 $O(\tau^2)$, 经 $L$ 步累积为
+$O(L\tau^2) = O(t^2/L)$.}
+\label{fig:trotter}
+\end{figure}
+
 \subsection{交换子型误差界}
 
-上面的 $O(\tau^2)$ 界中的常数可以精确刻画. 对一阶 Trotter, 记 $U(\tau) = e^{-i\tau H_1}e^{-i\tau H_2}$,
-用 Module1 中的 \textbf{Duhamel 原理}分析: $U(\tau)$ 满足
-$i\partial_\tau U = HU + e^{-i\tau H_1}[H_2, e^{i\tau H_1}]\cdots$ 形式的含源方程,
-解出
+上面的 $O(\tau^2)$ 界中的常数可以精确刻画, 而且与 $\norm{H_1}+\norm{H_2}$ 相比,
+更好的常数是\textbf{交换子范数} $\norm{[H_1, H_2]}$.
 
-\begin{equation}
-    \norm{e^{-i\tau H} - e^{-i\tau H_1} e^{-i\tau H_2}}
-    \le \frac{\tau^2}{2}\norm{[H_1, H_2]} \le (\tau \alpha)^2,
-\end{equation}
+\begin{Thm}[交换子型误差界]
+    对一阶 Trotter,
+    \begin{equation}
+        \norm{e^{-i\tau H} - e^{-i\tau H_1} e^{-i\tau H_2}}
+        \le \frac{\tau^2}{2}\,\norm{[H_1, H_2]} \le (\tau \alpha)^2,
+    \end{equation}
+    其中 $\alpha = \max\{\norm{H_1}, \norm{H_2}\}$, 第二式来自
+    \begin{equation}
+        \norm{[H_1,H_2]} \le 2\norm{H_1}\,\norm{H_2} \le 2\alpha^2.
+    \end{equation}
+    于是达到精度 $\varepsilon$ 所需的全局步数为
+    $L = O\big(t^2\norm{[H_1,H_2]}/\varepsilon\big)$.
+\end{Thm}
 
-其中 $\alpha = \max\{\norm{H_1}, \norm{H_2}\}$, 第二式用到了
-\begin{equation}
-    \norm{[H_1,H_2]} \le 2\norm{H_1}\,\norm{H_2}.
-\end{equation}
-于是达到精度 $\varepsilon$ 所需的全局步数为
-$L = O\big(t^2\norm{[H_1,H_2]}/\varepsilon\big)$.
+\begin{Proof}
+    记 $\widetilde U(\tau) = e^{-i\tau H_1}e^{-i\tau H_2}$. 直接求导并拆项:
+    \begin{equation}
+        i\partial_\tau \widetilde U(\tau)
+        = H_1 e^{-i\tau H_1}e^{-i\tau H_2} + e^{-i\tau H_1}H_2 e^{-i\tau H_2}
+        = H\,\widetilde U(\tau) + \big[e^{-i\tau H_1},\, H_2\big]e^{-i\tau H_2},
+    \end{equation}
+    其中 $H = H_1 + H_2$, 最后一步用了 $H_2e^{-i\tau H_1} - e^{-i\tau H_1}H_2$
+    $= [H_2, e^{-i\tau H_1}]$. 这是含"源项" $[e^{-i\tau H_1},H_2]e^{-i\tau H_2}$ 的方程;
+    由 Module1 的 \textbf{Duhamel 原理}($\widetilde U(0) = U(0) = I$),
+    \begin{equation}
+        \widetilde U(\tau) - e^{-i\tau H}
+        = -i\int_0^{\tau} e^{-iH(\tau-s)}\big[e^{-isH_1},\, H_2\big]e^{-isH_2}\,ds,
+    \end{equation}
+    因此
+    \begin{equation}
+        \norm{\widetilde U(\tau) - e^{-i\tau H}}
+        \le \int_0^{\tau}\norm{[e^{-isH_1}, H_2]}\,ds.
+    \end{equation}
+    最后估计交换子. 令
+    \begin{equation}
+        G(s) := [e^{-isH_1}, H_2]\,e^{isH_1}
+        = e^{-isH_1}H_2 e^{isH_1} - H_2,
+    \end{equation}
+    则 $G(0) = 0$, 且对其求导并积分:
+    \begin{equation}
+        i\partial_s G(s) = e^{-isH_1}[H_1, H_2]e^{isH_1}, \qquad
+        \norm{G(s)} \le s\,\norm{[H_1, H_2]},
+    \end{equation}
+    又 $\norm{[e^{-isH_1}, H_2]} = \norm{G(s)} \le s\norm{[H_1,H_2]}$, 代入上面的积分:
+    \[ \norm{\widetilde U(\tau) - e^{-i\tau H}}
+       \le \norm{[H_1,H_2]}\int_0^{\tau} s\,ds = \frac{\tau^2}{2}\norm{[H_1,H_2]}. \]
+    这正是定理的常数. 全局误差 $L$ 步线性累积后即得 $L$ 的依赖.
+\end{Proof}
 
 \begin{Eg}[横向场 Ising 模型: 交换子界优于算子范数界]
     一维横向场 Ising 模型
@@ -549,6 +790,29 @@ $L = O\big(t^2\norm{[H_1,H_2]}/\varepsilon\big)$.
     \end{equation}
     步; 当 $p \to \infty$ 时渐近为 $L = O(t^{1+o(1)}\varepsilon^{-o(1)})$.
 \end{Thm}
+
+\begin{Lem}[组合方法提升阶数]
+    设 $U_p$ 是 $p$ 阶公式, 即短时误差形如 $U_p(t) = U(t) + C\,t^{p+1} + O(t^{p+2})$
+    ($U(t) = e^{-itH}$, $C$ 为有界算子). 若实系数 $s_1, \dots, s_m$ 满足
+    \begin{equation}
+        \sum_{j=1}^{m} s_j = 1, \qquad \sum_{j=1}^{m} s_j^{p+1} = 0,
+    \end{equation}
+    则组合公式 $U_p^{\mathrm{comp}}(t) := U_p(s_m t)\cdots U_p(s_1 t)$ 至少是 $p+1$ 阶.
+\end{Lem}
+
+\begin{Proof}
+    记 $U_j := U(s_j t)$, $\widetilde U_j := U_p(s_j t) = U_j + C(s_j t)^{p+1} + O(t^{p+2})$.
+    由群性质 $\prod_j U_j = e^{-itH\sum_j s_j} = e^{-itH} = U(t)$(用了 $\sum s_j = 1$),
+    且每个 $\widetilde U_j = U_j\big(I + O(t)\big)$, 相乘时保留到 $t^{p+1}$ 阶:
+    \begin{equation}
+        U_p^{\mathrm{comp}}(t) = \prod_{j=1}^{m} \Big(U_j + C(s_j t)^{p+1}\Big)
+        = U(t) + C\,t^{p+1}\Big(\sum_{j=1}^{m} s_j^{p+1}\Big) + O(t^{p+2}),
+    \end{equation}
+    由 $\sum_j s_j^{p+1} = 0$ 消去 $t^{p+1}$ 项, 故误差为 $O(t^{p+2})$, 阶数至少 $p+1$.
+    Trotter--Suzuki 递推正是取 $m = 3$(Yoshida--Suzuki 三跳法)或 $m = 5$(5 级公式)
+    的解 $s_1 = s_3 = \frac{1}{2 - 2^{1/(p+1)}}$ 与
+    $s_1 = s_2 = s_4 = s_5 = \frac{1}{4 - 4^{1/(p+1)}}$ 迭代应用此引理的结果.
+\end{Proof}
 
 \begin{Note}[阶数与代价的权衡]
     高阶公式改进了对 $t$ 和 $\varepsilon$ 的依赖($1/p$ 指数), 但每步的指数个数随阶数

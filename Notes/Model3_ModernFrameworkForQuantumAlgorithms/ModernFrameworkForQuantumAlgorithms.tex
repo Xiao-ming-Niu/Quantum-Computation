@@ -192,6 +192,37 @@ $U^{2^j}$, 而一般的矩阵函数(如 $A^{-1}$、$e^{-iAt}$)并不对应直接
     两个信号比特加 SWAP 的构造得到 $U_A \in \mathrm{HBE}_{s,n+2}(A)$(讲义命题 6.8).
 \end{Def}
 
+\subsection{基本运算}
+
+Block-encoding 不仅是一种输入模型, 还构成一个可组合的\textbf{矩阵运算微积分}:
+归一化因子 $\alpha$ 按照共轭转置、乘积、张量积与加法分别变化为
+$\alpha$, $\alpha\beta$, $\alpha\beta$ 与 $\alpha + \beta$.
+
+\begin{Prop}[Block-encoding 的基本运算]
+    设 $U_A \in \mathrm{BE}_{\alpha,a}(A)$, $U_B \in \mathrm{BE}_{\beta,b}(B)$, 则
+    \begin{enumerate}
+        \item \textbf{共轭转置}: $U_A^\dagger \in \mathrm{BE}_{\alpha,a}(A^\dagger)$;
+        \item \textbf{乘积}(同一系统寄存器上先后作用): 若两个 block-encoding 使用独立的
+        辅助寄存器, 则
+        \begin{equation}
+            (U_A \otimes I_b)(I_a \otimes U_B) \in \mathrm{BE}_{\alpha\beta,\,a+b}(AB);
+        \end{equation}
+        \item \textbf{张量积}(不同系统寄存器上分别作用):
+        \begin{equation}
+            U_A \otimes U_B \in \mathrm{BE}_{\alpha\beta,\,a+b}(A \otimes B);
+        \end{equation}
+        \item \textbf{加法}(LCU 特例): 设两者辅助比特数相同(可补齐), 取
+        $V\ket{0} = \sqrt{\alpha/(\alpha+\beta)}\,\ket{0} + \sqrt{\beta/(\alpha+\beta)}\,\ket{1}$
+        与 $\mathrm{SELECT} = \ket{0}\bra{0}\otimes U_A + \ket{1}\bra{1}\otimes U_B$, 则
+        \begin{equation}
+            (V^\dagger \otimes I)\, \mathrm{SELECT}\, (V \otimes I)
+            \in \mathrm{BE}_{\alpha+\beta,\,a+1}(A + B).
+        \end{equation}
+    \end{enumerate}
+    这些规则都可以由定义直接验证; 后选择成功概率相应地随 $\alpha$ 变化,
+    因此 $\alpha$ 是 block-encoding 线路代价的核心参数.
+\end{Prop}
+
 \section{Qubitization: 把反射变成旋转}
 
 \subsection{标量启发: 旋转与 Chebyshev 多项式}
@@ -335,6 +366,24 @@ $\mathrm{diag}(1,0)$, 故 $Z := 2\Pi - I$ 的表示为 $\mathrm{diag}(1,-1)$,
     需要多比特受控旋转; 直接实现时代价随 $K$ 线性增长. 此外 $f(A)$ 的
     1-范数 $\lambda_1$ 通常较大(如 Chebyshev 展开的 $\lambda_1$ 随度数增长).
     下一节的 QSP/QET 正是为了消除这两个困难而提出.
+\end{Note}
+
+\begin{Note}[Oblivious amplitude amplification]
+    标准振幅放大(Module2)需要制备并反制备当前输入态, 在多步骤算法中代价高昂.
+    若 block-encoding 的目标块本身是酉矩阵 $U$($U_A \in \mathrm{BE}_{\alpha,a}(U)$),
+    则成功概率 $p = \norm{U\ket{\psi}}^2/\alpha^2 = 1/\alpha^2$ 与输入态无关,
+    因此可以用只检查辅助寄存器的\textbf{ oblivious 振幅放大}:
+    \begin{equation}
+        Q_{\mathrm{obl}} := -\, U_A\, Z_\Pi\, U_A^\dagger\, Z_\Pi,
+        \qquad Z_\Pi := I - 2\big(\ket{0^a}\bra{0^a}\otimes I\big).
+    \end{equation}
+    记 $\sin\theta = 1/\alpha$, 则 $Q_{\mathrm{obl}}$ 每轮在
+    $\mathrm{span}\{\ket{0^a}U\ket{\psi}, \ket{\Phi^\perp}\}$ 中旋转角度 $2\theta$,
+    与输入态 $\ket{\psi}$ 无关; 特别地 $\alpha = 2$ 时一轮即可把成功概率从 $1/4$
+    提高到 $1$. 对目标块非酉的一般 $A$, 不能直接使用 oblivious 版本,
+    而应使用 Module2 中依赖输入态的标准振幅放大; OAA 的关键应用是
+    Taylor/LCU 型 Hamiltonian simulation 中每个 $U_\xi(T)$ 或单步酉演化因子
+    本身是酉的, 此时放大与中间态 $\ket{\psi}$ 无关, 可以安全地嵌套进多步算法.
 \end{Note}
 
 \section{QSP 与 QET: 相位因子编码多项式}
@@ -551,12 +600,14 @@ $H'_i = \mathrm{span}\{\ket{0^m}\ket{w_i}, \ket{\Phi'_i}\}$, 且矩阵表示为�
     分别用 QET 实现 $\cos$ 与 $\sin$ 部分(奇偶性恰好匹配)再用一个辅助比特组合,
     得到 $e^{itH}$ 的 $(2, m+2)$-block-encoding, 电路深度
     \begin{equation}
-        O\!\big(t + \log(1/\varepsilon)\big),
+        O\!\Big(t + \frac{\log(1/\varepsilon)}{\log\log(1/\varepsilon)}\Big),
     \end{equation}
     其中每个 $U_H$ 调用一次. 该复杂度匹配哈密顿量模拟的查询下界
     $\Omega(t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$ —— 相比 Trotter 方法
     $L = O(t^{1+1/p}\varepsilon^{-1/p})$ 的\textbf{乘性}依赖, 这里 $t$ 与
     $\log(1/\varepsilon)$ 是\textbf{加性}关系, 这是本质改进.
+    若只有 $(\alpha,m)$-block-encoding(而非 $\alpha = 1$), 上式中的 $t$ 换成 $\alpha t$;
+    后选择概率约为 $1/4$ 量级, 可再用 oblivious 振幅放大补偿.
 \end{Thm}
 
 \begin{Note}[为什么能避免时间分段]
@@ -618,6 +669,22 @@ $p(A) \in \mathrm{BE}_{1,m+1}(p(A))$.
     任意接近 1 —— 解决了 Module2 中普通振幅放大"需要知道 $p$"的根本缺陷.
     至此, QFT/QPE、Grover/AA、Trotter 与 HHL 等原语全部统一在
     block-encoding + qubitization + QSP/QSVT 的框架之下.
+\end{Note}
+
+\begin{Note}[本模块的主要文献]
+    本模块的框架与定理主要来自:
+    \begin{itemize}
+        \item A. Gilyén, Y. Su, G. H. Low, N. Wiebe, \emph{Quantum singular value
+        transformation and beyond}, STOC 2019; arXiv:1806.01838;
+        \item G. H. Low, I. L. Chuang, \emph{Hamiltonian simulation by qubitization},
+        Quantum 3, 163 (2019); arXiv:1610.06546;
+        \item D. W. Berry, A. M. Childs, R. Cleve, R. Kothari, R. D. Somma,
+        \emph{Simulating Hamiltonian dynamics with a truncated Taylor series},
+        PRL 114, 090502 (2015);
+        \item Lin Lin, \emph{Lecture Notes on Quantum Algorithms for Scientific
+        Computation}(2022)以及 Lin Lin \& Nathan Wiebe 的同名讲义(2026).
+    \end{itemize}
+    相位因子的数值求解可参考 QSPPACK: \texttt{https://github.com/qsppack/QSPPACK}.
 \end{Note}
 
 \end{document}

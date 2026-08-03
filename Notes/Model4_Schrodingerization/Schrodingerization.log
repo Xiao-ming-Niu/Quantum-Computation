@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999995 (TeX Live 2023) (preloaded format=xelatex 2023.9.19)  2 AUG 2026 01:47
+This is XeTeX, Version 3.141592653-2.6-0.999995 (TeX Live 2023) (preloaded format=xelatex 2023.9.19)  3 AUG 2026 19:24
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -956,12 +956,27 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
  [1
 
-]
+] [2]
 
 LaTeX Font Warning: Font shape `TU/SimSun(0)/b/it' undefined
 (Font)              using `TU/SimSun(0)/b/n' instead on input line 78.
 
-[1] <xymatrix 8x3 1090> [2] [3] [4] [5] [6] [7] [8] [9] 
+[1] <xymatrix 8x3 1090> [2] [3] [4] [5] [6] [7] [8]
+Overfull \hbox (3.62518pt too wide) in paragraph at lines 667--671
+[][]\TU/SimSun(0)/m/it/10.53937 薛 定 谔 化 后 的 时 间 依 赖 系 统 形 如 $[] \OT1/cmr/m/n/10.53937 = \OMS/cmsy/m/n/10.53937 ^^@\OML/cmm/m/it/10.53937 iH\OT1/cmr/m/n/10.53937 (\OML/cmm/m/it/10.53937 t\OT1/cmr/m/n/10.53937 )\OML/cmm/m/it/10.53937 w$\TU/lmr/m/it/10.53937 ,
+ []
+
+[9]
+Overfull \hbox (279.2639pt too wide) in paragraph at lines 727--745
+ [] 
+ []
+
+[10]
+Overfull \hbox (7.8921pt too wide) in paragraph at lines 814--817
+\TU/lmr/m/n/10.53937 via Schrödingerisation\TU/lmr/m/it/10.53937 (Duhamel \TU/SimSun(0)/m/it/10.53937 原 理 \TU/lmr/m/it/10.53937 + LCU \TU/SimSun(0)/m/it/10.53937 处 理 非 齐 次 边 界 项\TU/lmr/m/it/10.53937 ), 2024; \TU/SimSun(0)/m/it/10.53937 亦 可 参 考 \TU/lmr/m/it/10.53937 arXiv:2403.10032
+ []
+
+[11] [12] 
 enddocument/afterlastpage: lastpage setting LastPage.
 (./Schrodingerization.aux)
  ***********
@@ -973,15 +988,15 @@ L3 programming layer <2022/07/14>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `Schrodingerization.out' has not changed.
-(rerunfilecheck)             Checksum: CD2A65B38C463B1B84C555FD7E33372F;2925.
+(rerunfilecheck)             Checksum: 5185B6F704D6C9D1098978AE3175A89D;3718.
  ) 
 Here is how much of TeX's memory you used:
- 24011 strings out of 475591
- 474485 string characters out of 5771200
- 1949432 words of memory out of 5000000
- 44916 multiletter control sequences out of 15000+600000
+ 24035 strings out of 475591
+ 476109 string characters out of 5771200
+ 1948432 words of memory out of 5000000
+ 44940 multiletter control sequences out of 15000+600000
  575387 words of font info for 136 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  107i,19n,111p,1274b,902s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on Schrodingerization.pdf (10 pages).
+Output written on Schrodingerization.pdf (14 pages).

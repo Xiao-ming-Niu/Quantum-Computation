@@ -43,7 +43,7 @@ Unlike classical Newtonian mechanics, quantum mechanics starts from four mathema
 Almost every quantum algorithm uses the following four **quantum algorithm primitives** as subroutines.
 
 - **Quantum Fourier transform (QFT)**: definition and basic properties, binary decomposition and tensor-product structure, circuit implementation in $O(n^2)$;
-- **Quantum phase estimation (QPE)**: problem setup and the Hadamard test, controlled-$U^{2^j}$ and binary decomposition, the QFT-based QPE circuit, error analysis ($t = d + \log_2(1/\varepsilon)$), application: amplitude estimation;
+- **Quantum phase estimation (QPE)**: problem setup and the Hadamard test, controlled-$U^{2^j}$ and binary decomposition, the QFT-based QPE circuit, error analysis ($T = O(1/\varepsilon)$ for constant success probability; $t = d + \lceil\log_2\delta^{-1}\rceil$ for failure probability $\delta$), application: amplitude estimation;
 - **Amplitude amplification (AA) and optimal amplitude amplification (OAA)**: Grover search (the prototype of amplitude amplification), the general framework (geometric rotations, signal bits), deterministic amplification for known $p$;
 - **Lie–Trotter and Hamiltonian simulation**: problem setup, the Lie product formula and first-order Trotter, commutator-based error bounds, symmetric splitting and higher-order Suzuki formulas, implementing local evolutions and the commuting case.
 
@@ -53,12 +53,12 @@ Circuit diagrams for QFT / QPE / AA are drawn with the `qcircuit` package.
 
 The primitives in Model 2 must all handle **non-unitary objects**. This module unifies them under a "matrix-function transformation" framework built from three progressively deeper concepts.
 
-- **Block-encoding (an input model for non-unitary matrices)**: input models and matrix-query oracles, the $(\alpha, m, \varepsilon)$-BE definition, several constructions (diagonal / SVD / $s$-sparse / Hermitian);
+- **Block-encoding (an input model for non-unitary matrices)**: input models and matrix-query oracles, the $(\alpha, m, \varepsilon)$-BE definition, several constructions (diagonal / SVD / $s$-sparse / Hermitian), basic calculus (adjoint / product / tensor product / addition);
 - **Qubitization (turning reflections into rotations)**: a scalar heuristic (rotations and Chebyshev polynomials), qubitization of Hermitian BE, qubitization of general BE;
-- **LCU (quantum implementation of linear combinations)**: prepare/select structure, lemma and proof;
+- **LCU (quantum implementation of linear combinations)**: prepare/select structure, lemma and proof, oblivious amplitude amplification;
 - **QSP and QET (encoding polynomials in phase factors)**: scalar representation theorem, parity conditions, real polynomials, quantum eigenvalue transformation;
 - **QSVT (singular value transformation)**: generalized matrix functions, qubitization of general matrices and the QSVT theorem, matrix dilation (Hermitian-dilation equivalence);
-- **Applications**: Hamiltonian simulation via the Jacobi–Anger expansion in $O(t + \log(1/\varepsilon))$, solving linear systems (QLSP) in $O(\kappa^2 \log(\kappa/\varepsilon))$, ground-state preparation and fixed-point amplitude amplification.
+- **Applications**: Hamiltonian simulation via the Jacobi–Anger expansion in $O(t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$, solving linear systems (QLSP) in $O(\kappa^2 \log(\kappa/\varepsilon))$, ground-state preparation and fixed-point amplitude amplification.
 
 ### Model 4: Schrödingerization Method
 
@@ -66,7 +66,8 @@ This module applies the components built in the previous three modules to **scie
 
 - **The HHL algorithm (solving linear systems)**: problem setup, algorithm description, implementation of the controlled rotation, complexity analysis $O(\kappa^2/\varepsilon)$ (including amplitude amplification), comparison with QSVT-HHL;
 - **Overview of common Hamiltonian simulation methods**: Trotter/Suzuki product formulas, the Taylor-series approach with LCU, Qubitization and QSVT methods, comparison and choice;
-- **The Schrödingerization method**: motivation (quantum simulation of PDEs), warped phase transformation (semidefinite case: $v = e^{-p}u \to i\partial_t \hat{v} = -\xi L \hat{v}$; general case: $A = H_1 - iH_2 \to i\partial_t \hat{v} = (\eta H_1 + H_2)\hat{v}$), the five-step Schrödingerization workflow, the heat equation and the advection equation (upwind scheme) examples, complexity and quantum advantage;
+- **The Schrödingerization method**: motivation (quantum simulation of PDEs), warped phase transformation (semidefinite case: $v = e^{-p}u \to i\partial_t \hat{v} = -\xi L \hat{v}$; general case: $A = H_1 - iH_2 \to i\partial_t \hat{v} = (\eta H_1 + H_2)\hat{v}$), recovery theorem and recovery intervals, smooth initialization (optimal $\mu_{\max} = O(\log(1/\varepsilon))$), the five-step Schrödingerization workflow, heat equation and advection equation (upwind scheme) examples, source-term augmentation and autonomization, complexity and quantum advantage;
+- **A family of unitarization methods**: a unified view and selection criteria for Schrödingerization, LCHS, Transmutation, and moment-matching dilation;
 - **References and extensions**: the latest advances in Schrödingerization (Jin–Liu–Yu PRA 2023 / PRL 2024, Hu–Jin–Liu–Zhang Quantum 2024, etc.).
 
 ## References and Sources
@@ -82,7 +83,14 @@ The notes are primarily compiled from the following materials:
    - A. Gilyén, Y. Su, G. H. Low, N. Wiebe, *Quantum singular value transformation and beyond*, STOC 2019;
    - D. W. Berry, A. M. Childs, R. Cleve, R. Kothari, R. D. Somma, *Simulating Hamiltonian dynamics with a truncated Taylor series*, PRL 114, 090502 (2015);
    - G. H. Low, I. L. Chuang, *Hamiltonian simulation by qubitization*, Quantum 3, 163 (2019);
-   - Schrödingerization: S. Jin, N. Liu, Y. Yu, *Quantum simulation of partial differential equations via Schrödingerisation*, PRA 108, 032603 (2023); the same authors, PRL 133, 230602 (2024); J. Hu, S. Jin, N. Liu, L. Zhang, *Quantum circuits for partial differential equations via Schrödingerisation*, Quantum 8, 1563 (2024), etc.
+- Schrödingerization: S. Jin, N. Liu, Y. Yu, *Quantum simulation of partial differential equations via Schrödingerisation: technical details*, PRA 108, 032603 (2023), [arXiv:2212.14703](https://arxiv.org/abs/2212.14703); the same authors, PRL 133, 230602 (2024), [arXiv:2212.13969](https://arxiv.org/abs/2212.13969); J. Hu, S. Jin, N. Liu, L. Zhang, *Quantum circuits for partial differential equations via Schrödingerisation*, Quantum 8, 1563 (2024), [arXiv:2403.10032](https://arxiv.org/abs/2403.10032); see also LCHS [arXiv:2303.01029](https://arxiv.org/abs/2303.01029), near-optimal non-unitary dynamics [arXiv:2312.03916](https://arxiv.org/abs/2312.03916), moment-matching dilation [arXiv:2507.10285](https://arxiv.org/abs/2507.10285), transmutation [arXiv:2601.03616](https://arxiv.org/abs/2601.03616), etc.
+
+## Public Resources
+
+- [arXiv:1806.01838](https://arxiv.org/abs/1806.01838) Gilyén–Su–Low–Wiebe, *Quantum singular value transformation and beyond*;
+- [arXiv:1610.06546](https://arxiv.org/abs/1610.06546) Low–Chuang, *Hamiltonian simulation by qubitization*;
+- [QSPPACK](https://github.com/qsppack/QSPPACK): numerical solver for QSP/QSVT phase factors;
+- Local reference folder: `G:\Agent_Projects\自学_量子计算_薛定谔化\References` (day16–day19 slides, QASC summer 2026 sections, Schrödingerization circuit notes, and the complete reference archive).
 
 ## Compilation
 

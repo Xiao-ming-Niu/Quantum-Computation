@@ -16,8 +16,12 @@
 \contentsline {subsection}{\numberline {4.1}动机: PDE 的量子模拟}{5}{subsection.4.1}%
 \contentsline {subsection}{\numberline {4.2}Warped phase transformation: 半正定情形}{6}{subsection.4.2}%
 \contentsline {subsection}{\numberline {4.3}一般线性系统}{6}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}薛定谔化的五步流程}{7}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}例子: 热方程}{7}{subsection.4.5}%
-\contentsline {subsection}{\numberline {4.6}例子: 对流方程与迎风格式}{7}{subsection.4.6}%
-\contentsline {subsection}{\numberline {4.7}复杂度与量子优势}{8}{subsection.4.7}%
-\contentsline {section}{\numberline {5}文献与延伸}{8}{section.5}%
+\contentsline {subsection}{\numberline {4.4}恢复定理与恢复区间}{7}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}薛定谔化的五步流程}{7}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}例子: 热方程}{8}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}例子: 对流方程与迎风格式}{8}{subsection.4.7}%
+\contentsline {subsection}{\numberline {4.8}Smooth initialization 与最优精度依赖}{8}{subsection.4.8}%
+\contentsline {subsection}{\numberline {4.9}带源项与时间依赖系统}{9}{subsection.4.9}%
+\contentsline {subsection}{\numberline {4.10}复杂度与量子优势}{10}{subsection.4.10}%
+\contentsline {section}{\numberline {5}酉化方法族: 薛定谔化、LCHS、Transmutation 与 Dilation}{10}{section.5}%
+\contentsline {section}{\numberline {6}文献与延伸}{11}{section.6}%

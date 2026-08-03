@@ -334,7 +334,8 @@ $\sin(\lambda t) = 2\sum_{k\ge0}(-1)^k J_{2k+1}(t)T_{2k+1}(\lambda)$,
 Bessel 系数在 $k \gtrsim \Lambda t$ 后超指数衰减. 由此得到
 
 \begin{equation}
-    \text{电路深度} = O\!\Big(\Lambda t + \log\frac{1}{\varepsilon}\Big),
+    \text{电路深度} = O\!\Big(\Lambda t +
+    \frac{\log(1/\varepsilon)}{\log\log(1/\varepsilon)}\Big),
 \end{equation}
 
 查询数与之同阶. 该复杂度匹配哈密顿量模拟的查询下界
@@ -350,7 +351,8 @@ $\Omega(\Lambda t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$,
     \midrule
     Trotter/Suzuki & $O\big(t^{1+1/p}\varepsilon^{-1/p}\big)$ & 多项式 & $O(1)$ & NISQ, 短时 \\
     Taylor + LCU & $O\big(t\frac{\log(t/\varepsilon)}{\log\log(t/\varepsilon)}\big)$ & 指数 & $O(\log K)$ & 容错, 长时 \\
-    Qubitization/QSVT & $O(t + \log(1/\varepsilon))$ & 指数 & $O(m+1)$ & 容错, 最优 \\
+    Qubitization/QSVT & $O\!\big(t + \frac{\log(1/\varepsilon)}{\log\log(1/\varepsilon)}\big)$
+    & 指数 & $O(m+1)$ & 容错, 最优 \\
     \bottomrule
 \end{tabular}
 \end{center}
@@ -446,12 +448,16 @@ $\Omega(\Lambda t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$,
         H_1 = \frac{A + A^\dagger}{2}, \qquad
         H_2 = \frac{i(A^\dagger - A)}{2},
     \end{equation}
-    即 $H_1$, $H_2$ 均厄米(稳定性条件: $-H_1 \succeq 0$, 对应耗散).
+    即 $H_1$, $H_2$ 均厄米. 这里 $H_1$ 对应增长/耗散部分, $H_2$ 对应相位旋转部分;
+    \textbf{不要求} $-H_1 \succeq 0$. $H_1$ 的正特征值只改变恢复区间
+    (见下一小节), 不会破坏薛定谔化本身.
     做 warped phase transformation $v = e^{-p}u$ 并 Fourier 变换后, 得到
     \begin{equation}
         i\, \partial_t \hat v(t, \eta) = \big(\eta H_1 + H_2\big)\, \hat v(t, \eta),
     \end{equation}
     哈密顿量 $H_{\mathrm{eff}}(\eta) = \eta H_1 + H_2$ 对每个 $\eta$ 厄米.
+    不同的 Fourier 变换约定只改变 $\eta \mapsto -\xi$ 与 $H_2$ 的整体符号,
+    不改变"每个频率分量对应一个厄米哈密顿量"这一核心事实.
 \end{Thm}
 
 \begin{Note}[三种情形的处理]
@@ -465,6 +471,52 @@ $\Omega(\Lambda t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$,
         \item \textbf{非自治系统 $A(t)$}: 把时间 $t$ 视为额外维度
         (引入 $t$ 的副本), 将非自治问题化为高一个维度的自治问题.
     \end{enumerate}
+\end{Note}
+
+\subsection{恢复定理与恢复区间}
+
+\begin{Thm}[恢复定理]
+    设 $u_t = Au$ 的薛定谔化提升解为 $w(t,p)$, 初值
+    $w(0,p) = \psi(p)\,u_0$, 其中 $\psi(p) = e^{-p}$ 在区间 $(p_*, p^*)$ 上成立.
+    令
+    \begin{equation}
+        \lambda_+ := \max\{\lambda_{\max}(H_1),\, 0\}, \qquad
+        \lambda_- := \max\{-\lambda_{\min}(H_1),\, 0\},
+    \end{equation}
+    则对任意
+    \begin{equation}
+        p \in I_T := \big(p_* + \lambda_+ T,\ p^* - \lambda_- T\big)
+    \end{equation}
+    都有 $u(T) = e^{p}\, w(T,p)$.
+\end{Thm}
+
+\begin{Proof}[思路]
+    定义误差 $e(t,p) := w(t,p) - e^{-p}u(t)$. 它满足与 $w$ 同型的线性方程;
+    把 $H_1$ 对角化后, 第 $j$ 个分量在 $p$ 方向上的传播速度恰为
+    $H_1$ 的特征值 $\lambda_j$, 因此信息向右传播的最快速度为 $\lambda_+$,
+    向左传播的最快速度为 $\lambda_-$. 初值在 $(p_*, p^*)$ 上为零的误差区域,
+    到时刻 $T$ 收缩为 $I_T$, 故 $e(T,p) = 0$ 于 $I_T$, 即
+    $w(T,p) = e^{-p}u(T)$.
+\end{Proof}
+
+\begin{Note}[特例与积分恢复]
+    取 $\psi(p) = e^{-|p|}$ 时初始精确区间为 $(0, \infty)$; 若 $H_1 \preceq 0$
+    (热方程情形), 则 $\lambda_+ = 0$, $I_T = (0,\infty)$, 任意 $p > 0$ 都可恢复.
+    若 $H_1$ 有正特征值, 则必须取 $p > \lambda_+ T$.
+    更稳定的恢复方式是\textbf{积分恢复}: 当 $w(T,q) = e^{-q}u(T)$ 对 $q \ge p$
+    成立时,
+    \begin{equation}
+        u(T) = e^{p} \int_p^\infty w(T,q)\,dq.
+    \end{equation}
+    离散后测量 $p$-寄存器落在恢复指标集 $I^\diamond$ 中的成功概率近似为
+    \begin{equation}
+        P_{\mathrm{suc}} \approx \frac{C_{\mathrm{rec}}^2\, \norm{u(T)}^2}
+        {C_\psi^2\, \norm{u_0}^2},
+    \end{equation}
+    其中 $C_\psi^2 = \sum_k |\psi(p_k)|^2$, $C_{\mathrm{rec}}^2 = \sum_{k \in I^\diamond} e^{-2p_k}$.
+    振幅放大因子为 $O(\Gamma_\psi\, q)$, 其中
+    $\Gamma_\psi := C_\psi/C_{\mathrm{rec}}$, $q := \norm{u_0}/\norm{u(T)}$
+    是原始非酉演化的衰减因子.
 \end{Note}
 
 \subsection{薛定谔化的五步流程}
@@ -538,6 +590,103 @@ $\Omega(\Lambda t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$,
     对每个 $\eta$ 厄米, 可直接模拟.
 \end{Eg}
 
+\subsection{Smooth initialization 与最优精度依赖}
+
+\begin{Note}[初值光滑性是精度的主要瓶颈]
+    若直接取 $\psi(p) = e^{-|p|}$, 该函数在 $p = 0$ 处不可微. 在 $p$ 方向使用
+    Fourier 谱离散时, 函数越光滑谱逼近越快; 对 $e^{-|p|}$ 一般需要
+    $\Delta p = O(\varepsilon)$, 因而 $\mu_{\max} \sim 1/\Delta p = O(1/\varepsilon)$.
+    这使总查询复杂度对 $\varepsilon$ 呈多项式依赖, 瓶颈不在 Hamiltonian simulation,
+    而在辅助变量初值的低光滑性.
+\end{Note}
+
+\begin{Note}[Smooth initialization 的三个条件]
+    设 $\psi(p) = \varphi(p)\,e^{-p}$, 其中 $\varphi$ 是 $0 \to 1$ 的平滑阶跃函数.
+    为获得接近最优的精度依赖, 需要:
+    \begin{enumerate}
+        \item \textbf{截断兼容}: $\psi$ 在计算区间外快速衰减, 使无限区间可以被
+        有限区间周期近似;
+        \item \textbf{恢复兼容}: 在恢复区域 $p \ge p^*$ 上
+        $|\psi(p) - e^{-p}| \le \varepsilon$;
+        \item \textbf{导数增长控制}: 对 $r \simeq \log(1/\varepsilon)$,
+        $\norm{\psi^{(r)}}_{L^2}^{1/r} \le C\, r$.
+    \end{enumerate}
+    仅 $\psi \in C^\infty$ 不够, 还必须控制高阶导数的增长速度
+    (Gevrey-1/解析型增长); 光滑 mollifier 通常只给出
+    $\mu_{\max} = O((\log(1/\varepsilon))^{1/\beta})$($\beta < 1$).
+\end{Note}
+
+\begin{Note}[Error-function 初始化]
+    取
+    \begin{equation}
+        \varphi(p) = \frac{\mathrm{erf}(a p) + 1}{2}, \qquad
+        \psi(p) = \varphi(p)\,e^{-p},
+    \end{equation}
+    其中 $a \sim \sqrt{\log(1/\varepsilon)}$, $p^* \lesssim 1/2$.
+    由 $\mathrm{erfc}(x) \lesssim e^{-x^2}$ 可得恢复误差 $O(\varepsilon)$;
+    $\mathrm{erf}^{(k)}(ap) \sim a^k H_{k-1}(ap)\,e^{-a^2p^2}$
+    给出解析型导数控制, 从而
+    \begin{equation}
+        \mu_{\max} = O\!\Big(\log\frac{1}{\varepsilon}\Big).
+    \end{equation}
+    若 $H_1$, $H_2$ 的 block-encoding 归一化尺度至多为 $\alpha_A$, 则一次
+    Hamiltonian simulation 的矩阵查询数为
+    \begin{equation}
+        \widetilde O\!\Big(\Gamma_\psi\, q\, \alpha_A\, T\, \mu_{\max}\Big)
+        = \widetilde O\!\Big(\Gamma_\psi\, q\, \alpha_A\, T\,
+        \log\frac{1}{\varepsilon}\Big),
+    \end{equation}
+    这在下界 $\Omega(\alpha_A T)$ 与 $\Omega(\log(1/\varepsilon))$ 的意义下
+    达到 matrix-query 最优.
+\end{Note}
+
+\subsection{带源项与时间依赖系统}
+
+\begin{Note}[带源项: 增广齐次化]
+    对 $u_t = A(t)u + b(t)$, 引入常向量 $r(t)$($\dot r = 0$)与矩阵 $B(t)$
+    使 $B(t)r_0 = b(t)$, 令
+    \begin{equation}
+        u_f = \begin{pmatrix} u \\ r \end{pmatrix}, \qquad
+        A_f(t) = \begin{pmatrix} A(t) & B(t) \\ 0 & 0 \end{pmatrix},
+    \end{equation}
+    则 $u_f$ 满足齐次系统 $\dot u_f = A_f u_f$, 原解是 $u_f$ 的第一块.
+    常用归一化取 $\gamma_i = T\sup_{t\in[0,T]}|b_i(t)|$, $r_0 = \gamma$,
+    $B(t) = \mathrm{diag}(b_i(t)/\gamma_i)$, 使 $\norm{B} \le O(1/T)$.
+    时间无关源 $b(t) \equiv b$ 可更简单地取
+    $u_f = (u, Tb)^T$, $A_f = \begin{pmatrix} A & I/T \\ 0 & 0 \end{pmatrix}$.
+    源项使扩展后的 $H_1$ 不再保持半负定: 由 Weyl 扰动定理,
+    \[
+        \lambda_{\max}(\tilde H_1) \le \lambda_+^{\max}(H_1^A) + \delta_B,
+        \qquad \delta_B := \norm{B}/2,
+    \]
+    故恢复点可取 $p^\diamond = \big(\lambda_+^{\max}(H_1^A) + \delta_B\big)T$
+    (时间无关源时 $\delta_B = 1/(2T)$, 即 $p^\diamond \le \lambda_+^{\max}(H_1^A)T + 1/2$).
+\end{Note}
+
+\begin{Note}[非自治系统: autonomous technique]
+    薛定谔化后的时间依赖系统形如 $\dot w = -iH(t)w$, $H(t) = H(t)^\dagger$.
+    由于 $[H(t_1), H(t_2)] \neq 0$, 形式解是时间有序指数
+    $U_{t,s} = \mathcal{T}\exp(-i\int_s^t H(\tau)d\tau)$, 不能直接 fast-forward.
+    引入额外变量 $s \in \mathbb{R}$ 并考虑自治 PDE
+    \begin{equation}
+        \partial_t v + \partial_s v = -iH(s)v, \qquad
+        v(0,s) = G(s)w_0.
+    \end{equation}
+    沿特征线 $s - t = \text{const}$ 得
+    \begin{equation}
+        v(t,s) = G(s-t)\, U_{s,s-t}\, w_0,
+    \end{equation}
+    取 $G = \delta(s)$ 时 $w(t) = \int v(t,s)\,ds = U_{t,0}w_0$.
+    用动量算子 $P_s = -i\partial_s$ 可写成时间无关哈密顿量
+    $H = P_s + H(s)$; 与薛定谔化结合后, 在 $s \otimes p \otimes x$ 三个寄存器上
+    \[
+        H_h = P_s \otimes I + \sum_{\ell} \ket{\ell}\bra{\ell}
+        \otimes \big(D_\mu \otimes H_1(s_\ell) - I \otimes H_2(s_\ell)\big),
+    \]
+    其中 $D_\mu$ 是 $p$ 方向 Fourier 模态的对角矩阵. 一句话:
+    $p$ 变量处理非酉动力学, $s$ 变量处理时间依赖.
+\end{Note}
+
 \subsection{复杂度与量子优势}
 
 \begin{Thm}[薛定谔化的复杂度(离散化后)]
@@ -561,6 +710,64 @@ $\Omega(\Lambda t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$,
     \textbf{一次}酉演化, 时间离散的误差被消除, 且不要求空间离散化算子的
     厄米性(迎风格式可直接处理). 两条路线共享 block-encoding 与
     哈密顿量模拟构件, 区别在于"线性化 + 迭代"与"高维酉化"的取舍.
+\end{Note}
+
+\section{酉化方法族: 薛定谔化、LCHS、Transmutation 与 Dilation}
+
+薛定谔化不是处理非酉动力学唯一的方法. 从"把非酉传播子放进更大酉结构"的抽象视角看,
+四种常用路线可以放在同一个模板下:
+\begin{equation}
+    M(T) = e^{TA} \;\approx\;
+    \big(\bra{\phi_{\mathrm{out}}}\otimes I\big)\,
+    U(T)\,\big(\ket{\phi_{\mathrm{in}}}\otimes I\big),
+\end{equation}
+其中 $U(T)$ 是更大空间上的酉演化.
+
+\begin{center}
+\begin{tabular}{llll}
+    \toprule
+    方法 & 核心变换 & 最终量子原语 & 最适合的问题 \\
+    \midrule
+    Schr\"odingerization & 加辅助变量 $p$: $w_t = -H_1 w_p + iH_2 w$ &
+    扩大空间上的 Hamiltonian simulation &
+    一般线性非酉 ODE/PDE \\
+    LCHS & 对 $w$ 做连续 Fourier 后离散 $\xi$: $u(T) \approx \sum_m c_m U_{\xi_m}(T)u_0$ &
+    酉演化的 LCU &
+    积分表示清楚的系统 \\
+    Transmutation & $A = G^\dagger G$, 热半群写成波传播子的 Gaussian 平均 &
+    LCU + Hermitian dilation $D(G)$ &
+    热方程、扩散型自伴问题 \\
+    Moment-matching dilation & 构造辅助动力学 $F$ 使 $\bra{\ell}F^q\ket{r} = 1$ &
+    大空间 Hamiltonian simulation + projection &
+    统一理解各种酉化方法 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
+\begin{Note}[四种方法的联系]
+    \begin{enumerate}
+        \item \textbf{LCHS}: 由薛定谔化提升方程先做连续 Fourier 再对 $\xi$ 求积,
+        得到 $w(T,p) = \int \hat\psi(\xi)e^{-i\xi p}U_\xi(T)u_0\,d\xi$;
+        截断求积后即 LCU. 取 $\psi(p) = e^{-|p|}$ 时
+        $\hat\psi(\xi) \propto 1/(1+\xi^2)$, 是 Cauchy 型核.
+        \item \textbf{Transmutation}: 利用
+        $e^{-Tx^2} = \frac{1}{2\sqrt{\pi T}}\int_{\mathbb{R}} e^{-s^2/(4T)}e^{-isx}\,ds$
+        与 $D(G)^2 = \mathrm{diag}(G^\dagger G, GG^\dagger)$, 把 $e^{-TA}$ 写成
+        酉波传播子 $e^{-isD(G)}$ 的 Gaussian 平均; 适合 $A = G^\dagger G$ 的情形.
+        \item \textbf{Dilation}: 薛定谔化可看成
+        $F = -\partial_p$, $\ket{r} = e^{-p}$, $\bra{\ell} = \delta(p=0)$
+        的 moment-matching dilation; 此时 $F^q r = r$, 满足 $\bra{\ell}F^q\ket{r}=1$.
+        它把四种方法统一为"稳定非酉流 = 更大空间酉流的投影/平均".
+    \end{enumerate}
+\end{Note}
+
+\begin{Note}[如何选择]
+    一般线性非酉系统优先用薛定谔化, 因为它框架最统一、不要求 $A$ 有特殊结构;
+    若已经知道传播子的积分表示, LCHS 的 LCU 线路最自然;
+    对正自伴扩散问题, Transmutation 利用一阶因子 $G$
+    ($\norm{G} = O(h^{-1})$ 而不是 $\norm{A} = O(h^{-2})$)
+    在相干传播代价上常更优;
+    若需要比较不同酉化方法或设计新辅助动力学, 用 moment-matching dilation 语言.
 \end{Note}
 
 \section{文献与延伸}
@@ -596,20 +803,34 @@ $\Omega(\Lambda t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$,
     \begin{enumerate}
         \item S. Jin, N. Liu, Y. Yu, \emph{Quantum simulation of partial differential
         equations via Schrödingerisation}(提出 warped phase transformation 与一般框架),
-        Physical Review A 108, 032603 (2023);
-        \item S. Jin, N. Liu, Y. Yu, \emph{Quantum Simulation of Partial Differential
-        Equations via Schrödingerization}, Physical Review Letters 133, 230602 (2024);
+        Physical Review Letters 133, 230602 (2024); arXiv:2212.13969;
+        \item S. Jin, N. Liu, Y. Yu, \emph{Quantum simulation of partial differential
+        equations via Schrödingerisation: technical details}(应用与详细分析),
+        Physical Review A 108, 032603 (2023); arXiv:2212.14703;
         \item J. Hu, S. Jin, N. Liu, L. Zhang, \emph{Quantum circuits for partial
         differential equations via Schrödingerisation}(首个显式电路实现:
         热方程与迎风格式对流方程, 含复杂度分析),
-        Quantum 8, 1563 (2024);
+        Quantum 8, 1563 (2024); arXiv:2403.10032;
         \item S. Jin, N. Liu, Y. Yu, \emph{Quantum circuits for the heat equation with
         physical boundary conditions via Schrödingerisation}(Duhamel 原理 + LCU 处理
-        非齐次边界项), 2024;
+        非齐次边界项), 2024; 亦可参考 arXiv:2403.10032 的姊妹文献;
         \item S. Jin, N. Liu, Y. Yu, \emph{Quantum simulation of the Fokker--Planck
         equation via Schrödingerization}(时间分裂与移位算子对角化), 2024;
-        \item 后续进展: Maxwell 方程、带物理边界条件的界面问题、分数阶热方程
-        (Caffarelli--Silvestre 延拓 + 薛定谔化)、量子态基态/热态制备等;
+        \item D. An, J.-P. Liu, L. Lin, \emph{Linear combination of Hamiltonian
+        simulation for non-unitary dynamics with optimal state preparation cost}
+        (LCHS), PRL 131, 150603 (2023); arXiv:2303.01029;
+        \item D. An, A. M. Childs, L. Lin, \emph{Quantum algorithm for linear
+        non-unitary dynamics with near-optimal dependence on all parameters},
+        Communications in Mathematical Physics 407, 19 (2026); arXiv:2312.03916;
+        \item X. Li, \emph{From linear differential equations to unitaries:
+        a moment-matching dilation framework with near-optimal quantum algorithms},
+        arXiv:2507.10285;
+        \item S. Jin, C. Ma, E. Zuazua, \emph{Transmutation based quantum simulation
+        for non-unitary dynamics}, arXiv:2601.03616;
+        \item 进一步进展: Maxwell 方程、带物理边界条件的界面问题、分数阶热方程
+        (Caffarelli--Silvestre 延拓 + 薛定谔化)、量子态基态/热态制备、
+        Schrödingerization 求解量子线性系统(arXiv:2508.13510)、
+        Fourier 空间的薛定谔化量子电路(arXiv:2505.16895)等;
         薛定谔化同样适用于模拟(连续变量)量子硬件.
     \end{enumerate}
 \end{Note}
