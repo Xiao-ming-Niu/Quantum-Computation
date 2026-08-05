@@ -70,16 +70,16 @@
 \setcounter{page}{1}
 \section{引言: 量子算法原语}
 
-在上一模块中我们建立了量子计算的语言: 量子比特、酉门、电路与测量. 本模块介绍四类最基础的
-\textbf{量子算法原语(quantum primitives)}: 量子傅里叶变换(QFT)、量子相位估计(QPE)、
-振幅放大(AA)与哈密顿量模拟(Hamiltonian simulation, 含 Lie--Trotter 公式).
+在上一模块中我们建立了量子计算的语言: \textbf{量子比特(qubit)}、\textbf{酉门(unitary gate)}、\textbf{电路(quantum circuit)}与\textbf{测量(measurement)}. 本模块介绍四类最基础的
+\textbf{量子算法原语(quantum primitives)}: \textbf{量子傅里叶变换(quantum Fourier transform, QFT)}、\textbf{量子相位估计(quantum phase estimation, QPE)}、
+\textbf{振幅放大(amplitude amplification, AA)}与\textbf{哈密顿量模拟(Hamiltonian simulation, 含 Lie--Trotter 公式(Lie--Trotter formula))}.
 它们之所以被称为"构件", 是因为几乎所有量子算法都以它们为子程序:
-QFT 是 QPE 的核心组成部分; QPE 是 Shor 分解、HHL 线性方程组、本征值问题、振幅估计的共同基础;
+QFT 是 QPE 的核心组成部分; QPE 是 \textbf{Shor 分解(Shor's algorithm)}、\textbf{HHL 线性方程组(Harrow--Hassidim--Lloyd)}、\textbf{本征值问题(eigenvalue problem)}、\textbf{振幅估计(amplitude estimation)}的共同基础;
 振幅放大在一切需要"放大成功概率"的场景中被反复调用; 哈密顿量模拟则通常作为 QPE 中酉算子
 $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系构成了现代量子算法的骨架.
 
 \begin{Note}
-    按照 Lin Lin 讲义的划分, 上述四者(连同 Grover 搜索)构成最没有争议的量子原语集合.
+    按照 Lin Lin 讲义的划分, 上述四者(连同 \textbf{Grover 搜索(Grover's search)})构成最没有争议的量子原语集合.
     本模块先介绍不依赖其它构件的 QFT 与 AA, 再介绍把它们组合起来的 QPE 与 Trotter 型
     哈密顿量模拟. 更现代的构件(block-encoding、qubitization、QSVT)将在下一模块中
     统一并推广这些方法.
@@ -91,7 +91,7 @@ $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系
 
 \begin{Def}[QFT 的定义]
     设 $N = 2^n$. \textbf{量子傅里叶变换(quantum Fourier transform, QFT)}是
-    $\mathbb{C}^N$ 上的酉算子 $U_{\mathrm{FT}}$, 作用在计算基态上为
+    $\mathbb{C}^N$ 上的酉算子 $U_{\mathrm{FT}}$, 作用在\textbf{计算基态(computational basis state)}上为
     \begin{equation}
         U_{\mathrm{FT}} \ket{j} = \frac{1}{\sqrt{N}} \sum_{k \in [N]} e^{2\pi i\, jk/N}\, \ket{k},
         \qquad j \in [N].
@@ -106,13 +106,39 @@ $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系
     \begin{enumerate}
         \item $U_{\mathrm{FT}}$ 是酉算子($U_{\mathrm{FT}}^\dagger U_{\mathrm{FT}} = I$);
         \item $U_{\mathrm{FT}} \ket{0^n} = \frac{1}{\sqrt{N}} \sum_{k} \ket{k} = H^{\otimes n}\ket{0^n}$,
-        即 QFT 把全零态变为均匀叠加态;
-        \item 与经典 FFT 的关键区别: QFT 的加速是指数级的(经典 FFT 需要 $O(N\log N)$ 次运算,
+        即 QFT 把全零态变为均匀\textbf{叠加态(superposition state)};
+        \item 与经典 \textbf{FFT(fast Fourier transform)} 的关键区别: QFT 的加速是指数级的(经典 FFT 需要 $O(N\log N)$ 次运算,
         而 QFT 只需要 $O(n^2) = O(\log^2 N)$ 个门), 但 QFT 的\textbf{输出是叠加态},
         测量后只能得到单个基态, 无法直接读出全部傅里叶系数 —— 必须通过后续算法
         (如相位估计)来利用这一变换.
     \end{enumerate}
 \end{Prop}
+
+\begin{Note}[Hadamard 变换: $H^{\otimes n}$ 的作用]
+    单比特 Hadamard 门 $H = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 & 1 \\ 1 & -1 \end{pmatrix}$ 的作用为
+    \begin{equation}
+        H\ket{x} = \frac{1}{\sqrt{2}}\big(\ket{0} + (-1)^x\ket{1}\big)
+        = \frac{1}{\sqrt{2}}\sum_{y \in \{0,1\}} (-1)^{xy}\,\ket{y}, \qquad x \in \{0,1\}.
+    \end{equation}
+    对 $n$ 比特施加 $H^{\otimes n} = H \otimes \cdots \otimes H$, 各比特独立作用,
+    逐个代入 $H\ket{x_i} = \frac{1}{\sqrt{2}}\sum_{y_i}(-1)^{x_i y_i}\ket{y_i}$:
+    \begin{equation}
+        H^{\otimes n}\ket{x_1\cdots x_n}
+        = \frac{1}{\sqrt{2^n}}\sum_{y_1,\dots,y_n \in \{0,1\}}
+           (-1)^{x_1 y_1 + \cdots + x_n y_n}\,\ket{y_1\cdots y_n}
+        = \frac{1}{\sqrt{2^n}}\sum_{y \in \{0,1\}^n} (-1)^{x\cdot y}\,\ket{y},
+    \end{equation}
+    其中 $x \cdot y := \sum_i x_i y_i \bmod 2$ 是二进制向量的\textbf{模 2 内积}.
+    这就是\textbf{Walsh--Hadamard 变换}. 两个重要特例:
+    \begin{enumerate}
+        \item \textbf{作用于 $\ket{0^n}$}: 因 $0 \cdot y = 0$ 相位恒为 $+1$, 得到\textbf{均匀叠加态}
+        \[ H^{\otimes n}\ket{0^n} = \frac{1}{\sqrt{2^n}}\sum_{y\in\{0,1\}^n}\ket{y}; \]
+        \item \textbf{作用于 $\ket{1^n}$}: 因 $1^n \cdot y = |y|$($y$ 中 $1$ 的个数), 得到带交替相位的叠加
+        \[ H^{\otimes n}\ket{1^n} = \frac{1}{\sqrt{2^n}}\sum_{y\in\{0,1\}^n} (-1)^{|y|}\,\ket{y}. \]
+    \end{enumerate}
+    均匀叠加态 $H^{\otimes n}\ket{0^n}$ 是 Grover 搜索的初态, 也是 QPE 中相位寄存器
+    $H^{\otimes t}\ket{0^t}$ 的制备方式; QFT 正是把 Hadamard 变换推广到含相位旋转 $\omega^{jk}$ 的变换.
+\end{Note}
 
 \subsection{二进制分解与张量积结构}
 
@@ -123,7 +149,7 @@ $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系
 \end{equation}
 
 其中 $0.j_{m}\cdots j_0$ 表示二进制小数 $j_m/2 + \cdots + j_0/2^{m+1}$. 于是指数因子可以分解,
-代入定义并逐比特求和, 得到 QFT 的张量积形式:
+代入定义并逐比特求和, 得到 QFT 的\textbf{张量积(tensor product)}形式:
 
 \begin{equation}
     U_{\mathrm{FT}} \ket{j_{n-1}\cdots j_0}
@@ -133,7 +159,9 @@ $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系
 \end{equation}
 
 \begin{Proof}[张量积形式的推导]
-    把二进制展开式代入定义, 指数因子按 $k_{n-1}, \dots, k_0$ 分离:
+    把二进制展开式
+    \[ j = j_{n-1}2^{n-1}+j_{n-2}2^{n-2}+\cdots+j_1 2^1+j_0 2^0 \]
+    代入定义, 指数因子按 $k_{n-1}, \dots, k_0$ 分离:
     \begin{equation*}
     \begin{aligned}
         U_{\mathrm{FT}} \ket{j_{n-1}\cdots j_0}
@@ -157,7 +185,7 @@ $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系
 
 \subsection{电路实现}
 
-实现的关键是"受控相位旋转". 记单比特旋转门
+实现的关键是"\textbf{受控相位旋转(controlled phase rotation)}". 记单比特旋转门
 \begin{equation}
     R_z(\varphi) = \begin{pmatrix} 1 & 0 \\ 0 & e^{i\varphi} \end{pmatrix},
     \qquad R_m := R_z(2\pi/2^{m}).
@@ -176,14 +204,14 @@ QFT 电路(以 3 比特为例, 输出位序已反转, 需用 SWAP 门恢复):
 
 \begin{equation*}
 \Qcircuit @C=.9em @R=.8em {
-    \lstick{\ket{j_2}} & \gate{H} & \ctrl{1} & \ctrl{2} & \qw & \qw & \qw & \qw & \qw & \qw & \qw & \rstick{\ket{k_0}} \qw \\
-    \lstick{\ket{j_1}} & \qw & \gate{R_2} & \qw & \gate{H} & \ctrl{1} & \qw & \qw & \qw & \qw & \qw & \rstick{\ket{k_1}} \qw \\
-    \lstick{\ket{j_0}} & \qw & \qw & \gate{R_3} & \qw & \gate{R_2} & \gate{H} & \qw & \qw & \qw & \qw & \rstick{\ket{k_2}} \qw
+    \lstick{\ket{j_2}} & \gate{H} & \gate{R_2} & \gate{R_3} & \qw & \qw & \qw & \qw & \qw & \qw & \qw & \rstick{\ket{k_0}} \qw \\
+    \lstick{\ket{j_1}} & \qw & \ctrl{-1} & \qw & \gate{H} & \gate{R_2} & \qw & \qw & \qw & \qw & \qw & \rstick{\ket{k_1}} \qw \\
+    \lstick{\ket{j_0}} & \qw & \qw & \ctrl{-2} & \qw & \ctrl{-1} & \gate{H} & \qw & \qw & \qw & \qw & \rstick{\ket{k_2}} \qw
 }
 \end{equation*}
 
 \begin{Thm}[QFT 的复杂度]
-    $n$ 比特 QFT 可以用 $O(n^2)$ 个单比特与受控门实现, 电路深度为 $O(n)$.
+    $n$ 比特 QFT 可以用 $O(n^2)$ 个单比特与\textbf{受控门(controlled gate)}实现, 电路深度为 $O(n)$.
     逆变换 $U_{\mathrm{FT}}^\dagger$ 只需把所有受控旋转替换为共轭 $R_m^\dagger$ 并反向执行.
 \end{Thm}
 
@@ -197,6 +225,53 @@ QFT 电路(以 3 比特为例, 输出位序已反转, 需用 SWAP 门恢复):
     受控旋转取共轭 $R_m^\dagger$(即旋转角变号), 位序恢复仍用 SWAP.
 \end{Proof}
 
+\subsection{与经典 DFT/FFT 的对比}
+
+经典计算中的\textbf{离散傅里叶变换(discrete Fourier transform, DFT)}把长度为 $N$
+的向量 $\{a_j\}_{j=0}^{N-1}$ 映射为
+\begin{equation}
+    \hat{a}_k = \sum_{j=0}^{N-1} e^{-2\pi i jk/N}\, a_j, \qquad k = 0, \dots, N-1,
+\end{equation}
+直接计算需要 $O(N^2)$ 次运算; \textbf{快速傅里叶变换(fast Fourier transform, FFT)},
+即 Cooley--Tukey 分治算法, 把复杂度降到 $O(N\log N)$, 是经典科学计算(信号处理、
+\textbf{谱方法(spectral method)}解 PDE、卷积)的基石. QFT 与二者的对比见表 \ref{tab:ft}:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+    \toprule
+    方法 & 输入 & 复杂度 & 输出 \\
+    \midrule
+    DFT(直接求和) & 经典向量 $\{a_j\}$ & $O(N^2)$ & 经典向量(可直接读出) \\
+    FFT(分治) & 经典向量 $\{a_j\}$ & $O(N\log N)$ & 经典向量(可直接读出) \\
+    QFT(量子线路) & 量子态 $\ket{\psi}=\sum_j a_j\ket{j}$ & $O(\log^2 N)$ 个门 & 量子叠加态 \\
+    \bottomrule
+\end{tabular}
+\caption{DFT、FFT 与 QFT 的对比. 门复杂度上 QFT 对 FFT 是指数级加速,
+但两者处理的对象与输出本质不同.}
+\label{tab:ft}
+\end{table}
+
+\begin{Note}[为什么 QFT 不能直接替代 FFT]
+    QFT 作用在\textbf{振幅(amplitude)}上而非数据向量上, 且输出是量子叠加态:
+    测量一次只能得到一个基态, 读出全部 $N$ 个系数需要 $\Omega(N)$ 次测量
+    (且每个系数还需多次重复采样才能估计到精度). 因此 QFT 的优势不在于
+    "更快地计算经典傅里叶变换", 而在于它能作为\textbf{子程序}嵌入更大规模的
+    量子算法(QPE、Shor 分解、量子线性代数等): 在这些算法中, "傅里叶变换"
+    作用在纠缠的振幅上, 中间结果无需读出, 只有最终观测才消耗测量.
+    这与经典\textbf{谱方法}中的角色类似但相反: 经典谱方法用 FFT 在
+    $O(N\log N)$ 内完成正逆变换、读出谱系数后显式组装解; 量子对应物
+    (QFT 或其对角化 block-encoding)则把变换"藏在"线路内部,
+    避免读出的指数代价 —— 代价是只能访问振幅(叠加)上的结果.
+\end{Note}
+
+\begin{Note}[Shor 算法中的角色]
+    Shor 的整数分解算法正是"QFT 无需读出"这一性质的极致体现:
+    周期 $r$ 的信息被编码在相位估计的振幅中, 逆 QFT 后\textbf{一次测量}
+    即可(高概率)读出与 $r$ 相关的相位 —— 经典计算中同样的周期搜索
+    需要做 $\Omega(N)$ 次乘幂.
+\end{Note}
+
 \section{量子相位估计 (QPE)}
 
 \subsection{问题设定与 Hadamard 检验}
@@ -206,16 +281,15 @@ QFT 电路(以 3 比特为例, 输出位序已反转, 需用 SWAP 门恢复):
     \begin{equation}
         U \ket{\psi} = e^{2\pi i \theta} \ket{\psi}, \qquad \theta \in [0, 1).
     \end{equation}
-    给定 oracle 访问 $U$(及其幂), 目标是估计 $\theta$ 到一定精度.
+    给定 \textbf{oracle} 访问 $U$(及其幂), 目标是估计 $\theta$ 到一定精度.
 \end{Def}
 
 \begin{Note}
     相位估计是最重要的量子原语之一: Shor 分解、HHL 线性方程组、本征值问题、振幅估计、
-    量子行走等都以它为子程序. 经典做法 $j|U\ket{\psi} / j|\psi = e^{2\pi i\theta}$
-    (逐元素除法)在量子计算机上无法高效实现, 需要新的方法.
+    \textbf{量子行走(quantum walk)}等都以它为子程序.
 \end{Note}
 
-最简单的相位估计是 \textbf{Hadamard 检验}(已在 Module1 中介绍): 对控制比特先施加
+最简单的相位估计是 \textbf{Hadamard 检验(Hadamard test)}(已在 Module1 中介绍): 对控制比特先施加
 $H$, 作用受控 $U$ 后再施加 $H$, 则测量结果为 $1$ 的概率满足
 
 \begin{equation}
@@ -226,9 +300,27 @@ $H$, 作用受控 $U$ 后再施加 $H$, 则测量结果为 $1$ 的概率满足
 但该方法的精度受限于采样误差: 由 Module1 的分析, 达到加性精度 $\varepsilon$
 需要 $O(1/\varepsilon^2)$ 次重复测量. 相位估计的任务正是把精度提高到 $O(1/\varepsilon)$.
 
+\begin{Note}[与经典本征值/相位估计的对比]
+    经典计算中估计厄米矩阵的本征值或酉算子的本征相位, 常用\textbf{幂迭代(power iteration)}、
+    QR 算法或 \textbf{Krylov 子空间(Krylov subspace)}方法(如 Lanczos): 幂迭代/Lanczos 的迭代次数对\textbf{谱间隙(spectral gap)}的依赖为
+    $O(1/\Delta)$ 或 $O(1/\sqrt{\Delta})$, 且每步需要 $O(N^2)$--$O(N^3)$ 次矩阵运算
+    (或 $O(\mathrm{nnz})$ 次稀疏运算), 并\textbf{显式存储} $N \times N$ 矩阵.
+    QPE 与之有三点本质区别:
+    \begin{enumerate}
+        \item QPE 通过\textbf{黑盒 oracle(black-box oracle)}访问 $U^{2^j}$, 无需显式构造矩阵
+        (代价是 $O(1/\varepsilon)$ 次\textbf{查询(query)}, 其中 $\varepsilon$ 为相位精度);
+        \item QPE 对 $N = 2^n$ 的依赖是 $\mathrm{poly}(n) = \mathrm{poly}(\log N)$,
+        经典方法至少线性于 $N$;
+        \item QPE 可同时作用于本征态的\textbf{叠加}, 一次运行即可读出全部本征相位
+        (概率由振幅 $|c_j|^2$ 给出) —— 经典 Krylov 方法同样可以, 但每步代价更高.
+    \end{enumerate}
+    这些差异是 HHL、Shor 等算法能够工作的根本原因: 它们把"求解"建立在
+    oracle 查询之上, 而不是对显式矩阵做数值线性代数.
+\end{Note}
+
 \subsection{受控 $U^{2^j}$ 与二进制分解}
 
-把相位 $\theta = (0.\theta_{d-1}\cdots\theta_0)$ 写成 $d$ 位二进制小数, 考虑一个"大"受控酉算子
+把相位 $\theta = (0.\theta_{d-1}\cdots\theta_0)$ 写成 $d$ 位二进制小数, 考虑一个"大"\textbf{受控酉算子(controlled-unitary operator)}
 
 \begin{equation}
     \mathcal{U} := \sum_{j \in [2^d]} \ket{j}\bra{j} \otimes U^j.
@@ -238,7 +330,12 @@ $H$, 作用受控 $U$ 后再施加 $H$, 则测量结果为 $1$ 的概率满足
 $j = \sum_i j_i 2^i$ 得 $U^j = \prod_i U^{j_i 2^i}$, 于是
 
 \begin{equation}
-    \mathcal{U} = \prod_{i=0}^{d-1} \Big(\ket{0}\bra{0} \otimes I + \ket{1}\bra{1} \otimes U^{2^i}\Big),
+    \begin{aligned}
+        \mathcal{U} &= \sum_{j \in [2^d]} \ket{j}\bra{j} \otimes \prod_i U^{j_i 2^i} \\
+        &= \sum_{j_{d-1},\cdots,j_0}(\ket{j_{d-1}}\bra{j_{d-1}} \otimes \cdots \otimes \ket{j_0}\bra{j_0}) \otimes \prod_i U^{j_i 2^i} \\
+        &= \sideset{}{'}\prod_{i=0}^{d-1} \Big(\sum_{j_i}\ket{j_i}\bra{j_i}\otimes U^{j_i 2^i}\Big) \\
+        &= \sideset{}{'}\prod_{i=0}^{d-1} \Big(\ket{0}\bra{0} \otimes I + \ket{1}\bra{1} \otimes U^{2^i}\Big),
+    \end{aligned}
 \end{equation}
 
 即只需 $d$ 个受控 $U^{2^i}$ 门. 若 $U$ 可以被 \textbf{快速前推(fast-forwarded)}
@@ -247,7 +344,7 @@ $j = \sum_i j_i 2^i$ 得 $U^j = \prod_i U^{j_i 2^i}$, 于是
 
 \subsection{QFT 基 QPE 电路}
 
-设 $T = 2^t$, 其中 $t$ 为相位寄存器比特数. QPE 的电路结构为:
+设 $T = 2^t$, 其中 $t$ 为\textbf{相位寄存器(phase register)}比特数. QPE 的电路结构为:
 \begin{equation*}
 \Qcircuit @C=1em @R=.8em {
     \lstick{\ket{0}^{\otimes t}} & \gate{H^{\otimes t}} & \multigate{1}{\mathcal{U}} & \gate{U_{\mathrm{FT}}^\dagger} & \meter & \rstick{\tilde{\theta}} \qw \\
@@ -271,6 +368,11 @@ $j = \sum_i j_i 2^i$ 得 $U^j = \prod_i U^{j_i 2^i}$, 于是
 \begin{equation}
     \alpha_k = \frac{1}{T}\sum_{j\in[T]} e^{2\pi i j(\theta - k/T)}
     = \frac{1}{T}\cdot\frac{1 - e^{2\pi i T(\theta - k/T)}}{1 - e^{2\pi i (\theta - k/T)}}.
+\end{equation}
+
+因此有
+\begin{equation}
+    Pr(k) = |\alpha_k|^2 = \frac{1}{T^2}\,\frac{\sin^2(\pi T(\theta - k/T))}{\sin^2(\pi (\theta - k/T))}.
 \end{equation}
 
 \begin{Thm}[精确相位的确定性]
@@ -363,8 +465,45 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
     (1) 若初态是特征向量的线性组合 $\ket{\psi} = \sum_k c_k \ket{k}$,
     则 QPE 以概率 $|c_0|^2$ 同时返回目标相位与本征态 —— 这正是基态能量估计和 HHL 的工作方式;
     (2) 为避免因 $\log_2(1/\varepsilon)$ 个额外比特增加电路深度, 可把 QPE 运行 $\log(1/\varepsilon)$ 次
-    并取相位的中位数(\textbf{量子中位数法}), 以 $\log(1/\varepsilon)$ 次重复代替额外的比特数与模拟时间.
+    并取相位的中位数(\textbf{量子中位数法(quantum median)}), 以 $\log(1/\varepsilon)$ 次重复代替额外的比特数与模拟时间.
 \end{Note}
+
+\begin{Note}[Fejér 核与测量分布的闭式表达]
+    测量概率 $P(k) = |\alpha_k|^2$ 可以写成闭式. 由几何级数求和与
+    $|1 - e^{2\pi i x}| = 2|\sin(\pi x)|$:
+    \begin{equation}
+        P(k) = |\alpha_k|^2 = \frac{1}{T^2}\,\frac{\sin^2\!\big(\pi T(\theta - k/T)\big)}{\sin^2\!\big(\pi(\theta - k/T)\big)}
+        =: F_T\!\Big(\theta - \frac{k}{T}\Big),
+    \end{equation}
+    其中
+    \begin{equation}
+        F_T(x) := \frac{1}{T^2}\,\frac{\sin^2(\pi T x)}{\sin^2(\pi x)}
+    \end{equation}
+    称为 \textbf{Fejér 核}(Fejér kernel). $F_T$ 在 $x = 0$ 处取最大值 $1$
+    (由 $F_T(0) = \lim_{x\to 0}F_T(x) = 1$), 并在 $|x| \gtrsim 1/T$ 处迅速衰减 ——
+    这正是"相位 $\theta$ 附近宽度约 $1/T$ 的窄峰"的精确分析来源(见图 \ref{fig:qpe}).
+\end{Note}
+
+\begin{Note}[近似实现 $U$ 的误差分离处理]
+    QPE 分析中的理想化条件之一是 $U$ 可精确实现. 若只能用 $\tilde U$ 近似 $U$ 且
+    $\norm{\tilde U - U} \le \varepsilon$, 则由酉矩阵的扰动理论, 单位圆上本征值的扰动至多为
+    $\varepsilon$, 相应\textbf{相角}的扰动至多为 $\varepsilon/4\pi$. 因此\textbf{实现误差可以作为
+    相角误差的加性项单独计入}, 其余分析仍可在 $U$ 精确实现的假设下进行. 实际中
+    $U = e^{-iHt}$ 由 Hamiltonian 模拟近似实现, 其模拟误差正是这一项;
+    HHL 等应用正是把 QPE 的相位误差与 Hamiltonian 模拟误差分开讨论.
+\end{Note}
+
+\begin{Prop}[一般初态(特征态叠加)的测量分布]
+    设 $U\ket{k'} = e^{2\pi i\lambda_{k'}}\ket{k'}$ 为本征分解, 初态为叠加
+    $\ket{\psi} = \sum_{k'} c_{k'}\ket{k'}$. 以 $t$ 比特 QPE 电路($T = 2^t$)作用于
+    $\ket{0^t}\ket{\psi}$, 对相位寄存器测量得到 $k \in [T]$ 的概率为
+    \begin{equation}
+        P(k) = \sum_{k'} |c_{k'}|^2\, F_T\Big(\lambda_{k'} - \frac{k}{T}\Big),
+    \end{equation}
+    其中 $F_T$ 为 Fejér 核. 这是"QPE 以概率 $|c_{k'}|^2$ 采样到本征相位
+    $\lambda_{k'}$ 附近的 $k$"的精确表述: 不同本征分量的贡献按 $|c_{k'}|^2$ 加权、
+    交叉项为零. 这正是基态能量估计与 HHL 中"初态为本征态叠加"情形的分析基础.
+\end{Prop}
 
 \subsection{应用: 振幅估计}
 
@@ -377,7 +516,7 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
     其两个特征态为 $\ket{\pm} = \frac{1}{\sqrt{2}}(\ket{\mathrm{good}} \pm i\ket{\mathrm{bad}})$,
     对应特征值 $e^{\pm i\theta}$.
     用 QPE 估计 $\theta$ 到加性精度 $\varepsilon$, 即可得到 $p_0 = \sin^2(\theta/2)$ 的估计,
-    总复杂度 $O(1/\varepsilon)$; 而直接蒙特卡洛采样需要 $O(1/\varepsilon^2)$ 次.
+    总复杂度 $O(1/\varepsilon)$; 而直接\textbf{蒙特卡洛(Monte Carlo)}采样需要 $O(1/\varepsilon^2)$ 次.
     若 $p_0$ 很小需乘性精度, 复杂度为 $O(p_0^{-1/2}\varepsilon^{-1})$, 相对采样的
     $O(p_0^{-1}\varepsilon^{-2})$ 仍是平方级改进.
 \end{Prop}
@@ -395,23 +534,58 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
        = e^{\pm i\theta}\ket{\pm}. \]
     故 $\ket{\pm}$ 是特征态、特征值为 $e^{\pm i\theta}$.
     又初态 $\ket{\phi_0} = \sqrt{p_0}\ket{\mathrm{good}} + \sqrt{1-p_0}\ket{\mathrm{bad}}$
-    满足 $|\braket{\pm|\phi_0}|^2 = 1/2$(两个分支各半), 因此对 $G$ 做 QPE,
+    满足 $|\braket{\pm}{\phi_0}|^2 = 1/2$(两个分支各半), 因此对 $G$ 做 QPE,
     一次运行即(以概率 $1/2$)测出 $\theta$ 到精度 $\varepsilon$.
 \end{Proof}
+
+\subsection{特征值变换与矩阵函数}
+
+QPE 的核心价值不止于"读出相位", 还在于它能作为\textbf{相干的本征值读出原语}
+(coherent eigenvalue readout primitive), 用来对量子态施加矩阵函数 $f(H)$.
+
+\begin{Def}[用 QPE 实现矩阵函数]
+    设 $H$ 为厄米矩阵, $f: \mathbb{R} \to \mathbb{R}$ 满足 $|f(x)| \le 1$
+    ($x \in [-1, 1]$), $U = e^{2\pi i H}$ 由 Hamiltonian 模拟实现. 对
+    $H\ket{v_j} = \lambda_j\ket{v_j}$, 输入 $\ket{b} = \sum_j \beta_j\ket{v_j}$,
+    目标是制备 $\ket{\psi} \propto f(H)\ket{b} = \sum_j \beta_j f(\lambda_j)\ket{v_j}$.
+\end{Def}
+
+\begin{Note}[三步实现: QPE + 受控旋转 + 逆 QPE]
+    记整个 QPE 电路(含逆 QFT)为 $U_{\mathrm{QPE}}$. 在"本征值 $\lambda_j$ 恰有 $d$ 位
+    二进制表示"的理想假设下:
+    \begin{enumerate}
+        \item \textbf{QPE 阶段}: $U_{\mathrm{QPE}}\ket{0^d}\ket{v_j} = \ket{\tilde\lambda_j}\ket{v_j}$,
+        由线性性, $U_{\mathrm{QPE}}\ket{0^d}\ket{b} = \sum_j \beta_j\ket{\tilde\lambda_j}\ket{v_j}$,
+        本征值被\textbf{相干地}编码到相位寄存器;
+        \item \textbf{受控旋转阶段}: 对信号比特施加受控旋转
+        \[ U_{\mathrm{CR}}\ket{0}\ket{\tilde\lambda_j}
+        = \Big(\sqrt{1 - f(\tilde\lambda_j)^2}\,\ket{0} + f(\tilde\lambda_j)\,\ket{1}\Big)\ket{\tilde\lambda_j}, \]
+        使信号比特的 $|1\rangle$ 振幅携带 $f(\lambda_j)$;
+        \item \textbf{逆 QPE(uncomputation)}: $U_{\mathrm{QPE}}^\dagger$ 把相位寄存器复位为
+        $\ket{0^d}$, 丢弃工作寄存器后, 系统与信号比特的联合态为
+        \[ U\ket{0}\ket{b} = \sum_j \beta_j\Big(\sqrt{1 - f(\lambda_j)^2}\,\ket{0}
+           + f(\lambda_j)\,\ket{1}\Big)\ket{v_j}. \]
+        测量信号比特: 结果为 $1$ 时, 系统寄存器的归一化态恰为 $f(H)\ket{b}$.
+    \end{enumerate}
+    这就是 HHL 算法的核心机制(受控旋转把本征值信息转化为振幅), 也解释了
+    HHL 只在信号比特测得 $1$ 时成功的原因. 相比 QSVT, 该路线依赖理想化的
+    "本征值精确二进制表示"假设; QSVT 的特征值变换不需要这些假设, 分析更直接
+    (见下一模块).
+\end{Note}
 
 \section{振幅放大 (AA) 与最优振幅放大 (OAA)}
 
 \subsection{Grover 搜索: 振幅放大的原型}
 
 \begin{Def}[无结构搜索问题]
-    给定布尔函数 $f: \{0,1\}^n \to \{0,1\}$ 与 promise: 存在唯一标记态 $x_0$ 使 $f(x_0) = 1$,
+    给定布尔函数 $f: \{0,1\}^n \to \{0,1\}$ 与 promise: 存在唯一\textbf{标记态(marked state)} $x_0$ 使 $f(x_0) = 1$,
     找出 $x_0$. 经典算法最坏情形需要 $N - 1 = 2^n - 1$ 次查询,
-    量子算法可以做到 $O(\sqrt{N})$ 次 —— 这就是 Grover 的\textbf{二次加速}.
+    量子算法可以做到 $O(\sqrt{N})$ 次 —— 这就是 Grover 的\textbf{二次加速(quadratic speedup)}.
 \end{Def}
 
 设 oracle $U_f\ket{x}\ket{y} = \ket{x}\ket{y \oplus f(x)}$. 取 $\ket{y} = \ket{-}$,
-由相位反冲得 $U_f\ket{x}\ket{-} = (-1)^{f(x)}\ket{x}\ket{-}$, 于是相位 oracle
-$U_f\ket{x} = (-1)^{f(x)}\ket{x}$ 等价于\textbf{反射算子}
+由\textbf{相位反冲(phase kickback)}得 $U_f\ket{x}\ket{-} = (-1)^{f(x)}\ket{x}\ket{-}$, 于是\textbf{相位 oracle(phase oracle)}
+$U_f\ket{x} = (-1)^{f(x)}\ket{x}$ 等价于\textbf{反射算子(reflection operator)}
 
 \begin{equation}
     R_{x_0} = I - 2\ket{x_0}\bra{x_0}.
@@ -428,7 +602,7 @@ $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
 \begin{Thm}[Grover 迭代] \label{thm:grover}
     记 $\theta = 2\arcsin(1/\sqrt{N})$, 分解
     $\ket{\phi_0} = \sin(\theta/2)\ket{x_0} + \cos(\theta/2)\ket{x_0^\perp}$.
-    \textbf{Grover 算子} $G = R_0 R_{x_0}$ 在二维不变子空间
+    \textbf{Grover 算子(Grover operator)} $G = R_0 R_{x_0}$ 在二维不变子空间
     $\mathrm{span}\{\ket{x_0}, \ket{x_0^\perp}\}$ 内是旋转角为 $\theta$ 的旋转:
     \begin{equation}
         [G] = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix},
@@ -498,6 +672,17 @@ $\mathrm{span}\{\ket{x_0},\ket{x_0^\perp}\}$ 内每次旋转角度 $\theta$;
     若存在 $M$ 个标记态, 复杂度为 $O(\sqrt{N/M})$.
 \end{Cor}
 
+\begin{Note}[与经典搜索的对比]
+    无序搜索中经典\textbf{确定性}算法最坏情形需要 $N-1$ 次查询;
+    \textbf{随机化}经典算法(随机猜测 + 验证)平均也需要 $\Theta(N)$ 次
+    (单次成功概率 $1/N$, 期望 $N$ 次尝试). Grover 的 $O(\sqrt{N})$ 是
+    量子在查询复杂度上的严格二次加速: 下界 $\Omega(\sqrt{N})$ 的混合论证
+    说明, 经典每次查询"线性"地更新概率, 而量子查询以旋转的方式更新振幅,
+    信息以 $\sqrt{p}$ 而非 $p$ 的速度增长. 有 $M$ 个标记态时,
+    经典仍需 $\Theta(N/M)$ 次查询, 量子为 $O(\sqrt{N/M})$
+    (当 $M \ll N$ 时仍为二次加速; 当 $M$ 接近 $N/2$ 时优势消失).
+\end{Note}
+
 \subsection{振幅放大: 一般框架}
 
 Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
@@ -554,7 +739,7 @@ Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
     若 $U_0$ 需要 $m$ 个辅助(信号)比特, 即
     \[ U_0 \ket{0^m}\ket{0^n} = \sqrt{p}\,\ket{0^m}\ket{\phi} + \sqrt{1-p}\,\ket{\phi^\perp}, \]
     其中 $\ket{\phi^\perp}$ 与 $\ket{0^m}$ 正交. 此时"好"的状态由辅助比特全 $0$ 标志,
-    反射简化为 $R_{\mathrm{good}} = (I - 2\ket{0^m}\bra{0^m}) \otimes I$, 后选择测量辅助比特
+    反射简化为 $R_{\mathrm{good}} = (I - 2\ket{0^m}\bra{0^m}) \otimes I$, \textbf{后选择(post-selection)}测量辅助比特
     即得到成功概率 $p$. 这类"可验证成功"的结构在 block-encoding 等场景中反复出现.
 \end{Eg}
 
@@ -627,19 +812,19 @@ Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
 \subsection{Lie 乘积公式与一阶 Trotter}
 
 当 $H = H_1 + H_2$ 且 $[H_1, H_2] \neq 0$ 时, $e^{-itH} \neq e^{-itH_1}e^{-itH_2}$,
-但\textbf{Lie 乘积公式}给出
+但\textbf{Lie 乘积公式(Lie product formula)}给出
 
 \begin{equation}
     e^{-itH} = \lim_{L \to \infty} \Big(e^{-i(t/L)H_1} e^{-i(t/L)H_2}\Big)^{L}.
 \end{equation}
 
-记 $\tau = t/L$ 为步长, 一步的\textbf{局部误差}为 $O(\tau^2)$:
+记 $\tau = t/L$ 为步长, 一步的\textbf{局部误差(local error)}为 $O(\tau^2)$:
 
 \begin{Thm}[一阶 Trotter 公式]
     \begin{equation}
         \norm{e^{-i\tau H} - e^{-i\tau H_1} e^{-i\tau H_2}} = O(\tau^2),
     \end{equation}
-    其中常数与 $\norm{H_1}$, $\norm{H_2}$ 有关. 对总时间 $t$ 做 $L$ 步, 全局误差
+    其中常数与 $\norm{H_1}$, $\norm{H_2}$ 有关. 对总时间 $t$ 做 $L$ 步, \textbf{全局误差(global error)}
     \begin{equation}
         \norm{e^{-itH} - \big(e^{-i\tau H_1} e^{-i\tau H_2}\big)^{L}} = O(L\tau^2)
         = O\!\Big(\frac{t^2}{L}\Big),
@@ -695,7 +880,7 @@ $O(L\tau^2) = O(t^2/L)$.}
 \subsection{交换子型误差界}
 
 上面的 $O(\tau^2)$ 界中的常数可以精确刻画, 而且与 $\norm{H_1}+\norm{H_2}$ 相比,
-更好的常数是\textbf{交换子范数} $\norm{[H_1, H_2]}$.
+更好的常数是\textbf{交换子范数(commutator norm)} $\norm{[H_1, H_2]}$.
 
 \begin{Thm}[交换子型误差界]
     对一阶 Trotter,
@@ -720,7 +905,7 @@ $O(L\tau^2) = O(t^2/L)$.}
     \end{equation}
     其中 $H = H_1 + H_2$, 最后一步用了 $H_2e^{-i\tau H_1} - e^{-i\tau H_1}H_2$
     $= [H_2, e^{-i\tau H_1}]$. 这是含"源项" $[e^{-i\tau H_1},H_2]e^{-i\tau H_2}$ 的方程;
-    由 Module1 的 \textbf{Duhamel 原理}($\widetilde U(0) = U(0) = I$),
+    由 Module1 的 \textbf{Duhamel 原理(Duhamel's principle)}($\widetilde U(0) = U(0) = I$),
     \begin{equation}
         \widetilde U(\tau) - e^{-i\tau H}
         = -i\int_0^{\tau} e^{-iH(\tau-s)}\big[e^{-isH_1},\, H_2\big]e^{-isH_2}\,ds,
@@ -747,10 +932,10 @@ $O(L\tau^2) = O(t^2/L)$.}
 \end{Proof}
 
 \begin{Eg}[横向场 Ising 模型: 交换子界优于算子范数界]
-    一维横向场 Ising 模型
+    一维\textbf{横向场 Ising 模型(transverse-field Ising model)}
     \[ H = -J\sum_{i=1}^{n-1} Z_i Z_{i+1} - g\sum_{i=1}^{n} X_i =: H_1 + H_2. \]
     $H_1$ 内部各项两两对易, $H_2$ 内部亦然, 故 $e^{-i\tau H_1}$, $e^{-i\tau H_2}$ 可精确实现
-    (乘积分解为局部旋转). 但 $\norm{H_1} = O(n)$, $\norm{H_2} = O(n)$, 算子范数界给出
+    (乘积分解为局部旋转). 但 $\norm{H_1} = O(n)$, $\norm{H_2} = O(n)$, \textbf{算子范数(operator norm)}界给出
     $\alpha^2 = O(n^2)$, 即 $L = O(n^2 t^2/\varepsilon)$; 而
     $[Z_i Z_{i+1}, X_k] \neq 0$ 仅当 $k = i$ 或 $k = i+1$, 故
     $\norm{[H_1, H_2]} = O(n)$, 交换子界给出更紧的 $L = O(n t^2/\varepsilon)$.
@@ -778,7 +963,7 @@ $O(L\tau^2) = O(t^2/L)$.}
     高阶公式可以通过\textbf{组合方法(composition)}递归构造. 若 $U_p$ 是 $p$ 阶公式
     (局部误差 $O(\tau^{p+1})$), 且系数满足 $\sum_j s_j = 1$, $\sum_j s_j^{p+1} = 0$,
     则组合 $U_p(s_m\tau)\cdots U_p(s_1\tau)$ 至少是 $p+1$ 阶.
-    特别地, \textbf{Trotter--Suzuki 递推}给出 $2k$ 阶公式
+    特别地, \textbf{Trotter--Suzuki 递推(Trotter--Suzuki recursion)}给出 $2k$ 阶公式
     \begin{equation}
         U_{2k}(\tau) = U_{2k-2}(s_k\tau)\; U_{2k-2}\big((1-4s_k)\tau\big)\; U_{2k-2}(s_k\tau),
         \qquad s_k = \frac{1}{4 - 4^{1/(2k-1)}},
@@ -818,6 +1003,26 @@ $O(L\tau^2) = O(t^2/L)$.}
     高阶公式改进了对 $t$ 和 $\varepsilon$ 的依赖($1/p$ 指数), 但每步的指数个数随阶数
     指数增长($5^{k-1}$), 实践中 2 至 6 阶往往最优. 常系数 $s_k$ 的构造
     (Yoshida--Suzuki 三跳法与 5 级 Trotter--Suzuki 法)是数值分析中组合方法的直接移植.
+\end{Note}
+
+\begin{Note}[与经典算子分裂与谱方法的对比]
+    Trotter--Suzuki 公式并非量子特有: 它们是数值分析中\textbf{算子分裂
+    (operator splitting)}与\textbf{组合方法(composition methods)}的量子实现.
+    一阶 Lie--Trotter 分裂与二阶 \textbf{Strang 分裂(Strang splitting)}(1968)是经典求解
+    对流扩散型 PDE 的标准工具; 高阶组合方法及其系数($s_k$)由 Yoshida(1990)与
+    Suzuki(1991)在量子计算之前就建立. 二者的区别只在载体:
+    \begin{itemize}
+        \item \textbf{经典分裂}: 矩阵作用在网格向量上, 每步 $O(N)$ 次浮点运算
+        ($N$ 为网格点数); 谱方法则先用 FFT 对角化微分算子, 每步
+        $O(N\log N)$ 次运算, 再显式读出谱系数组装解;
+        \item \textbf{量子版本}: 酉演化作用在 $n = \log N$ 个量子比特上,
+        门数 $O(\mathrm{poly}(n))$; 当初始态是叠加态、且只需提取低维观测值
+        (期望、关联函数)而不需完整解向量时, 量子版本在高维
+        ($d \gtrsim 5$)下可获得对网格数的\textbf{指数加速(exponential speedup)}.
+    \end{itemize}
+    这解释了谱方法/分裂法在经典 PDE 数值解中的角色: 谱方法用 FFT 把微分算子
+    对角化, 与量子 qubitization 把 $H$ 变为旋转矩阵的思路同构 —— 区别在于
+    经典需要显式对角化矩阵, 量子只需要 block-encoding 的"隐式对角化".
 \end{Note}
 
 \subsection{局部演化的实现与交换情形}

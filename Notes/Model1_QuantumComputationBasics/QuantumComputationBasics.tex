@@ -28,6 +28,7 @@
 \usepackage{color} % 配色
 \usepackage[braket]{qcircuit} % 启用狄拉克符号支持, 用于绘制电路图
 \usepackage{physics} % 量子力学中的符号加载
+\usepackage{tikz} % 绘图(量子优势层级金字塔等)
 
 \newtheorem{Def}{\hskip 2em {\color{green} 定义}}[subsection]
 \newtheorem{Thm}{\hskip 2em {\color{blue} 定理}}[subsection]
@@ -65,12 +66,146 @@
 	
 \newpage
 \setcounter{page}{1}
+\section{科学计算中的量子优势}
+
+\textbf{量子优势(quantum advantage)}指量子计算机在求解某些任务时显著优于经典计算机. 经典计算机科学建立在\textbf{图灵机(Turing machine)}模型之上: 一切已知的经典计算系统(包括 von Neumann 体系结构)彼此图灵等价, 计算能力相同. 扩展 Church–Turing 论题进一步断言, 任何合理的计算模型都可以被概率图灵机以多项式开销模拟. 量子力学从根本物理原理上挑战了这一论题: EPR 与 Bell 的工作表明, 纠缠现象无法被经典局部实在论合理描述; Shannon 揭示了信息与热力学熵的联系, Landauer 则证明擦除一个比特的信息必须付出热力学能量代价 —— 信息本质上是物理的. 基于此, Manin (1980) 与 Feynman (1982) 独立指出: $n$ 个量子比特的态空间维数为 $2^n$, 直接模拟量子力学定律在经典计算机上需要指数级时间, 而物理系统自身却能高效演化 —— 一台充分利用量子力学原理的计算机, 有可能在某些问题上\textbf{指数地}超越图灵机. 这一猜想在 Shor 的快速分解算法、Lloyd 等人的量子模拟方案以及 Aaronson–Arkhipov 的量子优势提案之后被广泛接受.
+
+本章不涉及具体算法的构造, 只回答两个评价层面的问题: 如何定义与度量\textbf{量子加速(quantum speedup)}（第 \ref{sec:speedup} 节）, 以及如何按证据强度对量子应用分级（第 \ref{sec:hierarchy} 节）.
+
+\subsection{量子加速}\label{sec:speedup}
+
+从表面上看, $n$ 个量子比特可以处于 $2^n$ 个经典计算基态的\textbf{叠加(superposition)}态, 似乎处处都应存在显著加速. 但实际情况远为微妙: 在宣称任何加速之前, 必须回答以下四个问题:
+\begin{enumerate}
+    \item 量子算法是否需要\textbf{指数规模}的经典信息输入?
+    \item 量子算法是否产生需要\textbf{指数规模}提取的经典信息输出?
+    \item 若经典态空间大小为 $2^n$, 经典算法是否必须遍历\textbf{全部}状态才能达到所需精度?
+    \item 若经典态空间大小仅为 $n$, 但现有经典算法的代价为 $2^n$, 未来的经典算法能否把代价降至 $\mathrm{poly}(n)$?
+\end{enumerate}
+这些讨论可以在相当宏观的层面进行, 基本无需复杂的量子术语.
+
+\begin{Def}[量子加速]
+    以系统规模 $n$ 的函数衡量量子与经典算法的代价, 定义
+    \begin{equation}
+        \text{量子加速} = \frac{\log\left(\min \mathrm{Cost}_{\text{经典}}(n)\right)}{\log\left(\mathrm{Cost}_{\text{量子}}(n)\right)}.
+        \label{eq:speedup}
+    \end{equation}
+    其中 $\min \mathrm{Cost}_{\text{经典}}(n)$ 表示经典算法的极小代价, $\mathrm{Cost}_{\text{量子}}(n)$ 表示量子算法的代价. 对数的出现可直观理解为: 若经典与量子代价分别（渐近）正比于 $n^c$ 与 $n^q$, 则当 $n \to \infty$ 时上式趋于 $c/q$. 例如二次加速对应 $c/q = 2$, 三次加速对应 $c/q = 3$, 依次类推.
+\end{Def}
+
+\begin{Def}[超多项式加速与指数量子优势]
+    若 $c \to \infty$（当 $n \to \infty$）而量子代价保持有界, 则称加速为\textbf{超多项式}(superpolynomial)的. 若经典代价至少随 $n$ \textbf{指数}增长, 而量子代价仅\textbf{多项式}增长, 则称\textbf{指数量子优势}(exponential quantum advantage, EQA).
+\end{Def}
+
+\begin{Eg}[素因数分解]
+    对两个素数 $p, q$ 及其乘积 $m = pq$, 已知 $m$ 求 $p, q$ 称为素因数分解问题. 以 $m$ 的二进制位数 $n$ 为规模, 目前渐近意义下最优的经典算法是\textbf{一般数域筛法}(General Number Field Sieve, GNFS), 其计算代价正比于
+    \[
+        \exp\left[c\, n^{1/3} (\log n)^{2/3}\right],
+    \]
+    随 $n$ 超多项式增长. Shor 算法在量子计算机上以 $n^2 \log n \log\log n$（即 $\tilde O(n^2)$）的多项式代价求解同一问题. 这提供了目前"最干净"的显著量子加速例证: 加速是超多项式的, 但按上述严格定义还不是指数级 —— 实践中我们对超多项式加速已经相当满意.
+\end{Eg}
+
+\begin{Note}[关于经典代价的极小化]
+    原则上, 式 \eqref{eq:speedup} 中的 $\min \mathrm{Cost}_{\text{经典}}$ 应对\textbf{所有}经典算法取极小, 既包括今天已存在的, 也包括未来可能被发明的. 只有极少数简单问题能给出经典代价的下界; 对绝大多数科学计算问题这极其困难 —— 例如我们至今不知道素因数分解能否在多项式时间内完成. 因此实践中, 经典代价只能以现有最优算法的理论与经验证据来估计.
+\end{Note}
+
+\begin{Note}[二次加速的来源: 概率密度与振幅]
+    量子力学常被描述为概率理论, 但其核心对象其实是\textbf{量子振幅(quantum amplitude)}: 可以粗略理解为概率密度的平方根并附加相位信息. 概率密度与振幅之间的差别, 往往是二次加速($c/q = 2$)的根源, 最典型的例子是非结构搜索的 Grover 算法. 然而, 仅凭二次加速恐怕不会是早期容错量子计算机最具突破性的应用. 本讲义用\textbf{显著量子加速}(significant quantum speedup)泛指高于二次（如三次、四次）乃至超多项式的加速.
+\end{Note}
+
+\begin{Def}[量子成本的分解: 输入、输出与运行成本]
+    量子代价可粗略计算为"总门复杂度 $\times$ 因测量导致的重复运行次数", 并进一步分解为三部分:
+    \begin{enumerate}
+        \item \textbf{输入成本(input cost)}: 制备输入态的成本. 不失一般性, 算法从干净态 $\ket{0^n}$ 出发, 输入态 $\ket{\psi_I}$ 由酉矩阵 $U_I$ 制备: $\ket{\psi_I} = U_I \ket{0^n}$, 则输入成本为实现 $U_I$ 的门复杂度; 若算法需要多次\textbf{相干(coherent)}访问输入 oracle $U_I$, 输入成本为实现 $U_I$ 的门复杂度乘以相干初态制备的次数.
+        \item \textbf{输出成本(output cost)}: 量子测量的成本. 不失一般性, 经适当基变换后, 测量可视为算法末段在计算基上的单比特或多比特测量, 输出成本即为达到所需精度需重复运行算法的次数 $M$.
+        \item \textbf{运行成本(running cost)}: 单次\textbf{相干}运行算法的成本, 即实现算法的门复杂度（不含 $U_I$）.
+    \end{enumerate}
+    区分输入成本与运行成本, 是为了识别总代价是被输入制备主导还是被算法本体主导. 许多场景下输入信息是经典的, 其复杂度性质与量子算法截然不同. 还有一种重要情形: 输入态 $\ket{\psi_I}$ 并非由已知电路 $U_I$ 产生, 而是由量子实验制备 —— 此时输入成本通常是制备 $\ket{\psi_I}$ 所需的实验重复次数（\textbf{样本复杂度(sample complexity)}）, 而非电路复杂度.
+\end{Def}
+
+\begin{Note}[输出端: 量子态层析的代价]
+    一切量子算法最终都必须通过量子测量输出可由经典手段处理的信息. 如果算法的最终产物本身就是\textbf{量子态(quantum state)}, 那么在经典计算机上恢复该量子态的过程称为\textbf{量子态层析}(quantum state tomography), 其代价通常随量子系统规模\textbf{指数}增长. 因此, 涉及对大量量子比特做态层析的问题很难获得显著量子加速. 应把注意力集中在"最终结果只需通过测量少量可观测量即可获得"的问题上 —— 这类问题的测量开销可以大幅降低.
+\end{Note}
+
+\begin{Note}["细读细则": 量子计算机是加速器, 而非通用替代品]
+    如 Aaronson 所强调, 评估量子优势的主张时必须"细读细则"(read the fine print), 下列条件必须同时满足:
+    \begin{enumerate}
+        \item 该问题在经典硬件上是\textbf{计算密集}的;
+        \item 该任务在量子设备上能够\textbf{高效}求解;
+        \item 数据\textbf{输入与输出}的开销（加载与提取数据）不应当主导总代价.
+    \end{enumerate}
+    此外, 若干针对经典数据的线性代数与机器学习加速主张, 依赖于很强的数据访问假设; 而在类似的假设下, "量子启发"的经典算法有时也能达到可比的复杂度. 满足上述全部条件远非易事, 这是整个科学界面临的重大理论、实验与算法挑战. 总而言之, 量子计算机不应被看作注定取代经典计算机的通用计算设备, 而应视为能够在特定任务上提供显著加速的\textbf{加速器}.
+\end{Note}
+
+\subsection{量子加速层级}\label{sec:hierarchy}
+
+基于上述量子加速的定义, 图 \ref{fig:qahierarchy} 用一个四层金字塔结构组织科学计算中的量子应用: \textbf{水平 I} 高度结构化问题, \textbf{水平 II} 酉动力学、采样与学习问题, \textbf{水平 III} 量子性质与有效动力学问题, \textbf{水平 IV} 强经典基线与 I/O 受限问题. 金字塔的纵轴表示现有证据支持\textbf{显著}量子加速的程度, 横轴表示潜在科学应用的范围; 对学习与感知类任务, 主导成本可能是样本复杂度（实验重复次数）, 这里计入运行成本与输出成本. 原表还标注了各水平的输入、输出与运行成本, 但因问题而异、多以"?"标注, 此处从略; 各水平的典型问题与经典代价证据汇总于表 \ref{tab:qahierarchy}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=1cm, y=1cm]
+    % 金字塔: 顶点 (3, 4.2), 底边 y = 0.8, 半宽 3.4, 斜率为 1
+    \fill[blue!60] (3,4.2) -- (3.85,3.35) -- (2.15,3.35) -- cycle;
+    \fill[blue!45] (3.85,3.35) -- (4.7,2.5) -- (1.3,2.5) -- (2.15,3.35) -- cycle;
+    \fill[blue!30] (4.7,2.5) -- (5.55,1.65) -- (0.45,1.65) -- (1.3,2.5) -- cycle;
+    \fill[blue!18] (5.55,1.65) -- (6.2,0.8) -- (-0.2,0.8) -- (0.45,1.65) -- cycle;
+    \draw (3,4.2) -- (6.2,0.8) -- (-0.2,0.8) -- cycle;
+    \draw (3.85,3.35) -- (2.15,3.35);
+    \draw (4.7,2.5) -- (1.3,2.5);
+    \draw (5.55,1.65) -- (0.45,1.65);
+    % 层内标号
+    \node[text=white, font=\small] at (3,3.78) {I};
+    \node[text=white, font=\small] at (3,2.93) {II};
+    \node[font=\small] at (3,2.08) {III};
+    \node[font=\small] at (3,1.23) {IV};
+    % 右侧说明
+    \node[anchor=west, align=left, font=\small] at (6.4,3.9)  {高度结构化问题\\[-2pt] {\footnotesize 可证明的速度提升}};
+    \node[anchor=west, align=left, font=\small] at (6.4,3.0)  {酉动力学、采样与学习\\[-2pt] {\footnotesize 经验上的困难}};
+    \node[anchor=west, align=left, font=\small] at (6.4,2.15) {量子性质与有效动力学\\[-2pt] {\footnotesize 经验上的困难}};
+    \node[anchor=west, align=left, font=\small] at (6.4,1.3)  {强经典基线与 I/O 受限\\[-2pt] {\footnotesize 高效的经典基线}};
+    % 坐标轴
+    \draw[->,thick] (-1.0,0.8) -- (-1.0,4.6);
+    \node[rotate=90] at (-1.55,2.7) {\footnotesize 证据强度};
+    \draw[->,thick] (-0.2,0.35) -- (7.2,0.35);
+    \node at (3.4,0.05) {\footnotesize 应用范围};
+\end{tikzpicture}
+\caption{量子优势层级金字塔（依据 live\_notes 图 1.1 重绘）: 纵向表示现有证据支持的显著量子加速强度, 横向表示潜在的科学应用范围}
+\label{fig:qahierarchy}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{量子优势层级中的问题示例与经典代价证据（依据 live\_notes 表 1.1 整理）}
+\label{tab:qahierarchy}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.6cm}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{5.0cm}@{}}
+\toprule
+层级 & 问题类型 & 经典代价的证据 & 典型例子 \\
+\midrule
+水平 I & 高度结构化问题 & 可证明地昂贵 & Shor 素因数分解与离散对数; 解码量子干涉（DQI）求解结构化优化 \\
+水平 II & 酉动力学、采样与学习 & 经验上昂贵 & Hamiltonian 模拟; 随机电路采样; 带量子记忆的学习 \\
+水平 III & 量子性质与有效动力学 & 经验上昂贵; 经典近似方法强大但通常不能任意精度收敛 & 基态能量估计; 热态制备; Green 函数; 开放系统动力学 \\
+水平 IV & 强经典基线与 I/O 受限 & 高效（超大系统除外） & 经典 PDE 与随机微分方程; 非结构化优化; 经典机器学习 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{水平 I: 高度结构化问题.} 这类问题具有可利用的数学结构, 使量子算法能够绕开经典方法所需的穷举搜索. 经典代价"可证明地昂贵"是指在合理的复杂度理论猜想下、或相对最优已知经典算法而言问题困难. 例如 Shor 算法利用的是模幂函数的周期性 —— 一个与\textbf{隐藏子群问题(hidden subgroup problem)}相关的性质; 这类问题同时也是"可验证的": 候选解可以由经典方法高效检验（把返回的因子相乘即可）. 最近发展的解码量子干涉测量（decoded quantum interferometry, DQI）算法能以超多项式加速求解高度结构化的优化问题, 有潜力归入水平 I. 遗憾的是, 这种结构在一般科学计算中十分罕见: 物理与工程中的大多数问题缺乏干净可利用的结构, 迄今只有少数应用达到了可比的证据强度.
+
+\textbf{水平 II: 酉动力学、采样与学习.} 最突出的例子是量子态在 Hamiltonian 作用下的时间演化, 即\textbf{哈密顿量模拟(Hamiltonian simulation)}问题 —— 量子物理与化学中的许多任务都可化为这一形式. 对作用于 $n$ 个量子比特的物理 Hamiltonian, 描述规模通常为 $\mathrm{poly}(n)$; 假设初态简单（如乘积态, 可多项式代价制备）, 则以精度 $\varepsilon$ 模拟时间 $t$ 的代价为 $\mathrm{poly}(n, t, 1/\varepsilon)$. 在此假设下, 尚无已知经典算法能可靠地长时间模拟一般多体动力学. 该水平还包括不由 Hamiltonian 显式定义的酉演化采样, 如\textbf{量子霸权(quantum supremacy)}实验中的\textbf{随机电路采样(random circuit sampling)} —— 验证其输出分布本身就需要指数级经典资源, 因此证据主要依赖经典模拟的\textbf{经验}困难性. 某些量子学习任务可以在样本复杂度上展示指数优势（前提是量子性质的输入数据与量子记忆）, 但这假设我们对被学习的量子系统一无所知, 且不同于本讲义关注的"经典输入输出"任务. 与水平 I 相比, 加速的理论论证往往不那么严格, 验证量子优势也更困难.
+
+\textbf{水平 III: 量子性质与有效动力学.} 这一水平涵盖量子物理、量子化学与材料科学中的大量问题. "量子性质"指系统的静态特征: \textbf{基态能量(ground state energy)}、激发态能量、定态与谱性质; "有效动力学"指并非天然酉的过程: 涉及耗散的开放系统动力学、用于冷却的虚时间演化等. 与水平 II 相比, 从这些非酉对象到酉硬件逻辑的映射是间接的, 常引入额外开销: \textbf{线性组合酉(linear combination of unitaries, LCU)}的分解、\textbf{后选择(post-selection)}或大量辅助比特. 需要从量子计算机提取的信息量与量子动力学模拟相当, 至多 $\mathrm{poly}(n)$; 基态能量估计更极端 —— 输出只是一个数. 与酉动力学相比, 这类任务存在\textbf{强大得多}的经典算法, 但多为近似方法, 通常无法任意精度收敛到真解（尽管对许多实际问题已足够精确）. 输入成本也是把它们置于水平 III 的主要因素: 基态能量估计往往需要好的初始猜测（\textbf{ansatz}）, 生成 ansatz 可能计算昂贵或物理困难, 有时导致\textbf{QMA-hard}瓶颈.
+
+\textbf{水平 IV: 强经典基线与 I/O 受限.} 还可以设计量子算法求解完全经典的问题: 经典偏微分方程（PDE）、随机微分方程（SDE）、非结构化优化问题与采样任务. 这些覆盖了科学计算中的大量问题, 但多数落入本水平, 原因有二: 其一, \textbf{强经典基线} —— 网格规模 $N$ 上的许多 PDE 可以经典地在 $\mathrm{poly}(N)$ 时间求解（用快速算法常常近似线性）; 其二, \textbf{I/O 限制} —— 仅把任意大小为 $N$ 的输入向量加载进量子态就需要线性于 $N$ 的时间, 足以抵消任何潜在的指数加速. 一个例外是经典数据具有显著结构从而可以高效加载; 最近对大规模经典谐振子的量子求解器就在这一情形下展示了潜在优势. 就非结构化搜索而言, Grover 算法提供的二次加速通常不足以克服容错\textbf{量子纠错(quantum error correction)}的显著常数因子开销与高度优化的经典启发式之间的差距. 反过来, 许多密码问题可以表述为经典优化问题 —— 量子算法的下一个突破, 可能再次来自经典问题.
+
+\begin{Note}
+    量子优势的评估与追求是一个快速发展的领域. 本讲义讨论具体应用时, 将尽可能同时考察量子输入成本、输出成本、运行成本与经典算法代价四个方面, 希望读者在自己的研究中也主动寻找这些要素. 但需要强调: 现有结论基于已有文献, 远非穷尽或定论; 该领域的快速进展可能显著改变当前的理解与结论.
+\end{Note}
+
 \section{量子力学的公理体系(四大假设)}
 与经典的 Newton 力学不同, 量子力学并不试图从「直觉」出发, 而是从四条数学公设出发, 推导出一切可观测的结论. 后续的所有算法, 协议和约束都建立在此四大公设基础之上.
 \begin{Def}[四大假设概述]
     任何量子力学系统由以下四条公设完全描述: 
     \begin{enumerate}[label=\textbf{公设 \arabic*: }, leftmargin=*]
-    \item \textbf{态空间公设} —— 系统状态由 Hilbert 空间中的单位向量描述;
+    \item \textbf{态空间公设} —— 系统状态由\textbf{Hilbert 空间(Hilbert space)}中的单位向量描述;
     \item \textbf{演化公设} —— 封闭系统的演化由酉变换(或 Schrödinger 方程)描述;
     \item \textbf{测量公设} —— 测量由一组测量算子描述, 结果满足概率规则;
     \item \textbf{复合系统公设} —— 复合系统的态空间为子系统态空间的张量积.
@@ -102,7 +237,7 @@
 \subsection{公设 2: 演化公设}
 
 \begin{Thm}
-    封闭量子系统的演化可用\textbf{酉变换(unitary transformation)}来描述.也就是说,系统在$t_1$时所处的状态$\ket{\psi}$和在$t_2$时所处的状态$\ket{\psi'}$是通过一个仅于时间$t_1$和$t_2$有关的酉算子$U$联系起来的,即
+    封闭量子系统的演化可用\textbf{酉变换(unitary transformation)}来描述.也就是说,系统在$t_1$时所处的状态$\ket{\psi}$和在$t_2$时所处的状态$\ket{\psi'}$是通过一个仅于时间$t_1$和$t_2$有关的\textbf{酉算子(unitary operator)}$U$联系起来的,即
 	\begin{equation}
         \ket{\psi'}=U\ket{\psi}
     \end{equation}
@@ -110,7 +245,7 @@
     \begin{equation}
         i\hbar \frac{d}{dt} \ket{\psi(t)} = H(t) \ket{\psi(t)}
     \end{equation}
-    在该方程中,$\hbar$是一个物理常数,称为\textbf{普朗克常数(Planck's constant)}.实践中,经常把因子放入,取$\hbar=1$.H是一个称为封闭系统哈密顿量的固定厄米算子.
+    在该方程中,$\hbar$是一个物理常数,称为\textbf{普朗克常数(Planck's constant)}.实践中,经常把因子放入,取$\hbar=1$.H是一个称为封闭系统哈密顿量的固定\textbf{厄米算子(Hermitian operator)}.
 \end{Thm}
 
 \begin{Note}
@@ -125,7 +260,7 @@
     对状态 $\ket{\psi}$ 进行测量: 
     \begin{enumerate}
         \item 结果 $m$ 出现的概率为 $p(m) = \mel{\psi}{M_m^\dagger M_m}{\psi}$;
-        \item 测量后的系统状态坍缩为 $\displaystyle\frac{M_m \ket{\psi}}{\sqrt{p(m)}}$.
+        \item 测量后的系统状态\textbf{坍缩(collapse)}为 $\displaystyle\frac{M_m \ket{\psi}}{\sqrt{p(m)}}$.
     \end{enumerate}
 \end{Thm}
 
@@ -165,6 +300,118 @@
 张量积结构是量子计算中「指数爆炸」的根源: $n$ 个 qubit 的态空间维度为 $2^n$.
 这也是量子计算之所以有潜力的数学基础 —— $n=50$ 时, 态空间维度已经超过 $10^{15}$.
 
+\subsection{谱定理、奇异值分解与矩阵函数}
+
+三个线性代数工具在全书反复使用: \textbf{正规矩阵谱定理(spectral theorem)}刻画了可用酉矩阵对角化的矩阵类,
+\textbf{奇异值分解}(singular value decomposition, SVD)对\textbf{任意}矩阵给出最一般的正交分解,
+而\textbf{矩阵函数(matrix function)}(尤其是\textbf{矩阵指数(matrix exponential)})把酉门与演化算子表示成算子的指数形式, 使代数运算大为简化.
+
+\begin{Thm}[正规矩阵的谱定理]
+    给定矩阵 $A \in \mathbb{C}^{N\times N}$, $A$ 是\textbf{正规矩阵}(normal, 即
+    $AA^\dagger = A^\dagger A$)当且仅当存在酉矩阵 $V \in U(N)$ 与对角矩阵 $D \in \mathbb{C}^{N\times N}$,
+    使得
+    \begin{equation}
+        A = V D V^\dagger,
+    \end{equation}
+    其中 $D$ 的对角元是 $A$ 的\textbf{本征值(eigenvalue)}, $V$ 的列向量是 $A$ 的\textbf{本征向量(eigenvector)}.
+\end{Thm}
+
+\begin{Cor}
+    厄米矩阵($A^\dagger = A$)与酉矩阵($A^\dagger = A^{-1}$)都是正规矩阵, 因而都可以酉对角化.
+    特别地, 量子可观测量(厄米)的本征值为实数; 测量公设中的谱分解
+    $O = \sum_m \lambda_m P_m$($P_m$ 为本征空间投影算子)正是谱定理在厄米算子上的直接体现
+    (见量子测量一章).
+\end{Cor}
+
+\begin{Thm}[奇异值分解]
+    对任意矩阵 $A \in \mathbb{C}^{M\times N}$, 存在酉矩阵 $U \in U(M)$、$V \in U(N)$
+    以及对角矩阵 $\Sigma \in \mathbb{C}^{M\times N}$(对角元为非负实数), 使得
+    \begin{equation}
+        A = U \Sigma V^\dagger.
+    \end{equation}
+    $\Sigma$ 的对角元称为 $A$ 的\textbf{奇异值}(singular values), $U$ 的列向量称为
+    \textbf{左奇异向量}(left singular vectors), $V$ 的列向量称为\textbf{右奇异向量}(right singular vectors).
+\end{Thm}
+
+\begin{Note}
+    SVD 是谱定理对任意矩阵的推广: 即使 $A$ 不是方阵、也不可对角化, 仍然存在正交分解.
+    它在数值线性代数中同样核心: 用于计算 Moore--Penrose 伪逆、低秩近似(截断 SVD)与矩阵范数
+    $\norm{A} = \sigma_{\max}(A)$. 在本讲义中, qubitization 与\textbf{量子奇异值变换(quantum singular value transformation, QSVT)}都以 $A$ 的
+    奇异值分解为基础.
+\end{Note}
+
+\begin{Def}[矩阵函数与矩阵指数]
+    对 $A \in \mathbb{C}^{N\times N}$ 与复值函数 $f: \mathbb{C} \to \mathbb{C}$, 矩阵函数 $f(A)$ 定义如下:
+    \begin{enumerate}
+        \item 若 $f$ 是解析函数且 $f(x) = \sum_{j=0}^\infty a_j x^j$, 则
+        $f(A) := \sum_{j=0}^\infty a_j A^j$;
+        \item 若 $A$ 是正规矩阵且 $A = V D V^\dagger$($V$ 酉, $D = \mathrm{diag}(\lambda_0, \dots, \lambda_{N-1})$),
+        则 $f(A) := V f(D) V^\dagger$, 其中 $f(D) = \mathrm{diag}(f(\lambda_0), \dots, f(\lambda_{N-1}))$.
+    \end{enumerate}
+    两种定义下, 矩阵\textbf{指数}都取为幂级数
+    \begin{equation}
+        e^A := \sum_{j=0}^\infty \frac{A^j}{j!}.
+    \end{equation}
+    对\textbf{非正规}矩阵, 矩阵函数还可以用围道积分定义(见 Higham 2008, \textit{Functions of Matrices}, 第 1 章).
+\end{Def}
+
+\begin{Lem}
+    设 $A \in \mathbb{C}^{N\times N}$, $U \in U(N)$ 为酉矩阵, 则
+    \[ U\, e^A\, U^\dagger = e^{\,U A U^\dagger}. \]
+\end{Lem}
+
+\begin{Prop}[酉矩阵的指数表示]
+    任意酉矩阵 $U \in U(N)$ 都存在厄米矩阵 $H$ 使得 $U = e^{-iH}$.
+\end{Prop}
+
+\begin{Proof}
+    酉矩阵是正规矩阵, 由谱定理可酉对角化 $U = V D V^\dagger$. 其对角元满足 $|D_{ii}| = 1$,
+    故可写为 $D_{ii} = e^{-i\theta_i}$, $\theta_i \in [0, 2\pi)$. 定义对角矩阵
+    $\Lambda = \mathrm{diag}(\theta_0, \dots, \theta_{N-1})$ 与 $H = V \Lambda V^\dagger$,
+    则 $H$ 是厄米的, 且 $e^{-iH} = V e^{-i\Lambda} V^\dagger = V D V^\dagger = U$.
+    注意 $H$ 并不唯一: 每个 $\theta_i$ 都可以模 $2\pi$ 选取.
+\end{Proof}
+
+\begin{Lem}[Baker--Campbell--Hausdorff 公式的最简形式]
+    对任意 $A, B \in \mathbb{C}^{N\times N}$:
+    \begin{enumerate}
+        \item 若 $[A, B] = 0$, 则 $e^A e^B = e^{A+B}$;
+        \item 若 $[A, [A, B]] = [B, [A, B]] = 0$, 则 $e^A e^B = e^{A + B + \frac{1}{2}[A,B]}$;
+        \item 一般情形下, $e^A e^B = e^{A + B + \frac{1}{2}[A,B] + O\big(\max(\norm{A}, \norm{B})^3\big)}$.
+    \end{enumerate}
+    这是分析 Trotter--Suzuki 分裂等 Hamiltonian 模拟误差的基础.
+\end{Lem}
+
+\begin{Lem}[共轭矩阵指数的 Taylor 展开]
+    设 $A, B \in \mathbb{C}^{N\times N}$ 为正规矩阵, $t \in \mathbb{R}$, 则
+    \begin{equation}
+        e^{At} B e^{-At}
+        = B + [A, B]\, t + [A, [A, B]]\, \frac{t^2}{2!} + [A, [A, [A, B]]]\, \frac{t^3}{3!} + \cdots
+    \end{equation}
+    即 $f(t) = e^{At} B e^{-At}$ 在 $t = 0$ 处的 $k$ 阶导数恰为 $k$ 重\textbf{对易子(commutator)}
+    $[A, [A, \cdots [A, B]\cdots]]$.
+\end{Lem}
+
+\begin{Proof}
+    $f(t) = e^{At} B e^{-At}$ 是解析函数, 其 Taylor 展开由各阶导数在 $t = 0$ 的值决定.
+    归纳证明
+    \[ \frac{d^k}{dt^k}\big(e^{At} B e^{-At}\big)
+    = e^{At}\, \underbrace{[A, [A, \cdots [A, B]\cdots]]}_{k\ \text{重对易子}}\, e^{-At}. \]
+    基例 $k = 0$ 平凡成立. 设结论对 $k$ 成立, 记 $C = [A, [A, \cdots [A, B]\cdots]]$(含 $k$ 重对易子),
+    则对 $k+1$ 阶:
+    \[
+        \frac{d}{dt}\Big(e^{At} C\, e^{-At}\Big)
+        = e^{At} (AC - CA) e^{-At} = e^{At} [A, C] e^{-At},
+    \]
+    得到含 $k+1$ 重对易子的形式, 归纳完成. 在 $t = 0$ 求值即得展开系数.
+\end{Proof}
+
+\begin{Note}
+    矩阵指数在量子计算中的典型作用是表示\textbf{演化算子(evolution operator)}与\textbf{旋转门(rotation gate)}: 若 $H$ 是哈密顿量(厄米),
+    则演化算子为 $e^{-iHt}$; 对\textbf{Pauli 算子(Pauli operator)} $P \in \{X, Y, Z\}$, $e^{-i\theta P}$ 正是 Bloch 球上绕 $P$ 轴
+    的旋转门(见第 \ref{sec:gates} 节). BCH 公式与共轭指数展开则是 Hamiltonian 模拟误差分析的核心工具.
+\end{Note}
+
 \section{量子比特}
 \subsection{单量子比特}
 量子比特(qubit)是量子计算的基本信息单元, 其数学形式为 $\mathbb{C}^2$ 中的单位向量: 
@@ -192,13 +439,12 @@
 \begin{equation}
     \mathbf{a} = (\sin\theta\cos\varphi,\ \sin\theta\sin\varphi,\ \cos\theta) \in S^2.
 \end{equation}
-该单位球面称为 \textbf{Bloch 球}. 其中 $\ket{0}$, $\ket{1}$ 分别对应北极和南极;
+该单位球面称为 \textbf{Bloch 球(Bloch sphere)}. 其中 $\ket{0}$, $\ket{1}$ 分别对应北极和南极;
 $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\ket{0}-\ket{1})$ 对应 $x$ 轴上的两个点.
 \end{Eg}
 
 \begin{Note}
-    Bloch 球表明单量子比特的(物理可区分)态空间是二维曲面 $S^2$.
-    量子门的作用可以理解为 Bloch 球上的旋转(见第 \ref{sec:gates} 节).
+    消耗了 1 个自由度, 结合全局相位不变性, 将 4 个自由度压缩至 2 个.
 \end{Note}
 
 \subsection{多量子比特与张量积}
@@ -224,7 +470,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \begin{Eg}[两量子比特与 Bell 态]
     两量子比特的态空间为 $\mathbb{C}^4$, 标准基为
     \[ \ket{00},\ \ket{01},\ \ket{10},\ \ket{11}. \]
-    \textbf{Bell 态}(又称 EPR 对)定义为
+    \textbf{Bell 态(Bell state)}(又称 EPR 对)定义为
     \begin{equation}
         \ket{\Phi^+} = \frac{1}{\sqrt{2}}\big(\ket{00} + \ket{11}\big).
     \end{equation}
@@ -243,7 +489,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \subsection{密度算子}
 
 \begin{Def}[密度算子]
-    若量子系统以概率 $p_i$ 处于纯态 $\ket{\psi_i}$($\sum_i p_i = 1$), 则系统的\textbf{密度算子(density operator)}为
+    若量子系统以概率 $p_i$ 处于\textbf{纯态(pure state)} $\ket{\psi_i}$($\sum_i p_i = 1$), 则系统的\textbf{密度算子(density operator)}为
     \begin{equation}
         \rho := \sum_i p_i \ket{\psi_i}\bra{\psi_i}.
     \end{equation}
@@ -258,7 +504,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
         \item $\Tr \rho = 1$(迹归一).
     \end{enumerate}
     若 $\rho^2 = \rho$, 则 $\rho$ 为纯态; 否则称为\textbf{混合态(mixed state)}.
-    $n$ 量子比特系统的\textbf{最大混合态}为 $\rho = I/2^n$.
+    $n$ 量子比特系统的\textbf{最大混合态(maximally mixed state)}为 $\rho = I/2^n$.
 \end{Thm}
 
 \begin{Prop}[密度算子形式下的公设]
@@ -289,7 +535,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
     Bell 态 $\ket{\Phi^+}$ 的密度算子为
     \[ \rho_{AB} = \frac{1}{2}\big(\ket{00}\bra{00} + \ket{00}\bra{11} + \ket{11}\bra{00} + \ket{11}\bra{11}\big). \]
     对系统 $B$ 求部分迹: 对角项 $\Tr_B \ket{00}\bra{00} = \ket{0}\bra{0}$,
-    非对角项 $\Tr_B \ket{00}\bra{11} = \braket{0|1}\,\ket{0}\bra{1} = 0$, 于是
+    非对角项 $\Tr_B \ket{00}\bra{11} = \braket{0}{1}\,\ket{0}\bra{1} = 0$, 于是
     \[ \rho_A = \Tr_B \rho_{AB} = \frac{1}{2}\big(\ket{0}\bra{0} + \ket{1}\bra{1}\big) = \frac{I}{2}. \]
     即复合系统的纯态(Bell 态)在子系统上表现为最大混合态 —— 纠缠的信息完全体现在
     两个子系统之间的关联中, 而不在任何一个子系统内部.
@@ -299,6 +545,18 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
     任意混合态都可以通过引入辅助(ancilla)比特纯化: 若 $\rho = \sum_j p_j \ket{\psi_j}\bra{\psi_j}$,
     则
     \[ \ket{\Psi} = \sum_j \sqrt{p_j}\ket{\psi_j}_A \ket{j}_B \qquad\Longrightarrow\qquad \Tr_B \ket{\Psi}\bra{\Psi} = \rho. \]
+\end{Note}
+
+\begin{Note}[单量子比特密度算子的 Bloch 分解]
+    任意单量子比特密度算子都可以写成
+    \[ \rho = \frac{1}{2}\big(I + \mathbf{a}\cdot\boldsymbol{\sigma}\big), \qquad
+    \boldsymbol{\sigma} = (X, Y, Z),\quad \mathbf{a} \in \mathbb{R}^3,\ |\mathbf{a}| \le 1, \]
+    其中 $\mathbf{a}$ 称为\textbf{Bloch 向量(Bloch vector)}. 纯态对应 $|\mathbf{a}| = 1$(Bloch 球面),
+    混合态对应 $|\mathbf{a}| < 1$(Bloch 球内部). 纯度
+    \[ \Tr(\rho^2) = \frac{1 + |\mathbf{a}|^2}{2} \in \Big[\frac{1}{2},\ 1\Big], \]
+    最大混合态 $\rho = I/2$ 对应 $\mathbf{a} = 0$. 这是 Bloch 球表示与密度算子形式论的统一:
+    一方面, 单量子比特纯态 $\ket{\psi}$ 的密度算子即此形式($|\mathbf{a}| = 1$);
+    另一方面, 混合态唯一地对应 Bloch 球内部的一个点.
 \end{Note}
 
 \section{量子逻辑门} \label{sec:gates}
@@ -311,8 +569,8 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
         Y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}, \qquad
         Z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}.
     \end{equation}
-    作用效果: $X\ket{0} = \ket{1}$, $X\ket{1} = \ket{0}$(\textbf{比特翻转});
-    $Z\ket{0} = \ket{0}$, $Z\ket{1} = -\ket{1}$(\textbf{相位翻转}).
+    作用效果: $X\ket{0} = \ket{1}$, $X\ket{1} = \ket{0}$(\textbf{比特翻转(bit flip)});
+    $Z\ket{0} = \ket{0}$, $Z\ket{1} = -\ket{1}$(\textbf{相位翻转(phase flip)}).
     性质: $X^2 = Y^2 = Z^2 = I$, $XY = iZ$, 且任意两个不同的 Pauli 算子反对易
     ($\{P, Q\} := PQ + QP = 0$). $\{I, X, Y, Z\}$ 构成 $\mathbb{C}^{2\times 2}$ 的一组基.
 \end{Def}
@@ -343,12 +601,12 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \subsection{多量子比特门}
 
 \begin{Def}[CNOT 门]
-    CNOT(受控非门)的作用为
+    \textbf{CNOT(受控非门)}的作用为
     \begin{equation}
         \text{CNOT}\ket{a}\ket{b} = \ket{a}\ket{a \oplus b},
         \qquad a \oplus b = (a + b) \bmod 2 \ \text{为异或(XOR)运算},
     \end{equation}
-    其中 $\ket{a}$ 称为\textbf{控制比特}, $\ket{b}$ 称为\textbf{目标比特}.
+    $\ket{a}$ 为\textbf{控制比特(control qubit)}, $\ket{b}$ 为\textbf{目标比特(target qubit)}.
     在计算基 $\{\ket{00}, \ket{01}, \ket{10}, \ket{11}\}$ 下的矩阵表示为
     \begin{equation}
         \text{CNOT} = \begin{pmatrix} 1 & 0 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 1 \\ 0 & 0 & 1 & 0 \end{pmatrix}.
@@ -363,7 +621,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \end{Def}
 
 \begin{Def}[受控酉门]
-    对任意酉算子 $U$, \textbf{受控-$U$ 门}定义为
+    对任意酉算子 $U$, \textbf{受控-$U$ 门(controlled-$U$ gate)}定义为
     \begin{equation}
         CU = \ket{0}\bra{0} \otimes I + \ket{1}\bra{1} \otimes U.
     \end{equation}
@@ -371,7 +629,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \end{Def}
 
 \begin{Def}[SWAP 门与 Toffoli 门]
-    SWAP 门交换两个比特的状态: $\text{SWAP}\ket{a}\ket{b} = \ket{b}\ket{a}$, 电路为
+    \textbf{SWAP 门}(SWAP gate)交换两个比特: $\text{SWAP}\ket{a}\ket{b} = \ket{b}\ket{a}$.
     \begin{equation*}
     \Qcircuit @C=1em @R=.8em {
         \lstick{\ket{a}} & \qswap & \qw & \rstick{\ket{b}} \qw \\
@@ -403,7 +661,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \end{Def}
 
 \begin{Thm}[通用门集的例子]
-    $\{H, T, \text{CNOT}\}$ 与 $\{H, \text{Toffoli}\}$ 都是通用门集.
+    $\{H, T, \text{CNOT}\}$ 与 $\{H, \text{Toffoli}\}$ 都是\textbf{通用门集(universal gate set)}.
 \end{Thm}
 
 \begin{Thm}[Solovay--Kitaev 定理]
@@ -414,10 +672,10 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \end{Thm}
 
 \begin{Def}[Pauli 群与 Clifford 群]
-    $n$ 比特 \textbf{Pauli 群} $\mathcal{P}_n$ 由
+    $n$ 比特 \textbf{Pauli 群(Pauli group)} $\mathcal{P}_n$ 由
     $i^k\, P_1 \otimes \cdots \otimes P_n$($P_j \in \{I, X, Y, Z\}$, $k \in \{0, 1, 2, 3\}$)
     组成, 共 $4^{n+1}$ 个元素.
-    \textbf{Clifford 群} $\mathcal{C}_n$ 是共轭作用下保持 Pauli 群不变的酉算子集合:
+    \textbf{Clifford 群(Clifford group)} $\mathcal{C}_n$ 是共轭作用下保持 Pauli 群不变的酉算子集合:
     \begin{equation}
         \mathcal{C}_n = \big\{C \in U(2^n) : C P C^\dagger \in \mathcal{P}_n,\ \forall P \in \mathcal{P}_n\big\},
     \end{equation}
@@ -432,10 +690,10 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \subsection{量子电路与可逆计算}
 
 \begin{Def}[电路约定]
-    量子电路中时间从左向右流动, 每条线(wire)代表一个量子比特, 自上而下依次为第 $0, 1, \dots$ 个量子比特.
-    若干量子比特组成\textbf{寄存器(register)}: 承载主要计算状态的为\textbf{系统寄存器},
+    \textbf{量子电路(quantum circuit)}中时间从左向右流动, 每条线(wire)代表一个量子比特, 自上而下依次为第 $0, 1, \dots$ 个量子比特.
+    若干量子比特组成\textbf{寄存器(register)}: 承载主要计算状态的为\textbf{系统寄存器(system register)},
     辅助计算过程、最终需要还原的为\textbf{工作寄存器(working register)},
-    用于控制其它门的为\textbf{控制寄存器}.
+    用于控制其它门的为\textbf{控制寄存器(control register)}.
 \end{Def}
 
 \begin{Prop}[经典计算的量子化]
@@ -452,7 +710,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
     \begin{equation}
         U_f \ket{x}\ket{y} = \ket{x}\ket{y \oplus f(x)}.
     \end{equation}
-    若 $f$ 输出单比特, 也可用\textbf{相位 oracle} $U_f \ket{x} = (-1)^{f(x)}\ket{x}$,
+    若 $f$ 输出单比特, 也可用\textbf{相位 oracle(phase oracle)} $U_f \ket{x} = (-1)^{f(x)}\ket{x}$,
     这称为\textbf{相位反冲(phase kickback)}: $f(x)$ 的值以相位因子的形式返回,
     可以同时作用于叠加态中的所有基态.
 \end{Def}
@@ -463,6 +721,110 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
     把工作寄存器恢复为 $\ket{0^m}$, 使其不再与系统纠缠, 从而可以复用.
     这是量子算法设计中最重要的工程原则之一.
 \end{Note}
+
+\section{稀疏矩阵}
+
+\textbf{稀疏矩阵(sparse matrix)}是能够被量子计算机高效编码的最大型矩阵之一, 也是数值方法中最重要的矩阵结构之一
+(有限差分、有限元、谱方法的离散矩阵均为稀疏或可稀疏化). 在量子算法中, 稀疏性直接决定
+\textbf{block-encoding} 与 oracle 构造的代价; 本节给出稀疏矩阵的基本定义与几条简单性质.
+
+\subsection{稀疏矩阵}
+
+\begin{Def}[s-稀疏矩阵]
+    矩阵 $A \in \mathbb{C}^{M\times N}$ 称为 \textbf{$s$-稀疏}(s-sparse)的, 如果它的每一行和每一列
+    至多含有 $s$ 个非零元.
+\end{Def}
+
+\begin{Eg}
+    对角矩阵是 $1$-稀疏的: 任意对角矩阵 $A \in \mathbb{C}^{2^n\times 2^n}$ 可以写成 Pauli $Z$ 算子的线性组合
+    \[ A = \sum_{i_1,\dots,i_n \in \{0,1\}} J_{i_1,\dots,i_n}\ \sigma_{i_1,1} \otimes \cdots \otimes \sigma_{i_n,n}, \]
+    其中 $\sigma_{s,k}$ 当 $s=1$ 时为 $Z_k$, 当 $s=0$ 时为 $I$. 置换矩阵是 $1$-稀疏的, 任意 $1$-稀疏矩阵
+    可写成 $A = D\Pi$ 或 $A = \Pi D$ 的形式($D$ 对角, $\Pi$ 置换); 三对角矩阵是 $3$-稀疏的.
+    注意"每行每列至多 $s$ 个非零元"是必要条件: 例如矩阵 $A = \sum_{i=1}^N e_i e_1^\dagger$ 每行只有一个
+    非零元, 但第一列有 $N$ 个非零元, 因此\textbf{不是} $1$-稀疏的.
+\end{Eg}
+
+\begin{Def}[最大范数]
+    矩阵 $A \in \mathbb{C}^{M\times N}$ 的\textbf{最大范数(max norm)}定义为
+    \[ \norm{A}_{\max} := \max_{i,j} |A_{ij}|. \]
+\end{Def}
+
+\begin{Lem}
+    设 $A \in \mathbb{C}^{N\times N}$ 是 $s$-稀疏的, 则
+    \begin{equation}
+        \norm{A} \le s\, \norm{A}_{\max},
+    \end{equation}
+    其中 $\norm{\cdot}$ 是算子范数(诱导向量 2-范数). 等号可以达到: 例如左上 $s \times s$ 块为
+    $\norm{A}_{\max} \mathbf{e}\mathbf{e}^T$($\mathbf{e}$ 为全 1 向量)的矩阵.
+\end{Lem}
+
+\begin{Proof}
+    对 $A$ 的任意一行 $i$, 记其非零列指标集为 $C_i$. 由 Cauchy--Schwarz 不等式,
+    \[
+        |(Ax)_i|^2 = \Big|\sum_{j \in C_i} A_{ij} x_j\Big|^2
+        \le \Big(\sum_{j \in C_i} |A_{ij}|^2\Big)\Big(\sum_{j \in C_i} |x_j|^2\Big)
+        \le s\, \norm{A}_{\max}^2 \sum_{j \in C_i} |x_j|^2.
+    \]
+    于是
+    \[
+        \norm{Ax}^2 = \sum_i |(Ax)_i|^2 \le s\, \norm{A}_{\max}^2 \sum_i \sum_{j \in C_i} |x_j|^2.
+    \]
+    由于 $A$ 是 $s$-稀疏的, 每个指标 $j$ 至多属于 $s$ 个集合 $C_i$, 故
+    $\sum_i \sum_{j \in C_i} |x_j|^2 \le s \sum_j |x_j|^2 = s\norm{x}^2$,
+    从而 $\norm{Ax} \le s\, \norm{A}_{\max} \norm{x}$; 对 $x \neq 0$ 取上确界即得结论.
+\end{Proof}
+
+\begin{Lem}[1-稀疏矩阵的乘积]
+    设 $A, B \in \mathbb{C}^{N\times N}$ 都是 $1$-稀疏矩阵, 则乘积 $C = AB$ 也是 $1$-稀疏的.
+\end{Lem}
+
+\begin{Proof}
+    由于 $A, B$ 都是 $1$-稀疏的, 存在置换矩阵 $\Pi_1, \Pi_2$ 与对角矩阵 $D_1, D_2$ 使得
+    $A = D_1 \Pi_1$, $B = \Pi_2 D_2$. 因此
+    \[ C = AB = D_1\, (\Pi_1 \Pi_2)\, D_2, \]
+    即 $C$ 是对角矩阵的一个置换, 从而是 $1$-稀疏的.
+\end{Proof}
+
+\begin{Eg}[Pauli 算子的稀疏性]
+    所有 Pauli 门 $P \in \mathcal{P}_n$ 都是 $1$-稀疏的. 单比特的 $I, X, Y, Z$ 显然 $1$-稀疏;
+    若 $\mathcal{P}_{n-1}$ 中的元素都 $1$-稀疏, 则 $\mathcal{P}_n$ 中的元素(适当重排量子比特后)总可以写成
+    $P = P_1 \otimes P'$($P_1 \in \mathcal{P}_1$, $P' \in \mathcal{P}_{n-1}$): 张量积把 $P'$ 的每个非零元替换成
+    一个 $1$-稀疏的 $2\times 2$ 矩阵, 整体仍 $1$-稀疏. 由归纳法结论成立.
+\end{Eg}
+
+\section{优化问题的 Hamiltonian 表示}
+
+经典组合优化问题可以编码为量子 Hamiltonian, 使其\textbf{基态(ground state)}对应原问题的最优解 ——
+这是量子优化算法(如绝热量子计算、量子退火、QAOA)的基础. 这里给出两个典型例子:
+布尔可满足性问题 k-SAT 与图分割问题 MAX-CUT.
+
+\subsection{组合优化}
+
+\begin{Eg}[k-SAT 问题]
+    经典优化问题可以用 Hamiltonian 表示. k-SAT 是布尔可满足性问题, 其中每个子句恰好含 $k$ 个文字;
+    目标是找到使所有子句都满足的布尔变量赋值. 最著名的例子是 2-SAT(经典上容易)与 3-SAT(\textbf{NP 完全(NP-complete)}).
+    对含 $n$ 个布尔变量 $x_1,\dots,x_n$ 与 $m$ 个子句 $C_1,\dots,C_m$ 的 k-SAT 问题, 可以构造
+    Hamiltonian $H = \sum_i H_{C_i}$, 其中子句 Hamiltonian $H_{C_i}$ 在子句满足时为零、否则为正.
+    对单文字子句 $C_k = (x_p)$, $C_l = (\neg x_q)$, 相应的子句 Hamiltonian 为
+    \[ H_{C_k} = \frac{1}{2}(1 + Z_p), \qquad H_{C_l} = \frac{1}{2}(1 - Z_q); \]
+    对子句 $C_i = (x_p \vee \neg x_q)$,
+    \[ H_{C_i} = \frac{1}{4}(1 + Z_p)(1 - Z_q). \]
+    一般地, 对子句 $C_i = (l_1 \vee \cdots \vee l_k)$, 其中 $l_j$ 是 $x_{p_j}$ 或其否定,
+    \[ H_{C_i} = \prod_{j=1}^k \frac{1 + z_j Z_{p_j}}{2}, \]
+    其中 $z_j = +1$ 若 $l_j = x_{p_j}$, $z_j = -1$ 若 $l_j = \neg x_{p_j}$.
+    $H$ 是对角、半正定的: 若其最小本征值(基态能量)为 $0$, 则相应的本征向量(基态, 可能不唯一)
+    正是满足所有子句的布尔变量赋值.
+\end{Eg}
+
+\begin{Eg}[MAX-CUT 问题]
+    MAX-CUT 是著名的组合优化问题: 给定图 $G = (V, E)$, 把顶点分成两个子集, 使得两子集之间的边数最大.
+    假设图有 $n$ 个顶点, MAX-CUT 问题的 Hamiltonian 可写为
+    \begin{equation}
+        H = -\sum_{(i,j) \in E} \frac{1}{2}\big(1 - Z_i Z_j\big).
+    \end{equation}
+    每项 $-\frac{1}{2}(1 - Z_i Z_j)$ 在顶点 $i, j$ 分属不同子集时等于 $-1$, 属于同一子集时等于 $0$.
+    因此最小化 $H$ 等价于最大化被分割(跨越两个子集)的边数.
+\end{Eg}
 
 \section{量子测量} \label{sec:measurement}
 
@@ -488,8 +850,8 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
     \end{enumerate}
 \end{Thm}
 
-投影算子满足\textbf{完备性关系}(单位分解) $\sum_m P_m = I$, 从而
-\[ \sum_m p_m = \sum_m \mel{\psi}{P_m}{\psi} = \braket{\psi|\psi} = 1, \]
+投影算子满足\textbf{完备性关系(completeness relation)}(单位分解) $\sum_m P_m = I$, 从而
+\[ \sum_m p_m = \sum_m \mel{\psi}{P_m}{\psi} = \braket{\psi}{\psi} = 1, \]
 即 $\{p_m\}$ 构成概率分布.
 
 \begin{Cor}[期望值]
@@ -520,7 +882,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
         \item 结果 $m$ 出现的概率为 $p(m) = \mel{\psi}{M_m^\dagger M_m}{\psi}$;
         \item 测量后的状态坍缩为 $\dfrac{M_m \ket{\psi}}{\sqrt{p(m)}}$.
     \end{enumerate}
-    投影测量是 $M_m = P_m$ 的特殊情形. 完备性关系等价于 $\sum_m p(m) = 1$ 对所有 $\ket{\psi}$ 成立.
+    \textbf{投影测量(projective measurement)}是 $M_m = P_m$ 的特殊情形. 完备性关系等价于 $\sum_m p(m) = 1$ 对所有 $\ket{\psi}$ 成立.
 \end{Thm}
 
 \begin{Def}[POVM]
@@ -545,21 +907,46 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
     推迟时需要额外的辅助比特来存储中间测量信息.
 \end{Prop}
 
+\begin{Eg}[经典控制等价于量子控制]
+    考虑如下电路: 第一个比特经 $H$ 后测量, 测量结果(经典比特)控制第二个比特上的 $X$ 门.
+    第一个比特以概率 $1/2$ 输出 $0$ 或 $1$, 第二个比特相应处于 $\ket{0}$ 或 $\ket{1}$.
+    若把测量后的\textbf{经典}受控 $X$ 替换为\textbf{量子}受控 $X$(即 CNOT), 并让第一个比特
+    在\textbf{电路末端}测量, 则结果完全相同. 在这个意义上, CNOT 在计算基上把第一个比特的
+    测量结果\textbf{拷贝}到了第二个比特 —— 这就是测量延迟原理的直观内容.
+\end{Eg}
+
 \begin{Eg}[测量延迟需要额外比特]
     电路 $\ket{0} \xrightarrow{H} (\text{测量}) \xrightarrow{H}$ 以概率 $1/2$ 输出 $0$ 或 $1$;
     若简单地删去中间测量并把两个 $H$ 连续作用, 则 $\ket{0} \xrightarrow{HH} \ket{0}$ 恒输出 $0$.
     正确的做法是用 CNOT 把测量结果拷贝到辅助比特上, 保留中间信息后再推迟测量.
+    因此, 即使中间信息之后不再使用, 推迟测量也\textbf{必须}引入额外(辅助)量子比特来保存它.
 \end{Eg}
 
 \begin{Prop}[隐式测量原理]
-    在电路末尾, 未被测量的量子比特可以假设为已被测量: 由约化密度算子的性质可知,
-    测量子系统 $A$ 的统计结果不依赖于子系统 $B$ 是否被测量.
+    在电路末尾, 未被测量的量子比特可以假设为已被测量: 对预测\textbf{被测量}比特的统计结果而言,
+    其它量子比特是否被显式测量是无关紧要的.
 \end{Prop}
+
+\begin{Proof}
+    设系统分为两个子系统 $A$ 与 $B$. 由约化密度算子的性质, 对 $A$ 的测量统计只依赖于约化密度矩阵
+    $\rho_A = \Tr_B \rho$. 设 $\{P_i\}$ 是 $B$ 的计算基投影算子, 联合态为 $\rho$. 若测量子系统 $B$
+    并丢弃结果, 联合态变为
+    \begin{equation}
+        \rho' = \sum_i (I \otimes P_i)\, \rho\, (I \otimes P_i).
+    \end{equation}
+    于是
+    \begin{equation}
+        \rho'_A = \Tr_B[\rho'] = \Tr_B\Big[\sum_i (I \otimes P_i)\, \rho\, (I \otimes P_i)\Big] = \Tr_B[\rho] = \rho_A,
+    \end{equation}
+    中间等号用到 $\{P_i\}$ 构成完备的正交投影算子($\sum_i P_i = I$, $P_i P_j = \delta_{ij} P_i$),
+    以及部分迹的定义 $\Tr_B[\cdot] = \sum_i (I_A \otimes \bra{i})\,\cdot\,(I_A \otimes \ket{i})$.
+    因此, 若 $A$ 中的量子比特将在电路末端被测, 其测量统计不依赖于 $B$ 中的量子比特是否被测量.
+\end{Proof}
 
 \subsection{期望值的估计: Hadamard 检验}
 
 \begin{Eg}[实部]
-    Hadamard 检验用于估计酉算子 $U$ 在态 $\ket{\psi}$ 上的期望值 $\mel{\psi}{U}{\psi}$:
+    \textbf{Hadamard 检验(Hadamard test)}用于估计酉算子 $U$ 在态 $\ket{\psi}$ 上的期望值 $\mel{\psi}{U}{\psi}$:
     \begin{equation*}
     \Qcircuit @C=1em @R=.8em {
         \lstick{\ket{0}} & \gate{H} & \ctrl{1} & \gate{H} & \meter & \rstick{0/1} \qw \\
@@ -593,7 +980,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \end{Eg}
 
 \begin{Eg}[SWAP 检验]
-    SWAP 检验是 Hadamard 检验在 $U$ 取 SWAP 门时的特例, 用于估计两个量子态
+    \textbf{SWAP 检验(SWAP test)}是 Hadamard 检验在 $U$ 取 SWAP 门时的特例, 用于估计两个量子态
     $\ket{\psi}$, $\ket{\varphi}$ 的重叠度:
     \begin{equation*}
     \Qcircuit @C=1em @R=.8em {
@@ -605,13 +992,13 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
     其中受控 SWAP 门(又称 Fredkin 门)由控制比特同时控制两个目标比特上的交换操作.
     测量第一个量子比特输出 $0$ 的概率为
     \begin{equation}
-        p(0) = \frac{1}{2}\Big(1 + |\braket{\psi|\varphi}|^2\Big).
+        p(0) = \frac{1}{2}\Big(1 + |\braket{\psi}{\varphi}|^2\Big).
     \end{equation}
 \end{Eg}
 
 \begin{Note}
-    SWAP 检验只能估计重叠度的模平方 $|\braket{\psi|\varphi}|^2$ —— 相位信息在测量中被丢弃.
-    若需要复数 $\braket{\psi|\varphi}$ 本身, 可用更精细的相位估计类方法(如 swap test 的推广).
+    SWAP 检验只能估计重叠度的模平方 $|\braket{\psi}{\varphi}|^2$ —— 相位信息在测量中被丢弃.
+    若需要复数 $\braket{\psi}{\varphi}$ 本身, 可用更精细的\textbf{相位估计(phase estimation)}类方法(如 swap test 的推广).
 \end{Note}
 
 \subsection{测量与采样误差}
@@ -630,14 +1017,14 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \begin{Note}
     若 $p$ 接近 $0$ 或 $1$, 加性精度下采样次数很少; 但若要求\textbf{乘性(multiplicative)}精度
     (相对误差 $\varepsilon$), 则 $N \gtrsim \dfrac{1-p}{p\,\varepsilon^2}$, 当 $p \to 0$ 时代价急剧增大.
-    这一观测是振幅放大(amplitude amplification)等技巧的出发点.
+    这一观测是\textbf{振幅放大(amplitude amplification)}等技巧的出发点.
 \end{Note}
 
 \section{量子力学基本约束} \label{sec:constraints}
 
 \subsection{不可克隆定理}
 
-\begin{Thm}[不可克隆定理]
+\begin{Thm}[不可克隆定理(no-cloning theorem)]
     不存在酉算子 $U$ 能够对任意未知量子态 $\ket{\psi}$ 完成复制, 即不存在固定的辅助态 $\ket{s}$ 使得
     \begin{equation}
         U \ket{\psi}\ket{s} = \ket{\psi}\ket{\psi}, \qquad \forall\, \ket{\psi}.
@@ -645,10 +1032,18 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \end{Thm}
 
 \begin{Proof}
-    假设这样的 $U$ 存在. 取两个态 $\ket{\psi_1}$, $\ket{\psi_2}$ 满足 $0 < |\braket{\psi_1|\psi_2}| < 1$, 则
-    \[ \braket{\psi_1|\psi_2} = \bra{\psi_1}\bra{s}\, U^\dagger U\, \ket{\psi_2}\ket{s}
-       = \braket{\psi_1|\psi_2}^2, \]
-    迫使 $\braket{\psi_1|\psi_2} \in \{0, 1\}$, 与假设矛盾.
+    假设这样的 $U$ 存在. 取两个态 $\ket{\psi_1}$, $\ket{\psi_2}$ 满足 $0 < |\braket{\psi_1}{\psi_2}| < 1$, 则
+    \[ U(\ket{\psi_1}\ket{s}) = \ket{\psi_1}\ket{\psi_1}, \qquad U(\ket{\psi_2}\ket{s}) = \ket{\psi_2}\ket{\psi_2}. \]
+    对两式取内积: 左边利用酉性 $U^\dagger U = I$ 得
+    \[
+        \mel{\psi_1, s}{U^\dagger U}{\psi_2, s}=\braket{\psi_1, s}{\psi_2, s} = \braket{\psi_1}{\psi_2}\,\braket{s}{s} = \braket{\psi_1}{\psi_2},
+    \]
+    右边得
+    \[
+        \braket{\psi_1, \psi_1}{\psi_2, \psi_2} = \braket{\psi_1}{\psi_2}^2.
+    \]
+    于是 $\braket{\psi_1}{\psi_2} = \braket{\psi_1}{\psi_2}^2$, 即 $\braket{\psi_1}{\psi_2} \in \{0, 1\}$,
+    与 $0 < |\braket{\psi_1}{\psi_2}| < 1$ 矛盾. 故这样的 $U$ 不存在.
 \end{Proof}
 
 \begin{Note}[两个例外]
@@ -686,7 +1081,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 
 \begin{Note}
     更强的版本: 给定任意未知态的\textbf{两份拷贝}, 也不存在酉算子删除其中一份而保留另一份.
-    不可删除定理与不可克隆定理都是量子力学线性性的直接推论.
+    \textbf{不可删除定理(no-deletion theorem)}与不可克隆定理都是量子力学线性性的直接推论.
 \end{Note}
 
 \subsection{测量坍缩的不可逆性}
@@ -739,7 +1134,7 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 \begin{Def}[高效算法]
     设 $n$ 为输入规模（编码输入所需的量子比特数）. 若电路中的门数为 $O(\mathrm{poly}(n))$ 量级,
     则称该算法为\textbf{高效的}. 由于测量结果具有概率性, 通常要求算法以足够高的概率
-    (如 $p > 2/3$)输出正确答案; 通过重复运行并取多数投票(Chernoff 界), 可以把错误概率压到任意小.
+    (如 $p > 2/3$)输出正确答案; 通过重复运行并取多数投票(\textbf{Chernoff 界(Chernoff bound)}), 可以把错误概率压到任意小.
 \end{Def}
 
 \begin{Def}[三种复杂度]
@@ -756,13 +1151,15 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
     查询复杂度隐藏了 oracle 本身的实现代价, 门复杂度与查询复杂度之间可能存在巨大差距:
     有些 oracle(如求逆矩阵对应的 oracle)实现起来极难.
     因此分析算法时, 应同时确认其它组件不会主导总代价.
-    另外, 量子态只能保持有限时间(相干时间), 电路深度应尽量小, 即使这意味着需要重复运行更多次.
+    另外, 量子态只能保持有限时间(\textbf{相干时间(coherence time)}), 电路深度应尽量小, 即使这意味着需要重复运行更多次.
 \end{Note}
 
-\subsection{误差分析: 混合论证与误差线性增长}
+\subsection{误差分析: 误差线性增长}
 
-\begin{Prop}[混合论证]
-    设 $U_i$, $\tilde U_i$ 为酉算子且 $\norm{U_i - \tilde U_i} \le \varepsilon$($i = 1, \dots, K$), 则
+\begin{Prop}[酉矩阵乘积的线性误差增长]
+    设 $U_i$, $\tilde U_i$ 为酉算子且 
+    $$\norm{U_i - \tilde U_i} \le \varepsilon\quad (i = 1, \dots, K)$$
+    则
     \begin{equation}
         \norm{U_K\cdots U_1 - \tilde U_K \cdots \tilde U_1} \le K \varepsilon.
     \end{equation}
@@ -776,17 +1173,119 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
         U_K\cdots U_1 - \tilde U_K\cdots\tilde U_1
         = \sum_{i=1}^{K} U_K\cdots U_{i+1}\, (U_i - \tilde U_i)\, \tilde U_{i-1}\cdots \tilde U_1,
     \end{equation*}
-    对每一项取算子范数, 由酉算子的范数不变性($\norm{U A} = \norm{A}$)与三角不等式即得结论.
+    对每一项取算子范数, 由酉算子的范数不变性($\norm{U A} = \norm{A}$)与三角不等式可得
+    \[ \norm{U_K\cdots U_1 - \tilde U_K\cdots\tilde U_1} \le \sum_{i=1}^{K} \norm{U_i-\tilde U_i} \le K\varepsilon. \]
 \end{Proof}
 
 \begin{Prop}[Hamiltonian 模拟的 Duhamel 原理]
-    设 $i\partial_t U = HU$, $i\partial_t \tilde U = H\tilde U + B(t)$, $U(0) = \tilde U(0) = I$,
-    其中 $H$ 厄米, $B(t)$ 任意, 则
+    设 $H \in \mathbb{C}^{N\times N}$ 为厄米矩阵, $B(t)$ 为任意时变矩阵. 设 $U(t)$, $\tilde U(t)$
+    分别为如下初值问题的解:
     \begin{equation}
-        \norm{U(t) - \tilde U(t)} \le \int_0^t \norm{B(s)}\, ds.
+        i\partial_t U = HU, \qquad i\partial_t \tilde U = H\tilde U + B(t), \qquad U(0) = \tilde U(0) = I.
     \end{equation}
-    这是混合论证的连续时间版本(常数变易法), 是分析 Trotter 分裂等 Hamiltonian 模拟误差的基础.
+    则 $\tilde U(t)$ 满足\textbf{积分方程}(Duhamel 公式)
+    \begin{equation}
+        \tilde U(t) = U(t) - i \int_0^t U(t-s)\, B(s)\, ds,
+    \end{equation}
+    且两个传播子之差被
+    \begin{equation}
+        \norm{\tilde U(t) - U(t)} \le \int_0^t \norm{B(s)}\, ds
+    \end{equation}
+    所界定. 这是混合论证的连续时间版本(常数变易法), 是分析 Trotter 分裂等 Hamiltonian 模拟误差的基础.
 \end{Prop}
+
+\begin{Proof}
+    记积分方程右端为 $V(t)$. 在 $t = 0$ 处积分消失, 故 $V(0) = U(0) = I$, 满足初值条件.
+    对 $V(t)$ 关于时间求导, 利用 $\partial_t U(t) = -iHU(t)$ 与 Leibniz 积分法则:
+    \begin{align*}
+        \partial_t V(t) &= \partial_t U(t) - i\, U(0)B(t) + \int_0^t \big[\partial_t U(t-s)\big] B(s)\, ds \\
+        &= -iHU(t) - iB(t) - i \int_0^t \big[-iHU(t-s)\big] B(s)\, ds \\
+        &= -iH\Big[U(t) - i \int_0^t U(t-s)\, B(s)\, ds\Big] - iB(t) \\
+        &= -iH V(t) - iB(t).
+    \end{align*}
+    两边乘以 $i$ 得 $i\partial_t V = HV + B(t)$, 即 $V(t)$ 满足 $\tilde U(t)$ 的定义方程;
+    由初值问题解的唯一性, $V = \tilde U$. 对积分方程取范数, 由酉算子的范数不变性
+    ($\norm{U(t-s)} = 1$):
+    \[
+        \norm{\tilde U(t) - U(t)} = \Big\| -i \int_0^t U(t-s)\, B(s)\, ds \Big\|
+        \le \int_0^t \norm{U(t-s)}\, \norm{B(s)}\, ds
+        = \int_0^t \norm{B(s)}\, ds.
+    \]
+\end{Proof}
+
+\begin{Note}[误差项形式 $B(t) = E(t)\tilde U(t)$]
+    Duhamel 原理的重要应用是取 $B(t) = E(t)\tilde U(t)$, 其中 $E(t)$ 表示误差项或扰动.
+    此时积分方程化为
+    \[
+        \tilde U(t) = U(t) - i \int_0^t U(t-s)\, E(s)\, \tilde U(s)\, ds.
+    \]
+    若受扰动力学保持酉(例如 $\tilde U$ 满足 $i\partial_t \tilde U = (H + E(t))\tilde U$ 且 $E(t)$ 厄米),
+    则 $\norm{\tilde U(s)} = 1$, 误差界简化为
+    \[
+        \norm{\tilde U(t) - U(t)} \le \int_0^t \norm{E(s)}\, ds.
+    \]
+\end{Note}
+
+\subsection{误差累积机制: 经典与量子对比}
+
+\begin{Note}[误差不随态空间维数爆炸]
+    量子计算处理的是维数天然指数的对象: $\mathbb{C}^{2^n}$ 中的向量与 $2^n \times 2^n$ 的矩阵.
+    任何计算都无法精确完成, 那么误差是否也会随系统规模指数累积? 若真是如此, 量子算法
+    恰恰会在它被设计用来发挥作用的区域(大 $n$)内失效. 答案是\textbf{否}: 计算精度由
+    \textbf{被复合的步骤数} $K$ 控制, 而\textbf{不}由态空间维数 $N = 2^n$ 控制 ——
+    经典随机算法如此, 量子算法同样如此. 这正是容错量子计算(见下节)可行性的核心.
+\end{Note}
+
+\textbf{确定性经典计算: 浮点误差.} 现代经典科学计算基于浮点运算: 一个数用符号位、
+定长指数与尾数表示, 如 IEEE 单精度(1 符号位 + 8 指数位 + 23 尾数位)与双精度(1 + 11 + 52),
+后者的数值范围约为 $2^{-1022}$ 到 $2^{1023}$(约 $10^{-308}$ 到 $10^{308}$) ——
+远比覆盖同样范围需 2000 位以上的定点表示高效. 基本假设是任意实数 $a$ 用 $fl(a)$ 表示,
+任一二元运算 $a \circ b$ 用 $fl(a \circ b)$ 表示($\circ \in \{+, -, \times, /\}$), 差值
+$a \circ b - fl(a \circ b)$ 称为\textbf{舍入误差(roundoff error)}. 正确舍入时
+\begin{equation}
+    fl(a \circ b) = (a \circ b)(1 + \varepsilon), \qquad |\varepsilon| \le \varepsilon_{\mathrm{mach}},
+\end{equation}
+其中 $\varepsilon_{\mathrm{mach}}$ 称为\textbf{机器精度(machine precision)}.
+
+\begin{Eg}[内积: 误差线性累积的典型例子]
+    考虑计算内积 $\sum_{i=1}^N u_i v_i$. 每个乘积 $u_i v_i$ 的浮点表示为 $u_i v_i(1 + \varepsilon_i)$,
+    其中 $|\varepsilon_i| \le \varepsilon_{\mathrm{mach}}$; 求和时每次加法还引入一个新的舍入误差因子
+    $(1 + \delta_j)$($|\delta_j| \le \varepsilon_{\mathrm{mach}}$). 记 $s_{j-1}$ 为前 $j-1$ 项的部分和,
+    则第 $j$ 次加法满足
+    \[
+        fl\big(s_{j-1} + u_j v_j(1+\varepsilon_j)\big) = \big(s_{j-1} + u_j v_j(1+\varepsilon_j)\big)(1 + \delta_j).
+    \]
+    求和全部 $N$ 项后, 若未发生上溢或下溢, 可以写为
+    \[
+        fl\Big(\sum_{i=1}^N u_i v_i\Big) = \sum_{i=1}^N u_i v_i\, (1 + \gamma_i),
+        \qquad |\gamma_i| \le (1 + \varepsilon_{\mathrm{mach}})^N - 1 \le e^{N\varepsilon_{\mathrm{mach}}} - 1.
+    \]
+    当 $N\varepsilon_{\mathrm{mach}} < 1$ 时 $|\gamma_i| \le 2N\varepsilon_{\mathrm{mach}}$: 误差随 $N$
+    \textbf{线性}增长, 根源是按固定线性次序逐个相加 $N$ 个数.
+    若改用\textbf{成对求和}(cascade/pair summation), 累积误差可降至 $O((\log N)\varepsilon_{\mathrm{mach}})$,
+    但在矩阵乘法等更广泛的场景中难以实现. 对三角线性方程组与高斯消元(LU 分解),
+    标准\textbf{后向误差(backward error)}界随 $N$ 多项式增长, 典型为 $O(N\varepsilon_{\mathrm{mach}})$; 对大多数任务,
+    误差累积中的 $\mathrm{poly}(N)$ 因子难以避免.
+\end{Eg}
+
+\begin{Note}[误差由运算次数而非环境维数决定]
+    并非所有确定性计算都必然有 $\mathrm{poly}(N)$ 的误差累积: 误差累积由\textbf{基本运算的个数}决定,
+    而非环境维数 $N$ 本身. 例如\textbf{张量网络(tensor network)}方法可以在某些结构向量(维数 $N = 2^n$)上仅用
+    $\mathrm{poly}(n)$ 次运算完成计算, 误差也随之只依赖 $\mathrm{poly}(n)$ 个步骤.
+    对高维问题, 经典\textbf{概率}计算提供了更直接类比量子计算的视角.
+\end{Note}
+
+\textbf{概率经典计算.} $n$ 比特的概率计算演化的是大小为 $N = 2^n$ 的空间上的概率分布,
+可用 $\mathbb{R}^N$ 中的概率向量与随机矩阵(随机过程)描述. 环境维数随 $n$ 指数增长,
+但计算由一系列\textbf{局部更新规则}指定, 因此\textbf{代价}与\textbf{累积实现误差}都不需要随 $N$
+指数增长: 若每一步精确到 $\varepsilon$, 整体误差至多为 $K\varepsilon$, 其中 $K$ 是转移步数.
+这一观点还可延伸到经典/量子对比: 概率分布可视为一种特殊的量子态, 转移矩阵可对应一种特殊的\textbf{量子信道(quantum channel)}.
+
+\textbf{量子计算.} 量子算法是基本酉算子的乘积, 累积实现误差同样由门数控制: 若门数为 $K$
+且每个门都能精确到 $\varepsilon/K$, 则最终误差为 $O(\varepsilon)$, 与态空间维数 $N$ 无关 ——
+这正是上面混合论证命题的直接推论(对量子信道也有同样的结论).
+在容错设定下, 把基本酉门逼近到所需精度是现实的要求, 其开销(如 \textbf{Solovay–Kitaev 定理})
+已在量子逻辑门一章讨论.
 
 \subsection{容错计算与阈值定理}
 
@@ -797,8 +1296,8 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
 
 \begin{Note}
     本系列讲义始终假设容错协议已经实现, 因此只需关心两类误差:
-    数学层面的\textbf{近似误差}(如 Trotter 分裂、函数多项式逼近带来的误差),
-    以及读出阶段的\textbf{蒙特卡洛(采样)误差}(由于测量结果本质随机).
+    数学层面的\textbf{近似误差(approximation error)}(如 Trotter 分裂、函数多项式逼近带来的误差),
+    以及读出阶段的\textbf{蒙特卡洛(Monte Carlo, 采样)误差}(由于测量结果本质随机).
     后续章节对算法复杂度的评价都建立在这个框架之上.
 \end{Note}
 

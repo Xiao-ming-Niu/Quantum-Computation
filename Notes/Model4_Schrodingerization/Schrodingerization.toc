@@ -2,26 +2,26 @@
 \contentsline {section}{\numberline {1}引言: 从线性代数到微分方程}{1}{section.1}%
 \contentsline {section}{\numberline {2}HHL 算法: 求解线性方程组}{1}{section.2}%
 \contentsline {subsection}{\numberline {2.1}问题设定}{1}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}算法描述}{1}{subsection.2.2}%
-\contentsline {subsection}{\numberline {2.3}受控旋转的实现}{2}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.2}算法描述}{2}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}受控旋转的实现}{3}{subsection.2.3}%
 \contentsline {subsection}{\numberline {2.4}复杂度分析}{3}{subsection.2.4}%
 \contentsline {subsection}{\numberline {2.5}HHL 的现代替代: QSVT-HHL}{3}{subsection.2.5}%
-\contentsline {section}{\numberline {3}常用哈密顿量模拟方法综述}{4}{section.3}%
-\contentsline {subsection}{\numberline {3.1}问题与输入模型}{4}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Trotter/Suzuki 乘积公式}{4}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Taylor 级数法与 LCU}{4}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Qubitization 与 QSVT 方法}{5}{subsection.3.4}%
-\contentsline {subsection}{\numberline {3.5}对比与选择}{5}{subsection.3.5}%
-\contentsline {section}{\numberline {4}薛定谔化方法}{5}{section.4}%
-\contentsline {subsection}{\numberline {4.1}动机: PDE 的量子模拟}{5}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Warped phase transformation: 半正定情形}{6}{subsection.4.2}%
-\contentsline {subsection}{\numberline {4.3}一般线性系统}{6}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}恢复定理与恢复区间}{7}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}薛定谔化的五步流程}{7}{subsection.4.5}%
-\contentsline {subsection}{\numberline {4.6}例子: 热方程}{8}{subsection.4.6}%
-\contentsline {subsection}{\numberline {4.7}例子: 对流方程与迎风格式}{8}{subsection.4.7}%
-\contentsline {subsection}{\numberline {4.8}Smooth initialization 与最优精度依赖}{8}{subsection.4.8}%
-\contentsline {subsection}{\numberline {4.9}带源项与时间依赖系统}{9}{subsection.4.9}%
-\contentsline {subsection}{\numberline {4.10}复杂度与量子优势}{10}{subsection.4.10}%
-\contentsline {section}{\numberline {5}酉化方法族: 薛定谔化、LCHS、Transmutation 与 Dilation}{10}{section.5}%
-\contentsline {section}{\numberline {6}文献与延伸}{11}{section.6}%
+\contentsline {section}{\numberline {3}常用哈密顿量模拟方法综述}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}问题与输入模型}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Trotter/Suzuki 乘积公式}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Taylor 级数法与 LCU}{5}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Qubitization 与 QSVT 方法}{6}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}对比与选择}{6}{subsection.3.5}%
+\contentsline {section}{\numberline {4}薛定谔化方法}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}动机: PDE 的量子模拟}{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Warped phase transformation: 半正定情形}{7}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}一般线性系统}{7}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}恢复定理与恢复区间}{8}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}薛定谔化的五步流程}{8}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}例子: 热方程}{9}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}例子: 对流方程与迎风格式}{9}{subsection.4.7}%
+\contentsline {subsection}{\numberline {4.8}Smooth initialization 与最优精度依赖}{10}{subsection.4.8}%
+\contentsline {subsection}{\numberline {4.9}带源项与时间依赖系统}{10}{subsection.4.9}%
+\contentsline {subsection}{\numberline {4.10}复杂度与量子优势}{11}{subsection.4.10}%
+\contentsline {section}{\numberline {5}酉化方法族: 薛定谔化、LCHS、Transmutation 与 Dilation}{12}{section.5}%
+\contentsline {section}{\numberline {6}文献与延伸}{13}{section.6}%
