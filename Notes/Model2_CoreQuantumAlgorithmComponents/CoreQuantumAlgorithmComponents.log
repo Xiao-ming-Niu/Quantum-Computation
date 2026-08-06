@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999995 (TeX Live 2023) (preloaded format=xelatex 2023.9.19)  5 AUG 2026 16:05
+This is XeTeX, Version 3.141592653-2.6-0.999995 (TeX Live 2023) (preloaded format=xelatex 2023.9.19)  6 AUG 2026 16:09
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1224,7 +1224,7 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 (hyperref)                removing `math shift' on input line 321.
 
-<xymatrix 6x2 653> [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] [15] <xymatrix 5x2 443> [16] 
+<xymatrix 6x2 653> [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] [15] [16] [17] [18] <xymatrix 5x2 443> [19] 
 enddocument/afterlastpage: lastpage setting LastPage.
 (./CoreQuantumAlgorithmComponents.aux)
  ***********
@@ -1236,24 +1236,21 @@ L3 programming layer <2022/07/14>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
-
 Package rerunfilecheck Warning: File `CoreQuantumAlgorithmComponents.out' has changed.
 (rerunfilecheck)                Rerun to get outlines right
 (rerunfilecheck)                or use package `bookmark'.
 
 Package rerunfilecheck Info: Checksums for `CoreQuantumAlgorithmComponents.out':
-(rerunfilecheck)             Before: 54364BB283AD132A93F564381A07434F;3429
-(rerunfilecheck)             After:  99A626F99F18454336D1A0333DFD07FD;3249.
+(rerunfilecheck)             Before: 34A6F2EA572DD278ECC6F5ED97D45D31;3902
+(rerunfilecheck)             After:  9D8149E3ED8E9B6B354E048EA1C05390;3857.
  ) 
 Here is how much of TeX's memory you used:
- 44990 strings out of 475591
- 1056734 string characters out of 5771200
- 1955432 words of memory out of 5000000
- 65547 multiletter control sequences out of 15000+600000
+ 45014 strings out of 475591
+ 1058358 string characters out of 5771200
+ 1958432 words of memory out of 5000000
+ 65571 multiletter control sequences out of 15000+600000
  575355 words of font info for 132 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  107i,23n,111p,1286b,2102s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on CoreQuantumAlgorithmComponents.pdf (17 pages).
+Output written on CoreQuantumAlgorithmComponents.pdf (20 pages).

@@ -573,7 +573,8 @@ QPE 的核心价值不止于"读出相位", 还在于它能作为\textbf{相干�
     (见下一模块).
 \end{Note}
 
-\section{振幅放大 (AA) 与最优振幅放大 (OAA)}
+\section{振幅放大 (AA)、最优振幅放大与非感知振幅放大 (OAA)}
+振幅放大是量子算法设计中最重要的工具之一.其核心思想是: 把算法的成功分支与失败分支看成一个二维子空间中的两个方向, 通过两个反射的乘积实现旋转, 逐步把振幅从失败方向转移到成功方向. 相对于经典独立重复采样, 所需操作次数从 $O(1/p)$ 降至 $O(1/\sqrt{p})$, 其中 $p$ 是初始成功概率. 
 
 \subsection{Grover 搜索: 振幅放大的原型}
 
@@ -599,6 +600,33 @@ $U_f\ket{x} = (-1)^{f(x)}\ket{x}$ 等价于\textbf{反射算子(reflection opera
 
 $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
 
+\begin{Eg}[Grover 算法流程]
+    Grover 算法(live\_notes 算法 11.1)的完整流程如下 —— 采用具体可执行的形式,
+    比特 oracle 与扩散算子各作用一次构成一次迭代:
+    \begin{enumerate}
+        \item \textbf{初始化}: 制备 $\ket{0^n}\ket{1}$, 再对\textbf{每个}量子比特施加 Hadamard 门:
+        \[ \ket{\psi} \leftarrow H^{\otimes(n+1)}\ket{0^n}\ket{1}
+           = \Big(\frac{1}{\sqrt{N}}\sum_{x\in\{0,1\}^n}\ket{x}\Big)\ket{-}
+           = \ket{\phi_0}\ket{-}, \]
+        其中 $\ket{\phi_0} = H^{\otimes n}\ket{0^n}$ 为均匀叠加态,
+        $\ket{-} = \frac{1}{\sqrt{2}}(\ket{0}-\ket{1})$ 用于相位反冲;
+        \item \textbf{标记(oracle)}: 施加比特 oracle $U_f$(定义见上), 由相位反冲
+        $U_f\ket{x}\ket{-} = (-1)^{f(x)}\ket{x}\ket{-}$, 对标记态 $\ket{x_0}$ 附加 $-1$ 相位 ——
+        等价于反射算子 $R_{x_0} = I - 2\ket{x_0}\bra{x_0}$;
+        \item \textbf{扩散(diffusion)}: 施加\textbf{扩散算子}
+        \[ D := \big(2\ket{\phi_0}\bra{\phi_0} - I\big)\otimes I
+           = H^{\otimes n}\big(2\ket{0^n}\bra{0^n} - I\big)H^{\otimes n}\otimes I, \]
+        即关于均匀叠加态的反射 $R_0$(中间的 $2\ket{0^n}\bra{0^n}-I$ 可用辅助比特与受控 $X$ 实现);
+        \item \textbf{迭代}: 令 $\theta = 2\arcsin(1/\sqrt{N})$, 重复步骤 2--3 共
+        $k = \lfloor \pi/(2\theta) \rfloor$ 次;
+        \item \textbf{测量与验证}: 在计算基上测量系统寄存器得到 $x$, 用 $f(x)$ 检验;
+        失败则重复.
+    \end{enumerate}
+    迭代 $k^* = \lfloor \pi/(2\theta) \rfloor = \lfloor \pi/(4\arcsin(1/\sqrt{N})) \rfloor$ 次后,
+    成功概率至少 $1 - 4/N$, 查询数为 $O(\sqrt{N})$; 这两点由下文的
+    Grover 迭代定理保证, 结合经典验证即可把失败概率压到任意小的常数.
+\end{Eg}
+
 \begin{Thm}[Grover 迭代] \label{thm:grover}
     记 $\theta = 2\arcsin(1/\sqrt{N})$, 分解
     $\ket{\phi_0} = \sin(\theta/2)\ket{x_0} + \cos(\theta/2)\ket{x_0^\perp}$.
@@ -616,10 +644,24 @@ $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
 
 \begin{Proof}
     在基 $B = \{\ket{x_0}, \ket{x_0^\perp}\}$ 中逐块计算. 由
-    $\ket{\phi_0} = (\sin(\theta/2), \cos(\theta/2))^T$ 与 $R_0 = 2\ket{\phi_0}\bra{\phi_0} - I$,
+    $\ket{\phi_0} = \sin(\theta/2)\ket{x_0} + \cos(\theta/2)\ket{x_0^\perp}$,
+    其坐标与投影算子在基 $B$ 下为
+    \[ \ket{\phi_0} = \begin{pmatrix} \sin(\theta/2) \\ \cos(\theta/2) \end{pmatrix}, \qquad
+       \ket{\phi_0}\bra{\phi_0} = \begin{pmatrix} \sin^2(\theta/2) & \sin(\theta/2)\cos(\theta/2) \\
+       \sin(\theta/2)\cos(\theta/2) & \cos^2(\theta/2) \end{pmatrix}. \]
+    代入 $R_0 = 2\ket{\phi_0}\bra{\phi_0} - I$, 用倍角公式
+    \[ 2\sin^2(\theta/2) - 1 = -\cos\theta, \quad
+       2\cos^2(\theta/2) - 1 = \cos\theta, \quad
+       2\sin(\theta/2)\cos(\theta/2) = \sin\theta, \]
+    逐元素化简, 得
     \begin{equation}
-        [R_{x_0}]_B = \begin{pmatrix} -1 & 0 \\ 0 & 1 \end{pmatrix}, \qquad
-        [R_0]_B = \begin{pmatrix} -\cos\theta & \sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}.
+        [R_0]_B = \begin{pmatrix} 2\sin^2(\theta/2) - 1 & 2\sin(\theta/2)\cos(\theta/2) \\
+        2\sin(\theta/2)\cos(\theta/2) & 2\cos^2(\theta/2) - 1 \end{pmatrix}
+        = \begin{pmatrix} -\cos\theta & \sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}.
+    \end{equation}
+    类似地, 由 $R_{x_0} = I - 2\ket{x_0}\bra{x_0}$ 与 $\ket{x_0} = (1, 0)^T$:
+    \begin{equation}
+        [R_{x_0}]_B = \begin{pmatrix} -1 & 0 \\ 0 & 1 \end{pmatrix}.
     \end{equation}
     于是
     \begin{equation}
@@ -642,6 +684,16 @@ $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
     即角度从 $\theta/2$ 增为 $3\theta/2$; 旋转 $k$ 次后角度为
     $(2k+1)\theta/2$, 得 $G^k\ket{\phi_0}$ 的表达式. 图 \ref{fig:grover} 给出其几何图像.
 \end{Proof}
+
+\begin{Note}[矩阵形式与基的选择]
+    旋转矩阵的显式形式依赖于二维不变子空间的\textbf{基}. 两种常用基给出不同形式:
+    在本节基 $\{\ket{x_0}, \ket{x_0^\perp}\}$ 下,
+    \[ [G] = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}, \]
+    而在基 $\{\ket{\phi_0}, \ket{\phi_0'}\}$ 下(见下节振幅放大及 live\_notes 式 (11.14))为
+    \[ [G] = \begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}. \]
+    两个正交基由行列式为 $-1$ 的\textbf{反射}矩阵联系, 只改变反对角元的符号,
+    表示的旋转动力学($G^k\ket{\phi_0}$ 的成功振幅 $\sin((2k+1)\theta/2)$)完全相同.
+\end{Note}
 
 \begin{figure}[H]
 \centering
@@ -671,6 +723,18 @@ $\mathrm{span}\{\ket{x_0},\ket{x_0^\perp}\}$ 内每次旋转角度 $\theta$;
     且这是最优的 —— 任何量子算法至少需要 $\Omega(\sqrt{N})$ 次查询(见讲义 2.4 节的混合论证证明).
     若存在 $M$ 个标记态, 复杂度为 $O(\sqrt{N/M})$.
 \end{Cor}
+\begin{Proof}[简略证明]
+    \begin{equation*}
+        \begin{aligned}
+            G^k H^{\otimes n}\ket{0} &= \sin((2k+1)\theta/2)\ket{x_0} + \cos((2k+1)\theta/2)\ket{x_0^\perp}, \\
+            \theta &= 2\arcsin(1/\sqrt{N}) \sim 1/\sqrt{N}, \\
+        \end{aligned}
+    \end{equation*}
+    为了$\sin((2k+1)\theta/2)\approx 1$, 取
+    \[(2k+1)\theta/2\approx \pi/2\]
+    因此次数
+    \[k\sim 1/\theta\sim \sqrt{N}\]
+\end{Proof}
 
 \begin{Note}[与经典搜索的对比]
     无序搜索中经典\textbf{确定性}算法最坏情形需要 $N-1$ 次查询;
@@ -683,7 +747,18 @@ $\mathrm{span}\{\ket{x_0},\ket{x_0^\perp}\}$ 内每次旋转角度 $\theta$;
     (当 $M \ll N$ 时仍为二次加速; 当 $M$ 接近 $N/2$ 时优势消失).
 \end{Note}
 
-\subsection{振幅放大: 一般框架}
+\begin{Proof}[经典下界: 至少 $N-1$ 次查询]
+    反设存在无偏经典算法最坏情形用至多 $N-2$ 次查询即可识别标记元素 $x_0$.
+    把查询补到恰好 $N-2$ 次(已知只有一个标记, 后续查询不提供新信息).
+    则存在两个\textbf{未被查询}的候选值 $x, x' \notin \{x_1, \dots, x_{N-2}\}$.
+    若真实标记是 $x$, 则所有已查询位置的输出均为 $0$; 若真实标记是 $x'$,
+    观察到的证据完全相同(同样全部为 $0$). 两种假设下的数据无差别, 因此任何
+    以概率 $> 1/2$ 正确识别的估计子必然偏向二者之一, 矛盾. 故最坏情形至少需要
+    $N-1$ 次查询(live\_notes 命题 11.1). 量子下界 $\Omega(\sqrt{N})$ 的混合论证
+    参见讲义第 2.4 节.
+\end{Proof}
+
+\subsection{振幅放大}
 
 Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
 
@@ -743,20 +818,57 @@ Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
     即得到成功概率 $p$. 这类"可验证成功"的结构在 block-encoding 等场景中反复出现.
 \end{Eg}
 
-\begin{Note}[为什么是二次加速]
-    经典概率算法在概率密度(振幅平方)上操作, 一次尝试成功概率为 $p$;
-    量子算法在振幅上做旋转, $k$ 次迭代把振幅从 $\sin(\theta/2) \approx \sqrt{p}$
-    放大到 $\sin((2k+1)\theta/2)$, 只需 $k = O(1/\sqrt{p})$ 次 —— 这就是
-    "量子处理振幅而非概率" 带来的平方级改进.
+\begin{Note}[为什么是二次加速: $O(1/\sqrt{p})$ 的由来]
+    初始成功概率 $p = \sin^2(\theta/2)$, 即初始成功\textbf{振幅}为
+    $\sin(\theta/2) \approx \sqrt{p}$. 由振幅放大定理, 迭代 $k$ 次后的成功振幅为
+    $a_k = \sin\big((2k+1)\theta/2\big)$. 推导 $O(1/\sqrt{p})$ 需要三步:
+    \begin{enumerate}
+        \item \textbf{旋转角与初始振幅同阶}: $\theta = 2\arcsin\sqrt{p} \approx 2\sqrt{p}$,
+        每次迭代在二维子空间内把状态旋转固定的角度 $\theta$;
+        \item \textbf{振幅线性增长}: 在角度 $(2k+1)\theta/2$ 尚未越界时,
+        \[ a_k = \sin\!\Big(\frac{(2k+1)\theta}{2}\Big) \approx \frac{(2k+1)\theta}{2} \approx k\theta, \]
+        即每步振幅近似增加 $\theta \approx 2\sqrt{p}$;
+        \item \textbf{概率二次增长}: 成功概率是振幅的平方,
+        \[ P_k = a_k^2 \approx k^2\theta^2 = O\big(k^2 p\big), \]
+        故把成功概率提升到常数只需
+        \[ k = O\Big(\frac{1}{\theta}\Big) = O\Big(\frac{1}{\arcsin\sqrt{p}}\Big) = O\Big(\frac{1}{\sqrt{p}}\Big) \]
+        次迭代(严格地, 最大值在 $(2k+1)\theta/2 = \pi/2$, 即 $k \approx \pi/(2\theta)$).
+    \end{enumerate}
+    对比经典: 成功概率为 $p$ 的伯努利试验, 成功概率按\textbf{线性}速率增长
+    ($P \sim kp$), 期望重复 $O(1/p)$ 次. 差距的根源在于量子以\textbf{振幅}
+    $\sqrt{p}$(而非概率 $p$)为基本量: 概率是振幅的平方, 振幅每步增加
+    $O(\sqrt{p})$ 就使概率每步增加 $O(p)$ —— 用振幅的线性增长换取概率的
+    二次增长, 这正是"量子处理振幅而非概率"带来的平方级改进.
 \end{Note}
 
-\subsection{最优振幅放大 (OAA)}
+\begin{Note}[$W$ 的本征结构]
+    由 $[W]_{\phi_0,\phi_0'} = e^{-i\theta Y}$(旋转角 $\theta = 2\arcsin\sqrt{p}$),
+    $W$ 在二维不变子空间 $\mathrm{span}\{\ket{\phi_0}, \ket{\phi_0'}\}$ 内的特征向量为
+    \[ \ket{\pm} = \frac{1}{\sqrt{2}}\big(\ket{\phi_0} \pm i\ket{\phi_0'}\big),
+       \qquad W\ket{\pm} = e^{\mp i\theta}\ket{\pm}. \]
+    这正是振幅估计(见 QPE 一章)的出发点: 成功概率 $p$ 被编码进 $W$ 的
+    本征相位 $e^{\pm i\theta}$, 用 QPE 即可对 $p$ 做平方级加速估计.
+\end{Note}
+
+\begin{Note}[$p$ 未知时的策略]
+    若 $p$ 未知, 无法精确选取迭代次数. 经典策略(live\_notes §11.2)是均匀随机选取
+    $m \in [1, 2^r - 1]$, 执行 $G^m$ 后用 $R_{\mathrm{good}}$ 验证; 当 $2^r \gtrsim \pi/\theta$
+    时, 迭代角度在单位圆上"随机采样", $\cos^2$ 的平均值为 $1/2$, 故成功概率为常数,
+    重复次数按几何分布、期望 $O(1/\sqrt{p})$. 现代方法则用基于 QSVT 的
+    \textbf{固定点振幅放大}(fixed-point amplitude amplification), 在 $p$ 未知时
+    也能把成功概率逼近 $1$(见下一模块).
+\end{Note}
+
+\subsection{最优振幅放大 (optimal amplitude amplification)}
 
 普通振幅放大的问题是: 若不知道 $p$, 迭代次数 $k$ 难以精确选取, 可能"过冲"或"欠冲",
 成功概率达不到 1. 当 $p$ \textbf{已知}时, 可以做到\textbf{确定性}地放大到成功概率恰为 1,
-这就是\textbf{最优振幅放大(optimal amplitude amplification, OAA)}.
+这就是\textbf{最优振幅放大}(optimal amplitude amplification, live\_notes 推论 11.8).
+需注意: 本系列中用缩写 \textbf{OAA} 专指下一小节的\textbf{非感知振幅放大}
+(oblivious amplitude amplification), 与这里的"最优振幅放大"是\textbf{两个不同的概念}:
+此处要求已知 $p$ 并需要受控反射, 而 OAA 用于提升 block-encoding 的成功概率、不需要已知 $p$.
 
-\begin{Thm}[OAA: 已知概率时的确定性放大]
+\begin{Thm}[已知概率时的确定性放大]
     在定理 \ref{thm:AA} 的假设下, 若 $p$ 已知, 且可以访问受控反射
     $cR_{\mathrm{good}} = \ket{1}\bra{1} \otimes R_{\mathrm{good}} + \ket{0}\bra{0} \otimes I$,
     则存在量子算法用 $O(1/\sqrt{p})$ 次受控反射查询, 确定性地制备出
@@ -780,13 +892,76 @@ Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
     最后对辅助比特施加 $X$ 即得 $\ket{0}\ket{\mathrm{good}}$.
 \end{Proof}
 
-\begin{Note}[OAA 的意义与局限]
-    OAA 把"成功概率 $\Omega(1)$"提升为"成功概率 $= 1$", 消除了重复试验的开销,
+\begin{Note}[最优振幅放大的意义与局限]
+    最优振幅放大把"成功概率 $\Omega(1)$"提升为"成功概率 $= 1$", 消除了重复试验的开销,
     在 Grover 搜索等 $p$ 已知的场景中尤为有用. 代价是需要受控且可逆的 oracle.
-    当 $p$ 未知时, 经典策略是随机选取迭代次数 $m \in [1, 2^r)$ 后检验,
-    成功概率在 $2^r > \pi/\theta$ 时平均仍有常数; 现代算法则用 \textbf{固定点振幅放大}
-    (fixed-point amplitude amplification, 基于 QSVT)在未知 $p$ 的情况下逼近 100% 成功,
-    这将在下一模块中介绍.
+    当 $p$ 未知时, 随机选取迭代次数 $m \in [1, 2^r)$ 后检验的策略,
+    成功概率在 $2^r > \pi/\theta$ 时平均仍有常数; 现代算法则用基于 QSVT 的
+    \textbf{固定点振幅放大}(fixed-point amplitude amplification)在未知 $p$ 的情况下
+    逼近 $100\%$ 成功, 这将在下一模块中介绍.
+\end{Note}
+
+\subsection{非感知振幅放大 (Oblivious amplitude amplification, OAA)}
+
+Block-encoding 的成功概率受归一化常数限制: 若 $V$ 是矩阵 $A$ 的
+$(\alpha, m, 0)$-block-encoding, 则其作用在态 $\ket{\psi}$ 上"成功"(落到 $\ket{0^m}$ 分支)的概率
+仅为 $\norm{A\ket{\psi}}^2/\alpha^2$. 用普通振幅放大需要关于\textbf{初态}
+$V\ket{0^m}\ket{\psi}$ 的反射 $R_0$, 多次使用时要求"回退"到初态, 代价巨大; 且
+成功/失败本身携带了关于 $\ket{\psi}$ 的信息(似然比
+$\norm{A\ket{\psi}}^2/\norm{A\ket{\psi'}}^2$ 对一般态可能远离 $1$), 阻碍链式使用.
+\textbf{非感知振幅放大}(oblivious amplitude amplification, OAA)通过只关于
+\textbf{好空间}与"包含初态的子空间"反射来绕开这两个问题.
+
+\begin{Def}[OAA 走算子]
+    设 $\Pi_{\mathrm{good}}$ 是辅助寄存器上的投影算子(标志"好"子空间),
+    $V$ 是酉 $U$ 的 $(\alpha, m, 0)$-block-encoding, 即
+    \[ (\Pi_{\mathrm{good}}\otimes I)\, V\, (\Pi_{\mathrm{good}}\otimes I) = \frac{U}{\alpha}, \]
+    (标准 block-encoding 取 $\Pi_{\mathrm{good}} = \ket{0^m}\bra{0^m}$). 记
+    $Z_{\mathrm{good}} := I - 2\Pi_{\mathrm{good}}$, 定义\textbf{OAA 走算子}
+    \begin{equation}
+        W := -V\,(Z_{\mathrm{good}}\otimes I)\, V^\dagger\,(Z_{\mathrm{good}}\otimes I).
+    \end{equation}
+\end{Def}
+
+\begin{Thm}[非感知振幅放大]
+    在上述记号下, 对任意满足 $\Pi_{\mathrm{good}}\ket{\mathrm{good}} = \ket{\mathrm{good}}$
+    的态,
+    \begin{equation}
+        (\Pi_{\mathrm{good}}\otimes I)\, W^k\, V\,(\ket{\mathrm{good}}\otimes I)
+        = U\,\sin\!\big((2k+1)\arcsin(1/\alpha)\big),
+    \end{equation}
+    代价为 $2k+1$ 次 $V$ 与 $2k$ 次 $Z_{\mathrm{good}}$. 定义 $\sin\theta = 1/\alpha$
+    ($\alpha \ge 1$), 则 $W$ 在"好空间"内是旋转角 $2\theta$ 的旋转, 迭代
+    $k = O(\alpha)$ 次即可把成功概率提升到常数.
+\end{Thm}
+
+\begin{Note}
+    关键性质: 反射 $V(Z_{\mathrm{good}}\otimes I)V^\dagger$ 只依赖好空间与 $V$,
+    \textbf{不依赖具体输入态} —— 这正是"非感知"(oblivious)的含义. 它是
+    Hamiltonian 模拟中 LCU/block-encoding 方案把指数级衰减的成功概率恢复到
+    常数的基础, 也是下一模块 \textbf{qubitization} 的前奏:
+    $W$ 正是 qubitization 在 block-encoding 上对应的迭代算子.
+\end{Note}
+
+\subsection{振幅放大的应用}
+
+\begin{Note}[多阶段中间测量的算法]
+    考虑一个含有多步中间测量的算法, 只有全部辅助比特都测得 $0$ 才算成功
+    (例如 block-encoding 的多步组合). 设第 $i$ 步的成功概率为 $p_i$
+    (条件于之前各步成功), 则累计成功概率 $p = p_1 \cdots p_L$,
+    直接重复需要 $O(1/p)$ 次. 由测量延迟原理, 用 $L-1$ 个辅助比特把
+    中间测量推迟、化为相干过程, 即可构造关于"信号比特"的反射算子,
+    应用振幅放大把重复次数降到 $O(1/\sqrt{p})$ —— 对 $p$ 的平方级改进.
+    更进一步,\textbf{压缩装置}(compression gadget, live\_notes 例 11.10)
+    用一个 $m = \lceil \log_2(L+1) \rceil$ 比特的计数器寄存器(模 $M = 2^m$ 的
+    加法电路 $ADD$)记录成功次数, 把辅助比特数从 $L-1$ 降到 $O(\log L)$.
+\end{Note}
+
+\begin{Note}[与 NP 类问题的联系]
+    振幅放大可自然地应用于\textbf{任意 NP 问题}: 对"是"实例, 解的验证 witness
+    可作为"好空间"的标志, 于是暴力搜索的 $O(1/p)$ 次尝试被降为 $O(1/\sqrt{p})$ 次 ——
+    这是"量子相对暴力经典方法的二次加速"的一般形式, 也解释了量子算法对组合优化
+    (如 3-SAT)的兴趣来源.
 \end{Note}
 
 \section{Lie--Trotter 与哈密顿量模拟}
