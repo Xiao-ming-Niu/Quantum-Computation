@@ -1,7 +1,7 @@
 \documentclass[utf8]{article} %中文文档类
 \usepackage[left=2.50cm, right=2.50cm, top=2.50cm, bottom=2.50cm]{geometry} % 页边距
 \usepackage{indentfirst} % 首行缩进
-\usepackage{fancyhdr,fancybox} % 设置页眉、页脚
+\usepackage{fancyhdr,fancybox} % 设置页眉, 页脚
 \usepackage{ctexcap} % 标题是中文的
 \usepackage{helvet} % 用来指定beamer使用的字体
 \usepackage{hyperref} % bookmarks 
@@ -20,7 +20,7 @@
 \usepackage{enumitem} % 枚举环境宏包
 \usepackage{framed} % 边框包
 
-\usepackage{amsmath, amsfonts, amssymb} % 数学公式、符号
+\usepackage{amsmath, amsfonts, amssymb} % 数学公式, 符号
 \numberwithin{equation}{section}   % 编号从一级标题开始
 \usepackage[english]{babel} % 数学公式标准
 \usepackage{bm} % 加粗方程字体 
@@ -70,18 +70,18 @@
 \setcounter{page}{1}
 \section{引言: 量子算法原语}
 
-在上一模块中我们建立了量子计算的语言: \textbf{量子比特(qubit)}、\textbf{酉门(unitary gate)}、\textbf{电路(quantum circuit)}与\textbf{测量(measurement)}. 本模块介绍四类最基础的
-\textbf{量子算法原语(quantum primitives)}: \textbf{量子傅里叶变换(quantum Fourier transform, QFT)}、\textbf{量子相位估计(quantum phase estimation, QPE)}、
+在上一模块中我们建立了量子计算的语言: \textbf{量子比特(qubit)},\textbf{酉门(unitary gate)},\textbf{电路(quantum circuit)}与\textbf{测量(measurement)}. 本模块介绍四类最基础的
+\textbf{量子算法原语(quantum primitives)}: \textbf{量子傅里叶变换(quantum Fourier transform, QFT)},\textbf{量子相位估计(quantum phase estimation, QPE)},
 \textbf{振幅放大(amplitude amplification, AA)}与\textbf{哈密顿量模拟(Hamiltonian simulation, 含 Lie--Trotter 公式(Lie--Trotter formula))}.
 它们之所以被称为"构件", 是因为几乎所有量子算法都以它们为子程序:
-QFT 是 QPE 的核心组成部分; QPE 是 \textbf{Shor 分解(Shor's algorithm)}、\textbf{HHL 线性方程组(Harrow--Hassidim--Lloyd)}、\textbf{本征值问题(eigenvalue problem)}、\textbf{振幅估计(amplitude estimation)}的共同基础;
+QFT 是 QPE 的核心组成部分; QPE 是 \textbf{Shor 分解(Shor's algorithm)},\textbf{HHL 线性方程组(Harrow--Hassidim--Lloyd)},\textbf{本征值问题(eigenvalue problem)},\textbf{振幅估计(amplitude estimation)}的共同基础;
 振幅放大在一切需要"放大成功概率"的场景中被反复调用; 哈密顿量模拟则通常作为 QPE 中酉算子
 $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系构成了现代量子算法的骨架.
 
 \begin{Note}
     按照 Lin Lin 讲义的划分, 上述四者(连同 \textbf{Grover 搜索(Grover's search)})构成最没有争议的量子原语集合.
     本模块先介绍不依赖其它构件的 QFT 与 AA, 再介绍把它们组合起来的 QPE 与 Trotter 型
-    哈密顿量模拟. 更现代的构件(block-encoding、qubitization、QSVT)将在下一模块中
+    哈密顿量模拟. 更现代的构件(block-encoding, qubitization, QSVT)将在下一模块中
     统一并推广这些方法.
 \end{Note}
 
@@ -107,9 +107,9 @@ $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系
         \item $U_{\mathrm{FT}}$ 是酉算子($U_{\mathrm{FT}}^\dagger U_{\mathrm{FT}} = I$);
         \item $U_{\mathrm{FT}} \ket{0^n} = \frac{1}{\sqrt{N}} \sum_{k} \ket{k} = H^{\otimes n}\ket{0^n}$,
         即 QFT 把全零态变为均匀\textbf{叠加态(superposition state)};
-        \item 与经典 \textbf{FFT(fast Fourier transform)} 的关键区别: QFT 的加速是指数级的(经典 FFT 需要 $O(N\log N)$ 次运算,
+        \item 与经典 \textbf{FFT(fast Fourier transform)} 的关键区别: QFT 的加速是指数级的(经典 FFT 需要 $O(N\log N)$ 次运算, 
         而 QFT 只需要 $O(n^2) = O(\log^2 N)$ 个门), 但 QFT 的\textbf{输出是叠加态},
-        测量后只能得到单个基态, 无法直接读出全部傅里叶系数 —— 必须通过后续算法
+        测量后只能得到单个基态, 无法直接读出全部傅里叶系数 --- 必须通过后续算法
         (如相位估计)来利用这一变换.
     \end{enumerate}
 \end{Prop}
@@ -120,7 +120,7 @@ $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系
         H\ket{x} = \frac{1}{\sqrt{2}}\big(\ket{0} + (-1)^x\ket{1}\big)
         = \frac{1}{\sqrt{2}}\sum_{y \in \{0,1\}} (-1)^{xy}\,\ket{y}, \qquad x \in \{0,1\}.
     \end{equation}
-    对 $n$ 比特施加 $H^{\otimes n} = H \otimes \cdots \otimes H$, 各比特独立作用,
+    对 $n$ 比特施加 $H^{\otimes n} = H \otimes \cdots \otimes H$, 各比特独立作用, 
     逐个代入 $H\ket{x_i} = \frac{1}{\sqrt{2}}\sum_{y_i}(-1)^{x_i y_i}\ket{y_i}$:
     \begin{equation}
         H^{\otimes n}\ket{x_1\cdots x_n}
@@ -148,7 +148,7 @@ $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系
     \frac{jk}{N} = k_0\, (0.j_{n-1}\cdots j_0) + k_1\, (0.j_{n-2}\cdots j_0) + \cdots + k_{n-1}\, (0.j_0),
 \end{equation}
 
-其中 $0.j_{m}\cdots j_0$ 表示二进制小数 $j_m/2 + \cdots + j_0/2^{m+1}$. 于是指数因子可以分解,
+其中 $0.j_{m}\cdots j_0$ 表示二进制小数 $j_m/2 + \cdots + j_0/2^{m+1}$. 于是指数因子可以分解, 
 代入定义并逐比特求和, 得到 QFT 的\textbf{张量积(tensor product)}形式:
 
 \begin{equation}
@@ -181,7 +181,7 @@ $U = e^{-iHt}$ 的实现方式被调用. 这些构件之间相互嵌套的关系
 \end{Proof}
 
 注意: 第一个因子(对应 $\ket{k_{n-1}}$)只依赖最低比特 $j_0$, 而最后一个因子
-(对应 $\ket{k_0}$)依赖全部比特 —— 即\textbf{输出比特的位序与输入相反}.
+(对应 $\ket{k_0}$)依赖全部比特 --- 即\textbf{输出比特的位序与输入相反}.
 
 \subsection{电路实现}
 
@@ -220,7 +220,7 @@ QFT 电路(以 3 比特为例, 输出位序已反转, 需用 SWAP 门恢复):
     上需要 1 个 $H$ 门与 $m$ 个受控旋转 $R_2, \dots, R_{m+1}$
     (分别以更低位为控制), 共 $\sum_{m=0}^{n-1}(m+1) = \frac{n(n+1)}{2}$ 个基本门;
     恢复位序还需 $\lfloor n/2 \rfloor$ 个 SWAP 门, 因此总门数为 $O(n^2)$.
-    由于同列的门作用在不同的量子比特上、可以并行, 从输入到输出的最长路径
+    由于同列的门作用在不同的量子比特上, 可以并行, 从输入到输出的最长路径
     只经过 $O(n)$ 个门, 电路深度为 $O(n)$. 逆变换的论证完全相同:
     受控旋转取共轭 $R_m^\dagger$(即旋转角变号), 位序恢复仍用 SWAP.
 \end{Proof}
@@ -233,8 +233,8 @@ QFT 电路(以 3 比特为例, 输出位序已反转, 需用 SWAP 门恢复):
     \hat{a}_k = \sum_{j=0}^{N-1} e^{-2\pi i jk/N}\, a_j, \qquad k = 0, \dots, N-1,
 \end{equation}
 直接计算需要 $O(N^2)$ 次运算; \textbf{快速傅里叶变换(fast Fourier transform, FFT)},
-即 Cooley--Tukey 分治算法, 把复杂度降到 $O(N\log N)$, 是经典科学计算(信号处理、
-\textbf{谱方法(spectral method)}解 PDE、卷积)的基石. QFT 与二者的对比见表 \ref{tab:ft}:
+即 Cooley--Tukey 分治算法, 把复杂度降到 $O(N\log N)$, 是经典科学计算(信号处理, 
+\textbf{谱方法(spectral method)}解 PDE, 卷积)的基石. QFT 与二者的对比见表 \ref{tab:ft}:
 
 \begin{table}[H]
 \centering
@@ -247,7 +247,7 @@ QFT 电路(以 3 比特为例, 输出位序已反转, 需用 SWAP 门恢复):
     QFT(量子线路) & 量子态 $\ket{\psi}=\sum_j a_j\ket{j}$ & $O(\log^2 N)$ 个门 & 量子叠加态 \\
     \bottomrule
 \end{tabular}
-\caption{DFT、FFT 与 QFT 的对比. 门复杂度上 QFT 对 FFT 是指数级加速,
+\caption{DFT, FFT 与 QFT 的对比. 门复杂度上 QFT 对 FFT 是指数级加速, 
 但两者处理的对象与输出本质不同.}
 \label{tab:ft}
 \end{table}
@@ -257,18 +257,18 @@ QFT 电路(以 3 比特为例, 输出位序已反转, 需用 SWAP 门恢复):
     测量一次只能得到一个基态, 读出全部 $N$ 个系数需要 $\Omega(N)$ 次测量
     (且每个系数还需多次重复采样才能估计到精度). 因此 QFT 的优势不在于
     "更快地计算经典傅里叶变换", 而在于它能作为\textbf{子程序}嵌入更大规模的
-    量子算法(QPE、Shor 分解、量子线性代数等): 在这些算法中, "傅里叶变换"
+    量子算法(QPE, Shor 分解, 量子线性代数等): 在这些算法中, "傅里叶变换"
     作用在纠缠的振幅上, 中间结果无需读出, 只有最终观测才消耗测量.
     这与经典\textbf{谱方法}中的角色类似但相反: 经典谱方法用 FFT 在
-    $O(N\log N)$ 内完成正逆变换、读出谱系数后显式组装解; 量子对应物
-    (QFT 或其对角化 block-encoding)则把变换"藏在"线路内部,
-    避免读出的指数代价 —— 代价是只能访问振幅(叠加)上的结果.
+    $O(N\log N)$ 内完成正逆变换, 读出谱系数后显式组装解; 量子对应物
+    (QFT 或其对角化 block-encoding)则把变换"藏在"线路内部, 
+    避免读出的指数代价 --- 代价是只能访问振幅(叠加)上的结果.
 \end{Note}
 
 \begin{Note}[Shor 算法中的角色]
     Shor 的整数分解算法正是"QFT 无需读出"这一性质的极致体现:
     周期 $r$ 的信息被编码在相位估计的振幅中, 逆 QFT 后\textbf{一次测量}
-    即可(高概率)读出与 $r$ 相关的相位 —— 经典计算中同样的周期搜索
+    即可(高概率)读出与 $r$ 相关的相位 --- 经典计算中同样的周期搜索
     需要做 $\Omega(N)$ 次乘幂.
 \end{Note}
 
@@ -285,7 +285,7 @@ QFT 电路(以 3 比特为例, 输出位序已反转, 需用 SWAP 门恢复):
 \end{Def}
 
 \begin{Note}
-    相位估计是最重要的量子原语之一: Shor 分解、HHL 线性方程组、本征值问题、振幅估计、
+    相位估计是最重要的量子原语之一: Shor 分解, HHL 线性方程组, 本征值问题, 振幅估计, 
     \textbf{量子行走(quantum walk)}等都以它为子程序.
 \end{Note}
 
@@ -301,7 +301,7 @@ $H$, 作用受控 $U$ 后再施加 $H$, 则测量结果为 $1$ 的概率满足
 需要 $O(1/\varepsilon^2)$ 次重复测量. 相位估计的任务正是把精度提高到 $O(1/\varepsilon)$.
 
 \begin{Note}[与经典本征值/相位估计的对比]
-    经典计算中估计厄米矩阵的本征值或酉算子的本征相位, 常用\textbf{幂迭代(power iteration)}、
+    经典计算中估计厄米矩阵的本征值或酉算子的本征相位, 常用\textbf{幂迭代(power iteration)},
     QR 算法或 \textbf{Krylov 子空间(Krylov subspace)}方法(如 Lanczos): 幂迭代/Lanczos 的迭代次数对\textbf{谱间隙(spectral gap)}的依赖为
     $O(1/\Delta)$ 或 $O(1/\sqrt{\Delta})$, 且每步需要 $O(N^2)$--$O(N^3)$ 次矩阵运算
     (或 $O(\mathrm{nnz})$ 次稀疏运算), 并\textbf{显式存储} $N \times N$ 矩阵.
@@ -312,9 +312,9 @@ $H$, 作用受控 $U$ 后再施加 $H$, 则测量结果为 $1$ 的概率满足
         \item QPE 对 $N = 2^n$ 的依赖是 $\mathrm{poly}(n) = \mathrm{poly}(\log N)$,
         经典方法至少线性于 $N$;
         \item QPE 可同时作用于本征态的\textbf{叠加}, 一次运行即可读出全部本征相位
-        (概率由振幅 $|c_j|^2$ 给出) —— 经典 Krylov 方法同样可以, 但每步代价更高.
+        (概率由振幅 $|c_j|^2$ 给出) --- 经典 Krylov 方法同样可以, 但每步代价更高.
     \end{enumerate}
-    这些差异是 HHL、Shor 等算法能够工作的根本原因: 它们把"求解"建立在
+    这些差异是 HHL, Shor 等算法能够工作的根本原因: 它们把"求解"建立在
     oracle 查询之上, 而不是对显式矩阵做数值线性代数.
 \end{Note}
 
@@ -383,7 +383,7 @@ $j = \sum_i j_i 2^i$ 得 $U^j = \prod_i U^{j_i 2^i}$, 于是
 \begin{Eg}[d = 1 的特殊情形]
     当 $t = 1$ 时 $U_{\mathrm{FT}} = H$, 上述电路退化为 Hadamard 检验.
     这说明 Hadamard 检验正是 QPE 在 1 比特相位寄存器下的特例;
-    且此时 $\theta$ 不必是单比特数 —— 一般情形由下述误差分析处理.
+    且此时 $\theta$ 不必是单比特数 --- 一般情形由下述误差分析处理.
 \end{Eg}
 
 \subsection{误差分析}
@@ -463,7 +463,7 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
 \begin{Note}[量子中位数法与两个假设的放松]
     上述分析默认 $\ket{\psi}$ 恰为特征向量且相位有精确二进制表示.
     (1) 若初态是特征向量的线性组合 $\ket{\psi} = \sum_k c_k \ket{k}$,
-    则 QPE 以概率 $|c_0|^2$ 同时返回目标相位与本征态 —— 这正是基态能量估计和 HHL 的工作方式;
+    则 QPE 以概率 $|c_0|^2$ 同时返回目标相位与本征态 --- 这正是基态能量估计和 HHL 的工作方式;
     (2) 为避免因 $\log_2(1/\varepsilon)$ 个额外比特增加电路深度, 可把 QPE 运行 $\log(1/\varepsilon)$ 次
     并取相位的中位数(\textbf{量子中位数法(quantum median)}), 以 $\log(1/\varepsilon)$ 次重复代替额外的比特数与模拟时间.
 \end{Note}
@@ -480,7 +480,7 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
         F_T(x) := \frac{1}{T^2}\,\frac{\sin^2(\pi T x)}{\sin^2(\pi x)}
     \end{equation}
     称为 \textbf{Fejér 核}(Fejér kernel). $F_T$ 在 $x = 0$ 处取最大值 $1$
-    (由 $F_T(0) = \lim_{x\to 0}F_T(x) = 1$), 并在 $|x| \gtrsim 1/T$ 处迅速衰减 ——
+    (由 $F_T(0) = \lim_{x\to 0}F_T(x) = 1$), 并在 $|x| \gtrsim 1/T$ 处迅速衰减 ---
     这正是"相位 $\theta$ 附近宽度约 $1/T$ 的窄峰"的精确分析来源(见图 \ref{fig:qpe}).
 \end{Note}
 
@@ -501,13 +501,13 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
         P(k) = \sum_{k'} |c_{k'}|^2\, F_T\Big(\lambda_{k'} - \frac{k}{T}\Big),
     \end{equation}
     其中 $F_T$ 为 Fejér 核. 这是"QPE 以概率 $|c_{k'}|^2$ 采样到本征相位
-    $\lambda_{k'}$ 附近的 $k$"的精确表述: 不同本征分量的贡献按 $|c_{k'}|^2$ 加权、
+    $\lambda_{k'}$ 附近的 $k$"的精确表述: 不同本征分量的贡献按 $|c_{k'}|^2$ 加权, 
     交叉项为零. 这正是基态能量估计与 HHL 中"初态为本征态叠加"情形的分析基础.
 \end{Prop}
 
 \subsection{应用: 振幅估计}
 
-振幅放大算子(下一节)的特征值携带成功概率的信息, 因此可以用 QPE 估计概率 ——
+振幅放大算子(下一节)的特征值携带成功概率的信息, 因此可以用 QPE 估计概率 ---
 这是 QPE 与振幅放大结合的第一个重要应用.
 
 \begin{Prop}[振幅估计]
@@ -515,7 +515,7 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
     的矩阵表示为旋转角 $\theta$ 的旋转(即 $e^{-i\theta Y}$),
     其两个特征态为 $\ket{\pm} = \frac{1}{\sqrt{2}}(\ket{\mathrm{good}} \pm i\ket{\mathrm{bad}})$,
     对应特征值 $e^{\pm i\theta}$.
-    用 QPE 估计 $\theta$ 到加性精度 $\varepsilon$, 即可得到 $p_0 = \sin^2(\theta/2)$ 的估计,
+    用 QPE 估计 $\theta$ 到加性精度 $\varepsilon$, 即可得到 $p_0 = \sin^2(\theta/2)$ 的估计, 
     总复杂度 $O(1/\varepsilon)$; 而直接\textbf{蒙特卡洛(Monte Carlo)}采样需要 $O(1/\varepsilon^2)$ 次.
     若 $p_0$ 很小需乘性精度, 复杂度为 $O(p_0^{-1/2}\varepsilon^{-1})$, 相对采样的
     $O(p_0^{-1}\varepsilon^{-2})$ 仍是平方级改进.
@@ -532,7 +532,7 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
     $\sin\theta \pm i\cos\theta = \pm i e^{\pm i\theta}$, 得
     \[ G\ket{\pm} = e^{\pm i\theta} \frac{1}{\sqrt{2}}\big(\ket{\mathrm{good}} \pm i\ket{\mathrm{bad}}\big)
        = e^{\pm i\theta}\ket{\pm}. \]
-    故 $\ket{\pm}$ 是特征态、特征值为 $e^{\pm i\theta}$.
+    故 $\ket{\pm}$ 是特征态, 特征值为 $e^{\pm i\theta}$.
     又初态 $\ket{\phi_0} = \sqrt{p_0}\ket{\mathrm{good}} + \sqrt{1-p_0}\ket{\mathrm{bad}}$
     满足 $|\braket{\pm}{\phi_0}|^2 = 1/2$(两个分支各半), 因此对 $G$ 做 QPE,
     一次运行即(以概率 $1/2$)测出 $\theta$ 到精度 $\varepsilon$.
@@ -560,7 +560,7 @@ QPE 的核心价值不止于"读出相位", 还在于它能作为\textbf{相干�
         \item \textbf{受控旋转阶段}: 对信号比特施加受控旋转
         \[ U_{\mathrm{CR}}\ket{0}\ket{\tilde\lambda_j}
         = \Big(\sqrt{1 - f(\tilde\lambda_j)^2}\,\ket{0} + f(\tilde\lambda_j)\,\ket{1}\Big)\ket{\tilde\lambda_j}, \]
-        使信号比特的 $|1\rangle$ 振幅携带 $f(\lambda_j)$;
+        使信号比特的 $\ket{1}$ 振幅携带 $f(\lambda_j)$;
         \item \textbf{逆 QPE(uncomputation)}: $U_{\mathrm{QPE}}^\dagger$ 把相位寄存器复位为
         $\ket{0^d}$, 丢弃工作寄存器后, 系统与信号比特的联合态为
         \[ U\ket{0}\ket{b} = \sum_j \beta_j\Big(\sqrt{1 - f(\lambda_j)^2}\,\ket{0}
@@ -573,15 +573,15 @@ QPE 的核心价值不止于"读出相位", 还在于它能作为\textbf{相干�
     (见下一模块).
 \end{Note}
 
-\section{振幅放大 (AA)、最优振幅放大与非感知振幅放大 (OAA)}
+\section{振幅放大 (AA), 最优振幅放大与非感知振幅放大 (OAA)}
 振幅放大是量子算法设计中最重要的工具之一.其核心思想是: 把算法的成功分支与失败分支看成一个二维子空间中的两个方向, 通过两个反射的乘积实现旋转, 逐步把振幅从失败方向转移到成功方向. 相对于经典独立重复采样, 所需操作次数从 $O(1/p)$ 降至 $O(1/\sqrt{p})$, 其中 $p$ 是初始成功概率. 
 
 \subsection{Grover 搜索: 振幅放大的原型}
 
 \begin{Def}[无结构搜索问题]
     给定布尔函数 $f: \{0,1\}^n \to \{0,1\}$ 与 promise: 存在唯一\textbf{标记态(marked state)} $x_0$ 使 $f(x_0) = 1$,
-    找出 $x_0$. 经典算法最坏情形需要 $N - 1 = 2^n - 1$ 次查询,
-    量子算法可以做到 $O(\sqrt{N})$ 次 —— 这就是 Grover 的\textbf{二次加速(quadratic speedup)}.
+    找出 $x_0$. 经典算法最坏情形需要 $N - 1 = 2^n - 1$ 次查询, 
+    量子算法可以做到 $O(\sqrt{N})$ 次 --- 这就是 Grover 的\textbf{二次加速(quadratic speedup)}.
 \end{Def}
 
 设 oracle $U_f\ket{x}\ket{y} = \ket{x}\ket{y \oplus f(x)}$. 取 $\ket{y} = \ket{-}$,
@@ -601,17 +601,17 @@ $U_f\ket{x} = (-1)^{f(x)}\ket{x}$ 等价于\textbf{反射算子(reflection opera
 $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
 
 \begin{Eg}[Grover 算法流程]
-    Grover 算法(live\_notes 算法 11.1)的完整流程如下 —— 采用具体可执行的形式,
+    Grover 算法(live\_notes 算法 11.1)的完整流程如下 --- 采用具体可执行的形式, 
     比特 oracle 与扩散算子各作用一次构成一次迭代:
     \begin{enumerate}
         \item \textbf{初始化}: 制备 $\ket{0^n}\ket{1}$, 再对\textbf{每个}量子比特施加 Hadamard 门:
         \[ \ket{\psi} \leftarrow H^{\otimes(n+1)}\ket{0^n}\ket{1}
            = \Big(\frac{1}{\sqrt{N}}\sum_{x\in\{0,1\}^n}\ket{x}\Big)\ket{-}
            = \ket{\phi_0}\ket{-}, \]
-        其中 $\ket{\phi_0} = H^{\otimes n}\ket{0^n}$ 为均匀叠加态,
+        其中 $\ket{\phi_0} = H^{\otimes n}\ket{0^n}$ 为均匀叠加态, 
         $\ket{-} = \frac{1}{\sqrt{2}}(\ket{0}-\ket{1})$ 用于相位反冲;
         \item \textbf{标记(oracle)}: 施加比特 oracle $U_f$(定义见上), 由相位反冲
-        $U_f\ket{x}\ket{-} = (-1)^{f(x)}\ket{x}\ket{-}$, 对标记态 $\ket{x_0}$ 附加 $-1$ 相位 ——
+        $U_f\ket{x}\ket{-} = (-1)^{f(x)}\ket{x}\ket{-}$, 对标记态 $\ket{x_0}$ 附加 $-1$ 相位 ---
         等价于反射算子 $R_{x_0} = I - 2\ket{x_0}\bra{x_0}$;
         \item \textbf{扩散(diffusion)}: 施加\textbf{扩散算子}
         \[ D := \big(2\ket{\phi_0}\bra{\phi_0} - I\big)\otimes I
@@ -622,7 +622,7 @@ $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
         \item \textbf{测量与验证}: 在计算基上测量系统寄存器得到 $x$, 用 $f(x)$ 检验;
         失败则重复.
     \end{enumerate}
-    迭代 $k^* = \lfloor \pi/(2\theta) \rfloor = \lfloor \pi/(4\arcsin(1/\sqrt{N})) \rfloor$ 次后,
+    迭代 $k^* = \lfloor \pi/(2\theta) \rfloor = \lfloor \pi/(4\arcsin(1/\sqrt{N})) \rfloor$ 次后, 
     成功概率至少 $1 - 4/N$, 查询数为 $O(\sqrt{N})$; 这两点由下文的
     Grover 迭代定理保证, 结合经典验证即可把失败概率压到任意小的常数.
 \end{Eg}
@@ -687,11 +687,11 @@ $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
 
 \begin{Note}[矩阵形式与基的选择]
     旋转矩阵的显式形式依赖于二维不变子空间的\textbf{基}. 两种常用基给出不同形式:
-    在本节基 $\{\ket{x_0}, \ket{x_0^\perp}\}$ 下,
+    在本节基 $\{\ket{x_0}, \ket{x_0^\perp}\}$ 下, 
     \[ [G] = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}, \]
     而在基 $\{\ket{\phi_0}, \ket{\phi_0'}\}$ 下(见下节振幅放大及 live\_notes 式 (11.14))为
     \[ [G] = \begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}. \]
-    两个正交基由行列式为 $-1$ 的\textbf{反射}矩阵联系, 只改变反对角元的符号,
+    两个正交基由行列式为 $-1$ 的\textbf{反射}矩阵联系, 只改变反对角元的符号, 
     表示的旋转动力学($G^k\ket{\phi_0}$ 的成功振幅 $\sin((2k+1)\theta/2)$)完全相同.
 \end{Note}
 
@@ -720,7 +720,7 @@ $\mathrm{span}\{\ket{x_0},\ket{x_0^\perp}\}$ 内每次旋转角度 $\theta$;
     取 $k = O\big(1/\theta\big) = O(\sqrt{N})$ 次迭代, 即可使 $\ket{x_0}$ 的振幅达到
     $\Omega(1)$. 具体地, 测量失败概率不超过 $4/N$, 且输出可以经典验证
     ($f(x)$ 检查), 重复即可. 查询复杂度 $O(\sqrt{N})$ 与经典 $O(N)$ 相比是二次加速;
-    且这是最优的 —— 任何量子算法至少需要 $\Omega(\sqrt{N})$ 次查询(见讲义 2.4 节的混合论证证明).
+    且这是最优的 --- 任何量子算法至少需要 $\Omega(\sqrt{N})$ 次查询(见讲义 2.4 节的混合论证证明).
     若存在 $M$ 个标记态, 复杂度为 $O(\sqrt{N/M})$.
 \end{Cor}
 \begin{Proof}[简略证明]
@@ -741,8 +741,8 @@ $\mathrm{span}\{\ket{x_0},\ket{x_0^\perp}\}$ 内每次旋转角度 $\theta$;
     \textbf{随机化}经典算法(随机猜测 + 验证)平均也需要 $\Theta(N)$ 次
     (单次成功概率 $1/N$, 期望 $N$ 次尝试). Grover 的 $O(\sqrt{N})$ 是
     量子在查询复杂度上的严格二次加速: 下界 $\Omega(\sqrt{N})$ 的混合论证
-    说明, 经典每次查询"线性"地更新概率, 而量子查询以旋转的方式更新振幅,
-    信息以 $\sqrt{p}$ 而非 $p$ 的速度增长. 有 $M$ 个标记态时,
+    说明, 经典每次查询"线性"地更新概率, 而量子查询以旋转的方式更新振幅, 
+    信息以 $\sqrt{p}$ 而非 $p$ 的速度增长. 有 $M$ 个标记态时, 
     经典仍需 $\Theta(N/M)$ 次查询, 量子为 $O(\sqrt{N/M})$
     (当 $M \ll N$ 时仍为二次加速; 当 $M$ 接近 $N/2$ 时优势消失).
 \end{Note}
@@ -813,7 +813,7 @@ Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
 \begin{Eg}[信号比特场景]
     若 $U_0$ 需要 $m$ 个辅助(信号)比特, 即
     \[ U_0 \ket{0^m}\ket{0^n} = \sqrt{p}\,\ket{0^m}\ket{\phi} + \sqrt{1-p}\,\ket{\phi^\perp}, \]
-    其中 $\ket{\phi^\perp}$ 与 $\ket{0^m}$ 正交. 此时"好"的状态由辅助比特全 $0$ 标志,
+    其中 $\ket{\phi^\perp}$ 与 $\ket{0^m}$ 正交. 此时"好"的状态由辅助比特全 $0$ 标志, 
     反射简化为 $R_{\mathrm{good}} = (I - 2\ket{0^m}\bra{0^m}) \otimes I$, \textbf{后选择(post-selection)}测量辅助比特
     即得到成功概率 $p$. 这类"可验证成功"的结构在 block-encoding 等场景中反复出现.
 \end{Eg}
@@ -825,10 +825,10 @@ Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
     \begin{enumerate}
         \item \textbf{旋转角与初始振幅同阶}: $\theta = 2\arcsin\sqrt{p} \approx 2\sqrt{p}$,
         每次迭代在二维子空间内把状态旋转固定的角度 $\theta$;
-        \item \textbf{振幅线性增长}: 在角度 $(2k+1)\theta/2$ 尚未越界时,
+        \item \textbf{振幅线性增长}: 在角度 $(2k+1)\theta/2$ 尚未越界时, 
         \[ a_k = \sin\!\Big(\frac{(2k+1)\theta}{2}\Big) \approx \frac{(2k+1)\theta}{2} \approx k\theta, \]
         即每步振幅近似增加 $\theta \approx 2\sqrt{p}$;
-        \item \textbf{概率二次增长}: 成功概率是振幅的平方,
+        \item \textbf{概率二次增长}: 成功概率是振幅的平方, 
         \[ P_k = a_k^2 \approx k^2\theta^2 = O\big(k^2 p\big), \]
         故把成功概率提升到常数只需
         \[ k = O\Big(\frac{1}{\theta}\Big) = O\Big(\frac{1}{\arcsin\sqrt{p}}\Big) = O\Big(\frac{1}{\sqrt{p}}\Big) \]
@@ -837,7 +837,7 @@ Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
     对比经典: 成功概率为 $p$ 的伯努利试验, 成功概率按\textbf{线性}速率增长
     ($P \sim kp$), 期望重复 $O(1/p)$ 次. 差距的根源在于量子以\textbf{振幅}
     $\sqrt{p}$(而非概率 $p$)为基本量: 概率是振幅的平方, 振幅每步增加
-    $O(\sqrt{p})$ 就使概率每步增加 $O(p)$ —— 用振幅的线性增长换取概率的
+    $O(\sqrt{p})$ 就使概率每步增加 $O(p)$ --- 用振幅的线性增长换取概率的
     二次增长, 这正是"量子处理振幅而非概率"带来的平方级改进.
 \end{Note}
 
@@ -853,74 +853,172 @@ Grover 搜索只是振幅放大在"标记态 = 单个计算基态"时的特例.
 \begin{Note}[$p$ 未知时的策略]
     若 $p$ 未知, 无法精确选取迭代次数. 经典策略(live\_notes §11.2)是均匀随机选取
     $m \in [1, 2^r - 1]$, 执行 $G^m$ 后用 $R_{\mathrm{good}}$ 验证; 当 $2^r \gtrsim \pi/\theta$
-    时, 迭代角度在单位圆上"随机采样", $\cos^2$ 的平均值为 $1/2$, 故成功概率为常数,
-    重复次数按几何分布、期望 $O(1/\sqrt{p})$. 现代方法则用基于 QSVT 的
+    时, 迭代角度在单位圆上"随机采样", $\cos^2$ 的平均值为 $1/2$, 故成功概率为常数, 
+    重复次数按几何分布, 期望 $O(1/\sqrt{p})$. 现代方法则用基于 QSVT 的
     \textbf{固定点振幅放大}(fixed-point amplitude amplification), 在 $p$ 未知时
     也能把成功概率逼近 $1$(见下一模块).
 \end{Note}
 
-\subsection{最优振幅放大 (optimal amplitude amplification)}
-
-普通振幅放大的问题是: 若不知道 $p$, 迭代次数 $k$ 难以精确选取, 可能"过冲"或"欠冲",
-成功概率达不到 1. 当 $p$ \textbf{已知}时, 可以做到\textbf{确定性}地放大到成功概率恰为 1,
-这就是\textbf{最优振幅放大}(optimal amplitude amplification, live\_notes 推论 11.8).
-需注意: 本系列中用缩写 \textbf{OAA} 专指下一小节的\textbf{非感知振幅放大}
-(oblivious amplitude amplification), 与这里的"最优振幅放大"是\textbf{两个不同的概念}:
-此处要求已知 $p$ 并需要受控反射, 而 OAA 用于提升 block-encoding 的成功概率、不需要已知 $p$.
-
-\begin{Thm}[已知概率时的确定性放大]
-    在定理 \ref{thm:AA} 的假设下, 若 $p$ 已知, 且可以访问受控反射
-    $cR_{\mathrm{good}} = \ket{1}\bra{1} \otimes R_{\mathrm{good}} + \ket{0}\bra{0} \otimes I$,
-    则存在量子算法用 $O(1/\sqrt{p})$ 次受控反射查询, 确定性地制备出
-    $\ket{0}\ket{\mathrm{good}}$.
-\end{Thm}
-
-\begin{Proof}
-    令 $\theta = 2\arcsin\sqrt{p}$, 取整数 $k = O(1/\theta) = O(1/\sqrt{p})$,
-    并选取 $p' \le p$ 使得 $\theta' := 2\arcsin\sqrt{p'} = \dfrac{\pi}{2k+1}$
-    (例如取 $k = \lceil \pi/(2\theta)\rceil$, 则 $2k+1 \ge \pi/\theta$,
-    故 $p' = \sin^2(\pi/(2(2k+1))) \le \sin^2(\theta/2) = p$).
-    引入一个辅助比特, 施加单比特酉 $B$ 使得
-    \[ B\ket{0} = \sqrt{1 - p'/p}\,\ket{0} + \sqrt{p'/p}\,\ket{1}, \]
-    于是新初态 $\ket{\phi_0'} = (B \otimes U_0)\ket{0}\ket{0^n}$ 对新好空间
-    $\Pi'_{\mathrm{good}} = \ket{1}\bra{1} \otimes \Pi_{\mathrm{good}}$ 的成功振幅恰为
-    $\sqrt{p'}$, 即 $\theta' = \pi/(2k+1)$. 此时
-    \[ \big|\bra{\mathrm{good}'} G'^{k} \ket{\phi_0'}\big|
-       = \sin\!\Big((2k+1)\frac{\theta'}{2}\Big) = \sin\frac{\pi}{2} = 1, \]
-    迭代 $k$ 次后\textbf{必然}落在好空间内. 由于 $\Pi'_{\mathrm{good}}$ 由辅助比特
-    $\ket{1}$ 标志, 反射为受控反射 $cR_{\mathrm{good}}$, 每步恰用 1 次查询.
-    最后对辅助比特施加 $X$ 即得 $\ket{0}\ket{\mathrm{good}}$.
-\end{Proof}
-
-\begin{Note}[最优振幅放大的意义与局限]
-    最优振幅放大把"成功概率 $\Omega(1)$"提升为"成功概率 $= 1$", 消除了重复试验的开销,
-    在 Grover 搜索等 $p$ 已知的场景中尤为有用. 代价是需要受控且可逆的 oracle.
-    当 $p$ 未知时, 随机选取迭代次数 $m \in [1, 2^r)$ 后检验的策略,
-    成功概率在 $2^r > \pi/\theta$ 时平均仍有常数; 现代算法则用基于 QSVT 的
-    \textbf{固定点振幅放大}(fixed-point amplitude amplification)在未知 $p$ 的情况下
-    逼近 $100\%$ 成功, 这将在下一模块中介绍.
-\end{Note}
-
 \subsection{非感知振幅放大 (Oblivious amplitude amplification, OAA)}
 
-Block-encoding 的成功概率受归一化常数限制: 若 $V$ 是矩阵 $A$ 的
+\textbf{非感知振幅放大}(oblivious amplitude amplification, OAA)是振幅放大的一种推广形式.
+它的主要特点是: 振幅放大的反射操作不依赖于数据寄存器中的未知输入态, 
+而只依赖于辅助量子比特(ancilla)的状态, 因此可以对任意未知输入态统一地进行成功振幅放大.
+
+\subsubsection{基本设定}
+
+设数据寄存器中的输入态为 $\ket{\psi}$, 辅助寄存器初始化为 $\ket{0^a}$.
+考虑一个酉算子 $W$, 满足
+\[
+    W\ket{0^a}\ket{\psi}
+    = \sin\theta\,\ket{0^a}\ket{\psi_{\mathrm{good}}}
+    + \cos\theta\,\ket{\Phi^\perp_\psi},
+    \qquad \braket{0^a}{\Phi^\perp_\psi} = 0.
+\]
+第一项对应成功子空间, 第二项对应失败子空间, 成功概率为 $p = \sin^2\theta$.
+因此也可以写成
+\[
+    W\ket{0^a}\ket{\psi}
+    = \sqrt{p}\,\ket{0^a}\ket{\psi_{\mathrm{good}}}
+    + \sqrt{1-p}\,\ket{\Phi^\perp_\psi}.
+\]
+OAA 的目标是通过若干次酉操作, 将成功分量 $\ket{0^a}\ket{\psi_{\mathrm{good}}}$ 的振幅增大, 
+而不需要知道输入态 $\ket{\psi}$ 的具体形式.
+
+\subsubsection{成功子空间的投影与反射}
+
+定义辅助寄存器处于 $\ket{0^a}$ 时对应的投影算子
+\[
+    P = \ket{0^a}\bra{0^a} \otimes I,
+\]
+其中 $I$ 是作用在数据寄存器上的单位算子. 对任意数据态 $\ket{\varphi}$,
+\[
+    P\ket{0^a}\ket{\varphi} = \ket{0^a}\ket{\varphi},
+\]
+而对与 $\ket{0^a}$ 正交的辅助寄存器状态, $P\ket{\Phi^\perp} = 0$.
+由投影算子 $P$ 定义反射算子
+\[
+    R = 2P - I,
+\]
+于是 $R\ket{0^a}\ket{\varphi} = \ket{0^a}\ket{\varphi}$, 而对失败子空间中的状态
+$R\ket{\Phi^\perp} = -\ket{\Phi^\perp}$.
+由于 $P = \ket{0^a}\bra{0^a}\otimes I$ 在数据寄存器上仅作用单位算子 $I$,
+该反射与具体的数据态 $\ket{\psi}$ 无关 --- 这正是 ``oblivious'' 的含义.
+
+\subsubsection{二维不变子空间}
+
+定义 $\ket{\Psi} = \ket{0^a}\ket{\psi}$. 经过 $W$ 后, 
+\[
+    W\ket{\Psi} = \sin\theta\,\ket{G} + \cos\theta\,\ket{B},
+\]
+其中 $\ket{G} = \ket{0^a}\ket{\psi_{\mathrm{good}}}$ 表示成功分量, 
+$\ket{B} = \ket{\Phi^\perp_\psi}$ 表示失败分量, 二者满足 $\braket{G}{B} = 0$.
+因此, 尽管完整 Hilbert 空间可能具有很高的维数, OAA 的动力学实际上被限制在二维子空间
+\[
+    \mathcal{K} = \mathrm{span}\{\ket{G}, \ket{B}\}
+\]
+中. 这使得 OAA 可以被理解为该二维平面中的旋转过程.
+
+\subsubsection{OAA 迭代算子}
+
+除了关于成功子空间的反射 $R$ 外, 通过酉算子 $W$ 还可以构造另一个反射 $WRW^\dagger$.
+OAA 的基本迭代算子定义为
+\[
+    Q = -WRW^\dagger R,
+\]
+这里 $Q$ 是两个反射算子的乘积. 需要注意的是, 不同文献可能采用不同的反射符号约定, 
+例如也常定义 $R' = I - 2P$. 这种差异只会改变整体相位或旋转方向, 
+不会改变振幅放大的基本结论.
+
+\subsubsection{两个反射产生二维旋转}
+
+初始状态为
+\[
+    W\ket{\Psi} = \sin\theta\,\ket{G} + \cos\theta\,\ket{B}.
+\]
+在二维子空间 $\mathcal{K} = \mathrm{span}\{\ket{G}, \ket{B}\}$ 中, 
+OAA 迭代算子 $Q$ 等价于一次旋转: 每施加一次 $Q$, 量子态在该二维平面中旋转角度 $2\theta$.
+因此, 一次 OAA 迭代后
+\[
+    QW\ket{\Psi} = \sin(3\theta)\,\ket{G} + \cos(3\theta)\,\ket{B},
+\]
+两次迭代后
+\[
+    Q^2W\ket{\Psi} = \sin(5\theta)\,\ket{G} + \cos(5\theta)\,\ket{B}.
+\]
+一般地, 经过 $k$ 次 OAA 迭代后
+\[
+    \boxed{Q^kW\ket{\Psi} = \sin\big((2k+1)\theta\big)\ket{G} + \cos\big((2k+1)\theta\big)\ket{B}},
+\]
+因此成功概率变为
+\[
+    \boxed{p_k = \sin^2\big((2k+1)\theta\big)}.
+\]
+
+\subsubsection{振幅放大的复杂度}
+
+初始成功概率为 $p = \sin^2\theta$. 当 $p \ll 1$ 时, $\sin\theta \approx \theta$,
+因此 $\theta \approx \sqrt{p}$. 为了使成功概率接近 $1$, 需要令
+$(2k+1)\theta \approx \pi/2$, 由此得到
+\[
+    k \approx \frac{\pi}{4\theta} - \frac12.
+\]
+由于 $\theta \approx \sqrt{p}$, 因此
+\[
+    \boxed{k = O\Big(\frac{1}{\sqrt{p}}\Big)}.
+\]
+如果直接重复运行并测量, 为了获得一次成功结果通常需要 $O(1/p)$ 次尝试.
+因此 OAA 实现了从 $O(1/p)$ 到 $O(1/\sqrt{p})$ 的平方加速.
+
+\subsubsection{OAA 与普通振幅放大的区别}
+
+普通振幅放大中, 反射操作可能依赖于具体的输入态, 例如可能需要构造关于
+$\ket{0^a}\ket{\psi}$ 的反射. 若 $\ket{\psi}$ 是未知的, 这种反射通常难以直接实现.
+OAA 则只利用辅助寄存器定义成功子空间 $P = \ket{0^a}\bra{0^a}\otimes I$;
+由于数据寄存器上作用的是单位算子 $I$, 这一投影以及相应的反射算子都不依赖于
+$\ket{\psi}$ 的具体形式. 换句话说, OAA 可以对任意未知输入态 $\ket{\psi}$
+使用同一套振幅放大电路. 因此, OAA 的核心特征可以概括为
+\[
+    \boxed{\text{Amplify the success amplitude without knowing the input data state.}}
+\]
+
+\subsubsection{OAA 的数学本质}
+
+OAA 的数学本质是两个反射算子的乘积. 对于投影算子 $P$, 定义反射 $R_P = 2P - I$;
+经过酉变换 $W$ 后, 另一个反射为 $WR_PW^\dagger$. 于是 OAA 迭代算子为
+\[
+    Q = -\big(WR_PW^\dagger\big)R_P.
+\]
+两个反射的乘积在相应的二维不变子空间中等价于一次旋转, 因此可以概括为
+\[
+    \boxed{\text{reflection} + \text{reflection} = \text{rotation}}.
+\]
+因此, OAA 并不是直接修改测量概率, 而是通过量子干涉不断旋转量子态, 
+使其逐渐靠近成功子空间, 从而增大成功分量的测量概率.
+
+\subsubsection{与 block-encoding 的联系}
+
+上面的叙述用的是"状态编码"的表述; 在 block-encoding 的框架下, 同一走算子有更重要的应用.
+block-encoding 的成功概率受归一化常数限制: 若 $V$ 是矩阵 $A$ 的
 $(\alpha, m, 0)$-block-encoding, 则其作用在态 $\ket{\psi}$ 上"成功"(落到 $\ket{0^m}$ 分支)的概率
 仅为 $\norm{A\ket{\psi}}^2/\alpha^2$. 用普通振幅放大需要关于\textbf{初态}
 $V\ket{0^m}\ket{\psi}$ 的反射 $R_0$, 多次使用时要求"回退"到初态, 代价巨大; 且
 成功/失败本身携带了关于 $\ket{\psi}$ 的信息(似然比
 $\norm{A\ket{\psi}}^2/\norm{A\ket{\psi'}}^2$ 对一般态可能远离 $1$), 阻碍链式使用.
-\textbf{非感知振幅放大}(oblivious amplitude amplification, OAA)通过只关于
-\textbf{好空间}与"包含初态的子空间"反射来绕开这两个问题.
+OAA 通过只关于\textbf{好空间}与"包含初态的子空间"反射来绕开这两个问题.
 
 \begin{Def}[OAA 走算子]
     设 $\Pi_{\mathrm{good}}$ 是辅助寄存器上的投影算子(标志"好"子空间),
     $V$ 是酉 $U$ 的 $(\alpha, m, 0)$-block-encoding, 即
     \[ (\Pi_{\mathrm{good}}\otimes I)\, V\, (\Pi_{\mathrm{good}}\otimes I) = \frac{U}{\alpha}, \]
-    (标准 block-encoding 取 $\Pi_{\mathrm{good}} = \ket{0^m}\bra{0^m}$). 记
-    $Z_{\mathrm{good}} := I - 2\Pi_{\mathrm{good}}$, 定义\textbf{OAA 走算子}
+    (标准 block-encoding 取 $\Pi_{\mathrm{good}} = \ket{0^m}\bra{0^m}$, 即上面的
+    $P = \ket{0^a}\bra{0^a}\otimes I$). 记 $Z_{\mathrm{good}} := I - 2\Pi_{\mathrm{good}}$,
+    定义\textbf{OAA 走算子}
     \begin{equation}
-        W := -V\,(Z_{\mathrm{good}}\otimes I)\, V^\dagger\,(Z_{\mathrm{good}}\otimes I).
+        W := -V\,(Z_{\mathrm{good}}\otimes I)\, V^\dagger\,(Z_{\mathrm{good}}\otimes I),
     \end{equation}
+    这正是上面迭代算子 $Q = -WRW^\dagger R$ 的同一构造($V$ 对应上面的 $W$,
+    $Z_{\mathrm{good}}\otimes I = -(2P - I) = -R$, 两个负号相消).
 \end{Def}
 
 \begin{Thm}[非感知振幅放大]
@@ -937,7 +1035,7 @@ $\norm{A\ket{\psi}}^2/\norm{A\ket{\psi'}}^2$ 对一般态可能远离 $1$), 阻�
 
 \begin{Note}
     关键性质: 反射 $V(Z_{\mathrm{good}}\otimes I)V^\dagger$ 只依赖好空间与 $V$,
-    \textbf{不依赖具体输入态} —— 这正是"非感知"(oblivious)的含义. 它是
+    \textbf{不依赖具体输入态} --- 这正是"非感知"(oblivious)的含义. 它是
     Hamiltonian 模拟中 LCU/block-encoding 方案把指数级衰减的成功概率恢复到
     常数的基础, 也是下一模块 \textbf{qubitization} 的前奏:
     $W$ 正是 qubitization 在 block-encoding 上对应的迭代算子.
@@ -950,22 +1048,21 @@ $\norm{A\ket{\psi}}^2/\norm{A\ket{\psi'}}^2$ 对一般态可能远离 $1$), 阻�
     (例如 block-encoding 的多步组合). 设第 $i$ 步的成功概率为 $p_i$
     (条件于之前各步成功), 则累计成功概率 $p = p_1 \cdots p_L$,
     直接重复需要 $O(1/p)$ 次. 由测量延迟原理, 用 $L-1$ 个辅助比特把
-    中间测量推迟、化为相干过程, 即可构造关于"信号比特"的反射算子,
-    应用振幅放大把重复次数降到 $O(1/\sqrt{p})$ —— 对 $p$ 的平方级改进.
-    更进一步,\textbf{压缩装置}(compression gadget, live\_notes 例 11.10)
+    中间测量推迟, 化为相干过程, 即可构造关于"信号比特"的反射算子, 
+    应用振幅放大把重复次数降到 $O(1/\sqrt{p})$ --- 对 $p$ 的平方级改进.
+    更进一步, \textbf{压缩装置}(compression gadget, live\_notes 例 11.10)
     用一个 $m = \lceil \log_2(L+1) \rceil$ 比特的计数器寄存器(模 $M = 2^m$ 的
     加法电路 $ADD$)记录成功次数, 把辅助比特数从 $L-1$ 降到 $O(\log L)$.
 \end{Note}
 
 \begin{Note}[与 NP 类问题的联系]
     振幅放大可自然地应用于\textbf{任意 NP 问题}: 对"是"实例, 解的验证 witness
-    可作为"好空间"的标志, 于是暴力搜索的 $O(1/p)$ 次尝试被降为 $O(1/\sqrt{p})$ 次 ——
+    可作为"好空间"的标志, 于是暴力搜索的 $O(1/p)$ 次尝试被降为 $O(1/\sqrt{p})$ 次 ---
     这是"量子相对暴力经典方法的二次加速"的一般形式, 也解释了量子算法对组合优化
     (如 3-SAT)的兴趣来源.
 \end{Note}
 
 \section{Lie--Trotter 与哈密顿量模拟}
-
 \subsection{问题设定}
 
 \begin{Def}[哈密顿量模拟]
@@ -977,11 +1074,11 @@ $\norm{A\ket{\psi}}^2/\norm{A\ket{\psi'}}^2$ 对一般态可能远离 $1$), 阻�
 \end{Def}
 
 \begin{Note}
-    哈密顿量模拟是 Feynman 1982 年提出量子计算机设想的直接动机,
-    也是 QPE 及其应用(基态能量估计、HHL 等)中 $U = e^{-iHt}$ 的实现途径.
-    与一般线性 ODE 不同, 由于 $e^{-iHt}$ 是酉算子, 我们无需存储态的完整历史,
-    只需关注 $t$ 时刻的状态. 本模块介绍最经典的方法 —— \textbf{乘积公式(product formula)},
-    即 Lie--Trotter 分解; 更先进的方法(block-encoding、qubitization、QSVT)见下一模块.
+    哈密顿量模拟是 Feynman 1982 年提出量子计算机设想的直接动机, 
+    也是 QPE 及其应用(基态能量估计, HHL 等)中 $U = e^{-iHt}$ 的实现途径.
+    与一般线性 ODE 不同, 由于 $e^{-iHt}$ 是酉算子, 我们无需存储态的完整历史, 
+    只需关注 $t$ 时刻的状态. 本模块介绍最经典的方法 --- \textbf{乘积公式(product formula)},
+    即 Lie--Trotter 分解; 更先进的方法(block-encoding, qubitization, QSVT)见下一模块.
 \end{Note}
 
 \subsection{Lie 乘积公式与一阶 Trotter}
@@ -1012,7 +1109,7 @@ $\norm{A\ket{\psi}}^2/\norm{A\ket{\psi'}}^2$ 对一般态可能远离 $1$), 阻�
 \end{Thm}
 
 \begin{Proof}[局部误差的推导(Taylor 积分余项)]
-    记 $\widetilde U(\tau) = e^{-i\tau H_1}e^{-i\tau H_2}$. 用带积分余项的 Taylor 展开,
+    记 $\widetilde U(\tau) = e^{-i\tau H_1}e^{-i\tau H_2}$. 用带积分余项的 Taylor 展开, 
     逐矩阵元素求导: 精确演化 $U(\tau) = e^{-i\tau H}$ 满足 $U(0) = I$, $U'(0) = -iH$,
     \[ U(\tau) = I - i\tau H - \int_0^{\tau} e^{-isH}H^2(\tau-s)\,ds; \]
     近似演化满足 $\widetilde U(0) = I$, $\widetilde U'(0) = -iH$,
@@ -1054,7 +1151,7 @@ $O(L\tau^2) = O(t^2/L)$.}
 
 \subsection{交换子型误差界}
 
-上面的 $O(\tau^2)$ 界中的常数可以精确刻画, 而且与 $\norm{H_1}+\norm{H_2}$ 相比,
+上面的 $O(\tau^2)$ 界中的常数可以精确刻画, 而且与 $\norm{H_1}+\norm{H_2}$ 相比, 
 更好的常数是\textbf{交换子范数(commutator norm)} $\norm{[H_1, H_2]}$.
 
 \begin{Thm}[交换子型误差界]
@@ -1190,13 +1287,13 @@ $O(L\tau^2) = O(t^2/L)$.}
         \item \textbf{经典分裂}: 矩阵作用在网格向量上, 每步 $O(N)$ 次浮点运算
         ($N$ 为网格点数); 谱方法则先用 FFT 对角化微分算子, 每步
         $O(N\log N)$ 次运算, 再显式读出谱系数组装解;
-        \item \textbf{量子版本}: 酉演化作用在 $n = \log N$ 个量子比特上,
-        门数 $O(\mathrm{poly}(n))$; 当初始态是叠加态、且只需提取低维观测值
-        (期望、关联函数)而不需完整解向量时, 量子版本在高维
+        \item \textbf{量子版本}: 酉演化作用在 $n = \log N$ 个量子比特上, 
+        门数 $O(\mathrm{poly}(n))$; 当初始态是叠加态, 且只需提取低维观测值
+        (期望, 关联函数)而不需完整解向量时, 量子版本在高维
         ($d \gtrsim 5$)下可获得对网格数的\textbf{指数加速(exponential speedup)}.
     \end{itemize}
     这解释了谱方法/分裂法在经典 PDE 数值解中的角色: 谱方法用 FFT 把微分算子
-    对角化, 与量子 qubitization 把 $H$ 变为旋转矩阵的思路同构 —— 区别在于
+    对角化, 与量子 qubitization 把 $H$ 变为旋转矩阵的思路同构 --- 区别在于
     经典需要显式对角化矩阵, 量子只需要 block-encoding 的"隐式对角化".
 \end{Note}
 
@@ -1205,7 +1302,7 @@ $O(L\tau^2) = O(t^2/L)$.}
 乘积公式的每个因子 $e^{-i\tau H_j}$ 仍需分解为基本门. 两种常见情形:
 
 \begin{Eg}[交换哈密顿量的精确模拟]
-    若 $H = \sum_j H_j$ 且各 $H_j$ 两两对易, 则 $e^{-iHt} = \prod_j e^{-iH_j t}$ 精确成立,
+    若 $H = \sum_j H_j$ 且各 $H_j$ 两两对易, 则 $e^{-iHt} = \prod_j e^{-iH_j t}$ 精确成立, 
     无需任何分裂误差. 例如 TFIM 的 $H_1 = \sum_i Z_i Z_{i+1}$ 与
     $H_2 = \sum_i X_i$ 各自内部对易.
 \end{Eg}

@@ -12,15 +12,23 @@
 \contentsline {subsection}{\numberline {3.4}误差分析}{6}{subsection.3.4}%
 \contentsline {subsection}{\numberline {3.5}应用: 振幅估计}{8}{subsection.3.5}%
 \contentsline {subsection}{\numberline {3.6}特征值变换与矩阵函数}{8}{subsection.3.6}%
-\contentsline {section}{\numberline {4}振幅放大 (AA)、最优振幅放大与非感知振幅放大 (OAA)}{9}{section.4}%
+\contentsline {section}{\numberline {4}振幅放大 (AA), 最优振幅放大与非感知振幅放大 (OAA)}{9}{section.4}%
 \contentsline {subsection}{\numberline {4.1}Grover 搜索: 振幅放大的原型}{9}{subsection.4.1}%
 \contentsline {subsection}{\numberline {4.2}振幅放大}{12}{subsection.4.2}%
-\contentsline {subsection}{\numberline {4.3}最优振幅放大 (optimal amplitude amplification)}{14}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}非感知振幅放大 (Oblivious amplitude amplification, OAA)}{14}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}振幅放大的应用}{15}{subsection.4.5}%
-\contentsline {section}{\numberline {5}Lie--Trotter 与哈密顿量模拟}{15}{section.5}%
-\contentsline {subsection}{\numberline {5.1}问题设定}{15}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Lie 乘积公式与一阶 Trotter}{16}{subsection.5.2}%
-\contentsline {subsection}{\numberline {5.3}交换子型误差界}{17}{subsection.5.3}%
-\contentsline {subsection}{\numberline {5.4}对称分裂与高阶 Suzuki 公式}{18}{subsection.5.4}%
-\contentsline {subsection}{\numberline {5.5}局部演化的实现与交换情形}{19}{subsection.5.5}%
+\contentsline {subsection}{\numberline {4.3}非感知振幅放大 (Oblivious amplitude amplification, OAA)}{14}{subsection.4.3}%
+\contentsline {subsubsection}{\numberline {4.3.1}基本设定}{14}{subsubsection.4.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.2}成功子空间的投影与反射}{14}{subsubsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3}二维不变子空间}{14}{subsubsection.4.3.3}%
+\contentsline {subsubsection}{\numberline {4.3.4}OAA 迭代算子}{15}{subsubsection.4.3.4}%
+\contentsline {subsubsection}{\numberline {4.3.5}两个反射产生二维旋转}{15}{subsubsection.4.3.5}%
+\contentsline {subsubsection}{\numberline {4.3.6}振幅放大的复杂度}{15}{subsubsection.4.3.6}%
+\contentsline {subsubsection}{\numberline {4.3.7}OAA 与普通振幅放大的区别}{16}{subsubsection.4.3.7}%
+\contentsline {subsubsection}{\numberline {4.3.8}OAA 的数学本质}{16}{subsubsection.4.3.8}%
+\contentsline {subsubsection}{\numberline {4.3.9}与 block-encoding 的联系}{16}{subsubsection.4.3.9}%
+\contentsline {subsection}{\numberline {4.4}振幅放大的应用}{17}{subsection.4.4}%
+\contentsline {section}{\numberline {5}Lie--Trotter 与哈密顿量模拟}{17}{section.5}%
+\contentsline {subsection}{\numberline {5.1}问题设定}{17}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Lie 乘积公式与一阶 Trotter}{17}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}交换子型误差界}{18}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}对称分裂与高阶 Suzuki 公式}{20}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}局部演化的实现与交换情形}{21}{subsection.5.5}%
