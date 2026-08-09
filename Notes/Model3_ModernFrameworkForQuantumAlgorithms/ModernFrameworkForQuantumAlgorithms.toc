@@ -15,33 +15,40 @@
 \contentsline {subsection}{\numberline {4.2}输入模型与矩阵查询 oracle}{5}{subsection.4.2}%
 \contentsline {subsection}{\numberline {4.3}Block-encoding 的定义}{5}{subsection.4.3}%
 \contentsline {subsection}{\numberline {4.4}若干构造}{6}{subsection.4.4}%
-\contentsline {subsection}{\numberline {4.5}基本运算}{7}{subsection.4.5}%
-\contentsline {subsection}{\numberline {4.6}与奇异值、qubitization 的联系}{8}{subsection.4.6}%
-\contentsline {subsection}{\numberline {4.7}与 OAA 的联系}{8}{subsection.4.7}%
+\contentsline {subsection}{\numberline {4.5}基本运算}{8}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}与奇异值、qubitization 的联系}{9}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}与 OAA 的联系}{9}{subsection.4.7}%
 \contentsline {subsection}{\numberline {4.8}与后续算法的联系}{9}{subsection.4.8}%
-\contentsline {section}{\numberline {5}Qubitization 与 Chebyshev 多项式: 从谱变量到旋转与多项式逼近}{9}{section.5}%
+\contentsline {section}{\numberline {5}Qubitization 与 Chebyshev 多项式: 从谱变量到旋转与多项式逼近}{10}{section.5}%
 \contentsline {subsection}{\numberline {5.1}从 block-encoding 到谱变量}{10}{subsection.5.1}%
 \contentsline {subsection}{\numberline {5.2}成功子空间投影与反射}{10}{subsection.5.2}%
-\contentsline {subsection}{\numberline {5.3}标量启发: 反射到旋转}{10}{subsection.5.3}%
-\contentsline {subsection}{\numberline {5.4}标准二维模型: 从反射构造 walk 算子}{10}{subsection.5.4}%
-\contentsline {subsection}{\numberline {5.5}Hermitian block-encoding 的 qubitization}{11}{subsection.5.5}%
-\contentsline {subsection}{\numberline {5.6}一般 block-encoding 的 qubitization}{12}{subsection.5.6}%
-\contentsline {subsection}{\numberline {5.7}本征相位与二维不变子空间}{12}{subsection.5.7}%
-\contentsline {subsection}{\numberline {5.8}重复 walk 与 Chebyshev 多项式}{12}{subsection.5.8}%
-\contentsline {subsection}{\numberline {5.9}Chebyshev 多项式的性质}{13}{subsection.5.9}%
-\contentsline {subsection}{\numberline {5.10}Chebyshev 展开与逼近}{14}{subsection.5.10}%
-\contentsline {subsection}{\numberline {5.11}Hamiltonian 模拟的 Chebyshev 表示}{14}{subsection.5.11}%
-\contentsline {subsection}{\numberline {5.12}从 qubitization 到 QSP: 相干组合}{15}{subsection.5.12}%
-\contentsline {subsection}{\numberline {5.13}从 QSP 到 QSVT}{15}{subsection.5.13}%
-\contentsline {subsection}{\numberline {5.14}与 OAA、Lie--Trotter 的联系}{15}{subsection.5.14}%
+\contentsline {subsection}{\numberline {5.3}标量启发: 从反射到旋转}{11}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Hermitian block-encoding 的 qubitization}{11}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}一般 block-encoding 的 qubitization}{12}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}本征相位与二维不变子空间}{12}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}重复 walk 与 Chebyshev 多项式}{13}{subsection.5.7}%
+\contentsline {subsection}{\numberline {5.8}Chebyshev 多项式的性质}{13}{subsection.5.8}%
+\contentsline {subsection}{\numberline {5.9}Chebyshev 展开与逼近}{14}{subsection.5.9}%
+\contentsline {subsection}{\numberline {5.10}Hamiltonian 模拟的 Chebyshev 表示}{15}{subsection.5.10}%
+\contentsline {subsection}{\numberline {5.11}从 qubitization 到 QSP: 相干组合}{15}{subsection.5.11}%
+\contentsline {subsection}{\numberline {5.12}从 QSP 到 QSVT}{15}{subsection.5.12}%
+\contentsline {subsection}{\numberline {5.13}与 OAA、Lie--Trotter 的联系}{16}{subsection.5.13}%
 \contentsline {section}{\numberline {6}QSP 与 QET: 相位因子编码多项式}{16}{section.6}%
 \contentsline {subsection}{\numberline {6.1}量子信号处理: 标量表示定理}{16}{subsection.6.1}%
-\contentsline {subsection}{\numberline {6.2}量子本征值变换 (QET)}{16}{subsection.6.2}%
-\contentsline {section}{\numberline {7}QSVT: 一般矩阵的奇异值变换}{17}{section.7}%
-\contentsline {subsection}{\numberline {7.1}广义矩阵函数}{17}{subsection.7.1}%
-\contentsline {subsection}{\numberline {7.2}一般矩阵的 qubitization 与 QSVT 定理}{17}{subsection.7.2}%
-\contentsline {subsection}{\numberline {7.3}矩阵膨胀: QSP(Ā) 与 QSVT(A) 的等价}{18}{subsection.7.3}%
-\contentsline {section}{\numberline {8}应用}{18}{section.8}%
-\contentsline {subsection}{\numberline {8.1}Hamiltonian 模拟: Jacobi--Anger 展开}{18}{subsection.8.1}%
-\contentsline {subsection}{\numberline {8.2}求解线性方程组 (QLSP)}{19}{subsection.8.2}%
-\contentsline {subsection}{\numberline {8.3}其它应用与统一视角}{19}{subsection.8.3}%
+\contentsline {subsection}{\numberline {6.2}相位如何改变多项式: 零相位与二阶例子}{18}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}量子本征值变换 (QET)}{18}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}QSP 的两个数学问题与完整流程}{19}{subsection.6.4}%
+\contentsline {section}{\numberline {7}QSVT: 一般矩阵的奇异值变换}{20}{section.7}%
+\contentsline {subsection}{\numberline {7.1}一般矩阵的奇异值分解与双向结构}{20}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}广义矩阵函数}{20}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Projected unitary encoding 与二维奇异值子空间}{21}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}一般矩阵的 qubitization 与 QSVT 定理}{21}{subsection.7.4}%
+\contentsline {subsection}{\numberline {7.5}QSVT 的电路结构: 为什么需要 $U_A$ 与 $U_A^\dagger $}{22}{subsection.7.5}%
+\contentsline {subsection}{\numberline {7.6}QSVT 与普通矩阵多项式的区别}{22}{subsection.7.6}%
+\contentsline {subsection}{\numberline {7.7}矩阵膨胀: QSP(Ā) 与 QSVT(A) 的等价}{22}{subsection.7.7}%
+\contentsline {subsection}{\numberline {7.8}矩阵函数应用: 求逆、滤波与统一视角}{23}{subsection.7.8}%
+\contentsline {subsection}{\numberline {7.9}QSVT 的算法流程与知识链}{23}{subsection.7.9}%
+\contentsline {section}{\numberline {8}应用}{24}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Hamiltonian 模拟: Jacobi--Anger 展开}{24}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}求解线性方程组 (QLSP)}{24}{subsection.8.2}%
+\contentsline {subsection}{\numberline {8.3}其它应用与统一视角}{25}{subsection.8.3}%
