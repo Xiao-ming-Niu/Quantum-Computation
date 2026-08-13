@@ -1,0 +1,33 @@
+
+=========================
+Trotter Hamiltonian Simulation Algorithm Algorithm Result
+=========================
+Status: success
+
+Input parameters:
+  - Hamiltonian: [[ 0.7+0.j  1. +0.j]
+ [ 1. +0.j -0.7+0.j]]
+  - Evolution time: 1.0
+  - error: 0.001
+  - order of Trotter formula: 2
+  - steps of Trotter formula: 12
+
+Runtime logs:
+  - Stage 1: Formatting and validating input.
+  -     Hamiltonian dimension: 2, number of qubits: 1, spectral norm: 1.2207.
+  -     Chosen Trotter order: 2, number of simulation steps: 12.
+  - Stage 2: Decomposing Hamiltonian into Pauli terms.
+  -     Decomposed Hamiltonian into 2 Pauli terms.
+  - Stage 3: Building Trotter circuit for one time slice.
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\hamiltonian_simulation\trotter/trotter_full.svg
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\hamiltonian_simulation\trotter/trotter_slice.svg
+
+Output information:
+  - Approximate evolution matrix: [[ 3.43466802e-01-0.53753259j  1.61119149e-16-0.77012289j]
+ [-9.08739471e-18-0.77012289j  3.43466802e-01+0.53753259j]]
+  - Exact evolution matrix: [[3.43030035e-01-0.53866719j 5.55111512e-17-0.76952456j]
+ [3.74405124e-17-0.76952456j 3.43030035e-01+0.53866719j]]
+  - Frobenius norm of error: 0.0019162924150894092
+
+Summary:
+  Trotter simulation completed with Frobenius norm error: 1.92e-03

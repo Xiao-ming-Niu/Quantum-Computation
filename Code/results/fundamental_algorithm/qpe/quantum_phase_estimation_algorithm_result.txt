@@ -1,0 +1,26 @@
+  - Unitary operator: T
+  - Precision bits: 4
+
+  - Stage 1: Validating and parsing parameters
+  -   Phase register: 4 Qubits
+  -   Target register: 1 Qubits
+  -   Total qubits: 5
+  -   Theoretical phase resolution: 1/16 ≈ 0.062500
+  - Stage 2: Building QPE core circuit
+  -   Built controlled U operator sequence
+  -   Connected IQFT module
+  - Stage 3: Executing quantum simulation
+  -   Underlying simulation computation time: 0.0010 seconds
+  - Stage 4: Executing classical post-processing
+  -   Optimal phase bit string: |0010> (probability: 1.0000)
+  -   Equivalent decimal estimated phase: 0.125000
+  - Stage 5: Exporting circuit diagram
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\fundamental_algorithm\qpe/quantum_phase_estimation_algorithm_circuit.svg
+
+  - Estimated phase: 0.125
+  - Best phase bit string: 0010
+  - Best phase probability: 1.0
+  - Computation time (s): 0.0009989738464355469
+  - Phase probabilities: [('0010', np.float64(1.0))]
+
+  Execution successful. Estimated phase: 0.125000 (bits: 0010, prob: 1.0000)

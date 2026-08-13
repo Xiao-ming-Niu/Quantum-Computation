@@ -15,7 +15,13 @@ Quantum-Computation/
 │   ├── Model2_CoreQuantumAlgorithmComponents/    # Model 2: Core quantum algorithm components
 │   ├── Model3_ModernFrameworkForQuantumAlgorithms/# Model 3: Modern framework for quantum algorithms
 │   └── Model4_Schrodingerization/                # Model 4: Schrödingerization method
-└── Code/                     # Code (placeholder, currently empty)
+└── Code/                     # Algorithm implementations (notebooks + results)
+    ├── 量子算法实现路线图.md    # Implementation roadmap & unified experiment template
+    ├── Grover.ipynb           # Grover search
+    ├── AA-OAA.ipynb           # Amplitude amplification (AA/OAA)
+    ├── QFT-QPE.ipynb          # QFT & QPE
+    ├── Suzuki_Trotter-Taylor_Series.ipynb  # Hamiltonian simulation (Trotter / Taylor)
+    └── results/               # Run outputs (circuit SVGs + numerical results)
 ```
 
 ## Overview
@@ -70,6 +76,19 @@ This module applies the components built in the previous three modules to **scie
 - **A family of unitarization methods**: a unified view and selection criteria for Schrödingerization, LCHS, Transmutation, and moment-matching dilation;
 - **References and extensions**: the latest advances in Schrödingerization (Jin–Liu–Yu PRA 2023 / PRL 2024, Hu–Jin–Liu–Zhang Quantum 2024, etc.).
 
+## Code Implementations (`Code/`)
+
+Following the [implementation roadmap](Code/量子算法实现路线图.md) — each algorithm is completed with the unified template **mathematics → hand-written implementation → official implementation → numerical verification → circuit diagram → result analysis**, preferring `unitarylab_algorithms` / `unitarylab` and falling back to `Qiskit` only when necessary — the following notebooks are implemented:
+
+| Notebook | Content | Run outputs |
+| --------- | ------ | --------- |
+| [Grover.ipynb](Code/Grover.ipynb) | Grover search: mathematics (initial state, Oracle, Diffuser, why multiple iterations) and hand-written vs official implementation | [grover](Code/results/fundamental_algorithm/grover/) |
+| [AA-OAA.ipynb](Code/AA-OAA.ipynb) | Amplitude amplification (AA) and optimal amplitude amplification (OAA): relation to Grover, good/bad subspace, reflections, OAA's key projection, numerical experiments | [amplitude_amplification](Code/results/fundamental_algorithm/amplitude_amplification/) |
+| [QFT-QPE.ipynb](Code/QFT-QPE.ipynb) | QFT definition and unitarity, QFT and phases; QPE problem setup, registers and the three-step flow (Hadamard → controlled-U → inverse QFT) with numerical implementation | [qft](Code/results/linear_algebra/qft/), [qpe](Code/results/fundamental_algorithm/qpe/) |
+| [Suzuki_Trotter-Taylor_Series.ipynb](Code/Suzuki_Trotter-Taylor_Series.ipynb) | Hamiltonian simulation: Lie–Trotter/Suzuki product formulas vs the Taylor-series approach (truncation + LCU) | [trotter](Code/results/hamiltonian_simulation/trotter/), [taylor](Code/results/hamiltonian_simulation/taylor/) |
+
+The roadmap continues toward **LCU → Block Encoding → Qubitization → QSP/QSVT → quantum linear systems → PDE solving**.
+
 ## References and Sources
 
 The notes are primarily compiled from the following materials:
@@ -111,5 +130,6 @@ xelatex QuantumComputationBasics.tex
 
 ## Roadmap
 
-- [ ] Add companion **code implementations** (the `Code/` directory is currently empty) — circuit reproductions with frameworks such as Qiskit / PennyLane;
+- [x] Roadmap and foundation-algorithm notebooks (Grover, AA/OAA, QFT/QPE, Trotter/Taylor Hamiltonian simulation);
+- [ ] Continue along the roadmap: **LCU → Block Encoding → Qubitization → QSP/QSVT → quantum linear systems → PDE solving**;
 - [ ] Extend with more frontier topics (e.g., Maxwell equations, interface problems with physical boundary conditions, fractional heat equations, ground-state / thermal-state preparation, etc.).

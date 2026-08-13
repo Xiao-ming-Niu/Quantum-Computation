@@ -1321,4 +1321,148 @@ $O(L\tau^2) = O(t^2/L)$.}
     ($X = HZH$, $Y = SHS^{\dagger} Z S H S^{\dagger}$ 类关系)对角化后再处理.
 \end{Eg}
 
+\subsection{截断 Taylor 级数: LCU 方法}
+
+乘积公式把 $e^{-iHt}$ 分解为一系列可精确实现的短时演化, 但误差对精度的依赖只有
+$O(\varepsilon^{-1/p})$(多项式). 对一般哈密顿量, 由\textbf{无快速前推(no-fast-forwarding)}
+下界, 黑盒模拟 $e^{-iHt}$ 至少需要 $\Omega(t)$ 次查询, 而乘积公式的上界关于 $t$
+是超线性的($O(t^{1+1/p})$). 一个能达到(几乎)最优复杂度的方案是: 直接把 $e^{-iHt}$
+做\textbf{Taylor 级数展开}, 把截断结果表示为\textbf{线性酉组合(linear combination of unitaries, LCU)},
+再用上一节的\textbf{非感知振幅放大(OAA)}把后选择成功概率恢复到常数. 这就是
+\textbf{截断 Taylor 级数方法}(Berry--Childs--Cleve--Kothari--Somma, 2015).
+
+\begin{Def}[哈密顿量的 LCU 分解]
+    把哈密顿量写成酉算子的非负线性组合
+    \begin{equation}
+        H = \sum_{l=1}^{L} \alpha_l\, U_l, \qquad \alpha_l > 0, \quad U_l \text{ 为酉算子},
+    \end{equation}
+    并记其\textbf{1-范数(one-norm)}
+    \begin{equation}
+        \lambda := \sum_{l=1}^{L} \alpha_l.
+    \end{equation}
+    例如对 Pauli 分解 $H = \sum_j c_j P_j$, 取 $\alpha_l = |c_l|$,
+    $U_l = \mathrm{sign}(c_l)\, P_l$; 因 $P_l$ 是酉的 Pauli 算符, $U_l$ 仍是酉算子
+    (符号只是整体相位). 由三角不等式,
+    \begin{equation}
+        \norm{H} = \norm{\sum_l \alpha_l U_l} \le \sum_l \alpha_l = \lambda.
+    \end{equation}
+\end{Def}
+
+\begin{Note}[与乘积公式的对比]
+    Trotter 要求 $H$ 是少量项之和, 且每项指数 $e^{-i\tau H_j}$ 可精确实现;
+    LCU 分解只要求每个 $U_l$ 可被(受控地)实现, 对任意 $\mathrm{poly}(n)$ 项的
+    Pauli 哈密顿量都成立, 代价则表现为对 1-范数 $\lambda$ 的依赖. 注意 $\lambda$
+    可能远大于 $\norm{H}$: 例如 $H = \sum_{j=1}^{L} X_j$ 时 $\norm{H} = 1$ 而
+    $\lambda = L$, 因此该方法对"系数和很大"的哈密顿量并不经济; 更紧的构造
+    (qubitization)可把依赖改进到 $\norm{H}$(见下一模块).
+\end{Note}
+
+\begin{Def}[截断 Taylor 级数]
+    把总时间 $t$ 分为 $r$ 段, 每段 $\tau = t/r$. 对单段做 Taylor 展开并截断到 $K$ 阶:
+    \begin{equation}
+        e^{-iH\tau} = \sum_{k=0}^{\infty} \frac{(-iH\tau)^k}{k!}
+        \;\approx\; \widetilde U_K(\tau) := \sum_{k=0}^{K} \frac{(-iH\tau)^k}{k!}.
+    \end{equation}
+    代入 $H^k = \sum_{l_1,\dots,l_k}\alpha_{l_1}\cdots\alpha_{l_k}\, U_{l_1}\cdots U_{l_k}$
+    (酉算子的乘积仍是酉算子):
+    \begin{equation}
+        \widetilde U_K(\tau) = \sum_{k=0}^{K}\;\sum_{l_1,\dots,l_k}
+        \frac{(-i\tau)^k}{k!}\,\alpha_{l_1}\cdots\alpha_{l_k}\,
+        U_{l_1}\cdots U_{l_k}.
+    \end{equation}
+    去掉模 $1$ 的相位 $(-i)^k$, 这是酉算子 $\{U_{l_1}\cdots U_{l_k}\}$ 的一个 LCU, 
+    其 1-范数(归一化常数)为
+    \begin{equation}
+        s := \sum_{k=0}^{K}\frac{\tau^k}{k!}\sum_{l_1,\dots,l_k}\alpha_{l_1}\cdots\alpha_{l_k}
+        = \sum_{k=0}^{K}\frac{(\lambda\tau)^k}{k!} \;\le\; e^{\lambda\tau}.
+    \end{equation}
+\end{Def}
+
+\begin{Lem}[LCU 引理]
+    设 $M = \sum_j w_j V_j$($w_j \ge 0$, $V_j$ 酉), $s = \sum_j w_j$. 构造
+    \textbf{PREPARE} $V: \ket{0^a}\mapsto \sum_j \sqrt{w_j/s}\,\ket{j}$ 与
+    \textbf{SELECT} $\mathrm{SEL} = \sum_j \ket{j}\bra{j}\otimes V_j$, 则
+    \begin{equation}
+        (V^\dagger\otimes I)\,\mathrm{SEL}\,(V\otimes I)\ket{0^a}\ket{\psi}
+        = \ket{0^a}\otimes \frac{1}{s}M\ket{\psi} \;+\; \ket{0^a}^{\perp}\otimes(\cdots),
+    \end{equation}
+    其中 $\ket{0^a}^{\perp}$ 表示辅助寄存器中与 $\ket{0^a}$ 正交的分量.
+    测量辅助寄存器得到 $\ket{0^a}$ 的概率为 $\norm{M\ket{\psi}}^2/s^2$,
+    成功时系统态恰为 $M\ket{\psi}/\norm{M\ket{\psi}}$.
+\end{Lem}
+
+\begin{Proof}
+    三步逐项追踪:
+    \begin{equation*}
+    \begin{aligned}
+        \ket{0^a}\ket{\psi}
+        &\xrightarrow{\,V\otimes I\,} \sum_j \sqrt{\frac{w_j}{s}}\,\ket{j}\ket{\psi}
+        \xrightarrow{\;\mathrm{SEL}\;} \sum_j \sqrt{\frac{w_j}{s}}\,\ket{j}\,V_j\ket{\psi} \\
+        &\xrightarrow{\,V^\dagger\otimes I\,}
+        \sum_j \sqrt{\frac{w_j}{s}}\,\big(V^\dagger\ket{j}\big)V_j\ket{\psi}.
+    \end{aligned}
+    \end{equation*}
+    由 $V^\dagger\ket{j}$ 在 $\ket{0^a}$ 上的分量 $\braket{0^a}{V^\dagger j}
+    = \braket{V 0^a}{j} = \sqrt{w_j/s}$, 提取 $\ket{0^a}$ 分量得
+    \[ \ket{0^a}\otimes\sum_j\frac{w_j}{s}V_j\ket{\psi}
+       = \ket{0^a}\otimes\frac{1}{s}M\ket{\psi}, \]
+    余下为与 $\ket{0^a}$ 正交的分量. 由 Born 规则即得成功概率与成功态.
+\end{Proof}
+
+\begin{Note}[截断误差与截断阶的选取]
+    由 $\norm{H}\le\lambda$ 与 Taylor 余项,
+    \begin{equation}
+        \norm{e^{-iH\tau}-\widetilde U_K(\tau)}
+        \le \sum_{k>K}\frac{\norm{H}^k\tau^k}{k!}
+        \le \sum_{k>K}\frac{(\lambda\tau)^k}{k!}.
+    \end{equation}
+    对 $0\le x\le1$, 用 $(K+2)\cdots(K+1+m)\ge m!$ 放缩:
+    \begin{equation}
+        \sum_{k>K}\frac{x^k}{k!} = \frac{x^{K+1}}{(K+1)!}\sum_{m\ge0}\frac{(K+1)!}{(K+1+m)!}
+        \le \frac{x^{K+1}}{(K+1)!}\,e^{x}
+        \le e\left(\frac{e}{K+1}\right)^{K+1},
+    \end{equation}
+    其中最后一步用了 $x\le1$ 与 Stirling 下界 $(K+1)!\ge\big(\frac{K+1}{e}\big)^{K+1}$.
+    因此要使尾项 $\le\delta$, 只需
+    \[ K = \Theta\Big(\frac{\log(1/\delta)}{\log\log(1/\delta)}\Big), \]
+    即截断阶仅\textbf{对数}(而非幂次)依赖于精度.
+\end{Note}
+
+\begin{Thm}[截断 Taylor 级数方法的复杂度]
+    设 $H = \sum_l\alpha_l U_l$, $\lambda = \sum_l\alpha_l$. 取 $r = \lceil\lambda t\rceil$ 段
+    (使 $\lambda\tau = \lambda t/r \le 1$), 每段截断阶
+    \begin{equation}
+        K = \Theta\Big(\frac{\log(\lambda t/\varepsilon)}{\log\log(\lambda t/\varepsilon)}\Big),
+    \end{equation}
+    使单段截断误差 $\le \varepsilon/r$. 则每段 LCU 的归一化常数 $s \le e^{\lambda\tau}\le e$,
+    $r$ 段误差线性累积后总误差 $\le \varepsilon$; 用 OAA 把每段后选择成功概率提升到常数,
+    总查询复杂度为
+    \begin{equation}
+        \boxed{O\!\Big(\lambda t \cdot \frac{\log(\lambda t/\varepsilon)}{\log\log(\lambda t/\varepsilon)}\Big)}.
+    \end{equation}
+\end{Thm}
+
+\begin{Proof}[复杂度核算]
+    每段由三个代价构成: (1) \textbf{PREPARE/SELECT} 把截断级数 $\widetilde U_K(\tau)$
+    制备为 LCU, SELECT 一次施加至多 $K$ 个 $U_l$(即 $O(K)$ 次基本 oracle 查询);
+    (2) 该 LCU 的成功概率约为 $\norm{\widetilde U_K(\tau)\ket{\psi}}^2/s^2$,
+    因 $\widetilde U_K(\tau)\approx e^{-iH\tau}$ 近酉, 成功概率 $\approx 1/s^2=\Omega(1)$;
+    (3) 由上一节的非感知振幅放大, $O(s)=O(1)$ 次迭代即可把成功概率提升到常数.
+    于是每段总代价 $O(sK)=O(K)$, $r$ 段合计
+    \begin{equation}
+        O(rK) = O\!\Big(\lambda t\,\frac{\log(\lambda t/\varepsilon)}{\log\log(\lambda t/\varepsilon)}\Big).
+    \end{equation}
+    常数因子与隐式系数见 Berry 等(2015)原文, 这里只关心对 $\lambda, t, \varepsilon$ 的渐近依赖.
+\end{Proof}
+
+\begin{Note}[最优性与对下一模块的展望]
+    该复杂度关于 $t$ 是\textbf{线性的}, 关于 $1/\varepsilon$ 是\textbf{多重对数}的, 
+    除 $\log\log$ 因子外已达到无快速前推下界 $\Omega(t)$; 对比乘积公式
+    $O(t^{1+1/p}/\varepsilon^{1/p})$(关于 $\varepsilon$ 是幂次的), 截断 Taylor 级数
+    在 $\varepsilon\to0$ 时显著更优. 其"先做 LCU(block-encoding)再绕过了后选择代价"的
+    结构, 正是下一模块 \textbf{qubitization} 与 \textbf{QSVT} 的雏形: qubitization 把
+    复杂度进一步改进为 $O(\lambda t + \log(1/\varepsilon))$(消去 $\log\log$ 因子),
+    QSVT 则把同样的机制推广到任意矩阵函数 $f(H)$(见 QPE 一节对矩阵函数的讨论).
+\end{Note}
+
 \end{document}

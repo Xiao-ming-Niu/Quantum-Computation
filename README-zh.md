@@ -15,7 +15,13 @@ Quantum-Computation/
 │   ├── Model2_CoreQuantumAlgorithmComponents/    # 模块二:核心量子算法构件
 │   ├── Model3_ModernFrameworkForQuantumAlgorithms/# 模块三:现代量子算法统一框架
 │   └── Model4_Schrodingerization/                # 模块四:薛定谔化方法
-└── Code/                     # 代码(预留,目前为空)
+└── Code/                     # 算法实现(notebook + 运行结果)
+    ├── 量子算法实现路线图.md    # 实现路线图与统一实验模板
+    ├── Grover.ipynb           # Grover 搜索
+    ├── AA-OAA.ipynb           # 振幅放大(AA/OAA)
+    ├── QFT-QPE.ipynb          # QFT 与 QPE
+    ├── Suzuki_Trotter-Taylor_Series.ipynb  # 哈密顿量模拟(Trotter / Taylor)
+    └── results/               # 运行结果(电路图 SVG + 数值结果)
 ```
 
 ## 内容概览
@@ -70,6 +76,19 @@ Module 2 中的原语都要处理**非酉的对象**,本模块用三个层层递
 - **酉化方法族**:薛定谔化、LCHS、Transmutation 与 moment-matching dilation 的统一视角与选择准则;
 - **文献与延伸**:薛定谔化方法的最新进展(Jin–Liu–Yu PRA 2023 / PRL 2024、Hu–Jin–Liu–Zhang Quantum 2024 等)。
 
+## 代码实现(Code/)
+
+遵循 [量子算法实现路线图](Code/量子算法实现路线图.md) 的规划——每个算法统一按 **数学原理 → 手写实现 → 官方实现 → 数值验证 → 电路图 → 结果分析** 的模板完成,优先使用 `unitarylab_algorithms` / `unitarylab`,必要时再使用 `Qiskit`——已实现以下 notebook:
+
+| Notebook | 内容 | 运行结果 |
+| --------- | ------ | --------- |
+| [Grover.ipynb](Code/Grover.ipynb) | Grover 搜索:数学原理(初始态、Oracle、Diffuser、为何需要多次迭代)与手写 / 官方实现对比 | [grover](Code/results/fundamental_algorithm/grover/) |
+| [AA-OAA.ipynb](Code/AA-OAA.ipynb) | 振幅放大(AA)与最优振幅放大(OAA):与 Grover 的关系、good/bad subspace、反射、OAA 关键 projection 与数值实验 | [amplitude_amplification](Code/results/fundamental_algorithm/amplitude_amplification/) |
+| [QFT-QPE.ipynb](Code/QFT-QPE.ipynb) | QFT 的数学定义与酉性、QFT 与相位的关系;QPE 问题设定、寄存器与三步执行流程(Hadamard → 受控 U → 逆 QFT)及数值实现 | [qft](Code/results/linear_algebra/qft/)、[qpe](Code/results/fundamental_algorithm/qpe/) |
+| [Suzuki_Trotter-Taylor_Series.ipynb](Code/Suzuki_Trotter-Taylor_Series.ipynb) | 哈密顿量模拟:Lie–Trotter / Suzuki 乘积公式与 Taylor 级数法(截断 + LCU) | [trotter](Code/results/hamiltonian_simulation/trotter/)、[taylor](Code/results/hamiltonian_simulation/taylor/) |
+
+后续将按路线图继续实现 **LCU → Block Encoding → Qubitization → QSP/QSVT → 量子线性方程组 → PDE 求解**。
+
 ## 参考文献与资料来源
 
 讲义主要参考以下材料整理而成:
@@ -113,5 +132,6 @@ xelatex QuantumComputationBasics.tex
 
 ## 后续计划
 
-- [ ] 补充配套**代码实现**(`Code/` 目录暂为空),可考虑 Qiskit / PennyLane 等框架的电路复现;
+- [x] 实现路线图与基础算法 notebook(Grover、AA/OAA、QFT/QPE、Trotter/Taylor 哈密顿量模拟);
+- [ ] 按路线图继续实现 **LCU → Block Encoding → Qubitization → QSP/QSVT → 量子线性方程组 → PDE 求解**;
 - [ ] 扩展更多前沿主题(如 Maxwell 方程、带物理边界条件的界面问题、分数阶热方程、量子态基态/热态制备等)。

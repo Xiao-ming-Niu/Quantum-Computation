@@ -1,0 +1,40 @@
+
+=========================
+Amplitude Amplification Algorithm Algorithm Result
+=========================
+Status: success
+
+Input parameters:
+  - U: Given quantum circuit
+  - Target State: [0, 1]
+  - Initial Success Probability: 0.1
+  - Repetitions: None
+
+Runtime logs:
+  - Stage 1: Parameter preparation
+  -   Data register size: 2 (total 3 qubits)
+  -   Target state condition: Qubits [0, 1] must all be |0>
+  -   Initial success probability p: 0.1000
+  -   Initial angle theta/2: 0.3218 radians
+  -   Iteration count: 2
+  - Stage 2: Building quantum circuit
+  - Stage 3: Executing quantum simulation
+  -   Computation time: 0.0315 seconds
+  -   Number of valid measured basis states: 2
+  - Stage 4: Classical post-processing (verifying amplification effect)
+  -   Initial target state probability: 0.1000
+  -   Amplified angle 5 times theta/2: 1.6088 radians
+  -   Amplified target state probability: 0.9986
+  -   Result verification: success
+  - Stage 5: Exporting circuit diagram
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\fundamental_algorithm\amplitude_amplification/amplitude_amplification_algorithm_circuit.svg
+
+Output information:
+  - Amplified Target Probability: 0.9985599999999999
+  - Initial Success Probability: 0.1
+  - Repetitions: 2
+  - Computation Time (s): 0.031522274017333984
+  - Data register size: 2
+
+Summary:
+  Algorithm execution successful with amplified probability 0.9986
