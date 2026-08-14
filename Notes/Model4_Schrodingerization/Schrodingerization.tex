@@ -205,9 +205,9 @@ Trotter 型\textbf{哈密顿量模拟(Hamiltonian simulation)}四类原语, Modu
         \begin{equation}
             p(1) = \norm{C A^{-1}\ket{b}}^2 \ge \frac{C^2}{\norm{A^{-1}}^2} = \Omega(\kappa^{-2});
         \end{equation}
-        \item 精度: 为把归一化解估计到相对精度 $\varepsilon$, QPE 需要
-        \textbf{乘法精度} $\varepsilon/\kappa$(因为 $\lambda_j^{-1}$ 的误差
-        $\delta_j$ 使解产生相对误差 $O(\delta_j/\lambda_j) \le O(\varepsilon)$),
+        \item 精度: 为把归一化解估计到相对精度 $\varepsilon$, QPE 需要对本征值 $\lambda_j$ 的
+        \textbf{加性精度} $\varepsilon/\kappa$(因为对 $\lambda_j$ 的估计误差
+        $\delta_j$ 使 $\lambda_j^{-1}$ 产生相对误差 $O(\delta_j/\lambda_j) \le O(\varepsilon)$),
         因此单次运行对 $U = e^{i2\pi A}$ 的查询数为 $O(\kappa/\varepsilon)$;
         \item 总复杂度: 重复 $O(\kappa^2)$ 次(AA 之前)得最坏情形
         $O(\kappa^3/\varepsilon)$; 用振幅放大(见 Module2)把重复次数降为
@@ -233,12 +233,12 @@ Trotter 型\textbf{哈密顿量模拟(Hamiltonian simulation)}四类原语, Modu
 
 \begin{Note}[QPE 路线与 QSVT 路线的对比]
     HHL 的精度依赖 $1/\varepsilon$ 来自 QPE 的位数; Module3 的 QSVT 直接
-    用多项式逼近 $f(x) = \kappa/x$, 无需相位寄存器, 也无须逐比特读出本征值:
+    用多项式逼近 $f(x) = 1/(\kappa x)$, 无需相位寄存器, 也无须逐比特读出本征值:
     \begin{enumerate}
         \item \textbf{多项式度}: 在区间 $[-1,-1/\kappa]\cup[1/\kappa,1]$ 上逼近
-        $\kappa/x$ 的奇多项式度数为 $O(\kappa\log(\kappa/\varepsilon))$;
+        $1/(\kappa x)$ 的奇多项式度数为 $O(\kappa\log(\kappa/\varepsilon))$;
         \item \textbf{查询复杂度}: 对 $U_A$ 及其逆为
-        $O(\kappa^2\log(\kappa/\varepsilon))$(一般情形);
+        $O\!\big(\frac{\kappa^2}{\zeta}\log(\kappa/\varepsilon)\big)$($\zeta=\norm{A^{-1}\ket{b}}\ge1$，故最坏情形 $O(\kappa^2\log(\kappa/\varepsilon))$; 当 $\ket{b}$ 与最小奇异方向有 $\Omega(1)$ 重叠时 $\zeta=\Omega(\kappa)$、降为 $O(\kappa\log(\kappa/\varepsilon))$);
         \item \textbf{精度依赖}: $\log(1/\varepsilon)$ 代替 $1/\varepsilon$;
         \item \textbf{无需膨胀}: QSVT 直接处理\textbf{非厄米矩阵(non-Hermitian matrix)}(奇异值变换),
         HHL 的 QPE 路线要求 $A$ 厄米(否则先膨胀).
@@ -284,7 +284,7 @@ Trotter 型\textbf{哈密顿量模拟(Hamiltonian simulation)}四类原语, Modu
 
 \begin{Note}[HHL 的讨论]
     (1) \textbf{查询下界(query lower bound)}: 一般 QLSP 求解器至少需要 $\Omega(\kappa)$ 次查询
-    (由 no-fast-forwarding 论证); (2) \textbf{精度}: 上面表格中的 $\varepsilon$
+    (可由多项式方法/相位估计型的下界导出); (2) \textbf{精度}: 上面表格中的 $\varepsilon$
     为解的相对精度; (3) \textbf{与经典迭代法的关键差异}: 经典 CG 每次迭代
     $O(\mathrm{nnz}(A))$ 次浮点运算但需要显式访问 $A$ 的元素,
     HHL 每次查询 $A$ 的代价是 $\mathrm{poly}(n)$ 的门 —— 二者的代价模型
@@ -339,9 +339,12 @@ $S_2(\tau) = e^{-i\tau H_1/2}e^{-i\tau H_2}e^{-i\tau H_1/2}$,
     \;\approx\; \sum_{k=0}^{K} \frac{(-it)^k}{k!} H^k,
 \end{equation}
 
-其中每项 $H^k$ 可用 $k$ 次 $U_H$ 的受控版本实现. 由于 $k!$ 项系数快速衰减,
-截断阶数 $K = O\!\big(\tau + \frac{\log(1/\varepsilon)}{\log\log(1/\varepsilon)}\big)$
-($\tau = \Lambda t$)即可达到精度 $\varepsilon$; 查询复杂度为
+其中每项 $H^k$ 可用 $k$ 次 $U_H$ 的受控版本实现. 若直接对整个时间做截断, 阶数需
+$O\!\big(\tau + \frac{\log(1/\varepsilon)}{\log\log(1/\varepsilon)}\big)$
+($\tau = \Lambda t$), 但 LCU 归一化因子约为 $e^{\tau}$, 需指数次振幅放大. BCCKS 的做法是把时间分为
+$r = \lceil\tau\rceil$ 段(每段长度 $t/r$、$\Lambda t/r \le 1$), 每段截断阶数
+$K = O\!\big(\frac{\log(\tau/\varepsilon)}{\log\log(\tau/\varepsilon)}\big)$, 使每段误差 $\le\varepsilon/r$、
+归一化因子 $O(1)$, 再用非感知振幅放大把成功概率提升到常数; 总查询复杂度为
 
 \begin{equation}
     O\!\Big(\tau\, \frac{\log(\tau/\varepsilon)}{\log\log(\tau/\varepsilon)}\Big),
@@ -472,7 +475,7 @@ $\Omega(\Lambda t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$,
     \begin{equation}
         A = H_1 - iH_2, \qquad
         H_1 = \frac{A + A^\dagger}{2}, \qquad
-        H_2 = \frac{i(A^\dagger - A)}{2},
+        H_2 = \frac{i(A - A^\dagger)}{2},
     \end{equation}
     即 $H_1$, $H_2$ 均厄米. 这里 $H_1$ 对应增长/耗散部分, $H_2$ 对应相位旋转部分;
     \textbf{不要求} $-H_1 \succeq 0$. $H_1$ 的正特征值只改变恢复区间

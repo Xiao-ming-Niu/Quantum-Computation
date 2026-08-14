@@ -1,0 +1,37 @@
+
+=========================
+LCU Algorithm Algorithm Result
+=========================
+Status: success
+
+Input parameters:
+  - LCU coefficients (alphas): [0.9, 0.6]
+  - Unitary operators: ['I', 'X']
+  - System qubits: 1
+
+Runtime logs:
+  - Stage 1: Parsing and validating LCU coefficients and operators
+  -   LCU term count (m): 2
+  -   Ancilla register (Ancilla): 1 Qubits
+  -   Data register (System): 1 Qubits (Total 2 Qubits)
+  -   Normalization constant (s = sum(alpha)): 1.500000
+  - Stage 2: Building LCU core quantum circuit
+  -   - Building and applying V operator (coefficient state preparation)...
+  -   - Building and applying SELECT operator (multi-controlled multiplexer)...
+  -   - Building and applying V_dagger operator...
+  - Stage 2/5: Quantum circuit construction complete ✓
+  - Stage 3/5: Executing quantum simulation...
+  -   Low-level simulation time: 0.0050 seconds
+  - Stage 4/5: Classical post-processing (extracting LCU success probability)
+  -   Probability of all ancilla bits being |0> (LCU success rate): 0.520000
+  -   State assessment: Valid
+  - Stage 5/5: Exporting quantum circuit diagram
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\lcu/lcu_algorithm_circuit.svg
+
+Output information:
+  - Success probability: 0.5200000000000001
+  - Computation time (s): 0.004988431930541992
+  - Result state: [0.6+0.j 0.4+0.j]
+
+Summary:
+  Execution successful. LCU success probability: 0.520000

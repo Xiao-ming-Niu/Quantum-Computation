@@ -19,7 +19,7 @@ Runtime logs:
   -   Iteration count: 2
   - Stage 2: Building quantum circuit
   - Stage 3: Executing quantum simulation
-  -   Computation time: 0.0315 seconds
+  -   Computation time: 0.0075 seconds
   -   Number of valid measured basis states: 2
   - Stage 4: Classical post-processing (verifying amplification effect)
   -   Initial target state probability: 0.1000
@@ -33,7 +33,7 @@ Output information:
   - Amplified Target Probability: 0.9985599999999999
   - Initial Success Probability: 0.1
   - Repetitions: 2
-  - Computation Time (s): 0.031522274017333984
+  - Computation Time (s): 0.007524013519287109
   - Data register size: 2
 
 Summary:

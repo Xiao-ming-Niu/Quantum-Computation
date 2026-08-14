@@ -28,7 +28,7 @@ Runtime logs:
   7.65404249e-17+2.50000000e-01j -1.76776695e-01+1.76776695e-01j
  -2.50000000e-01+9.18485099e-17j -1.76776695e-01-1.76776695e-01j
  -1.07156595e-16-2.50000000e-01j  1.76776695e-01-1.76776695e-01j]
-  -   Underlying simulation computation time: 0.0055 seconds
+  -   Underlying simulation computation time: 0.0091 seconds
   - Stage 3: Executing classical numpy FFT for verification
   -   Computed expected state vector using numpy FFT
   -   Final state vector from simulation: [-7.13259578e-17-4.31807074e-18j -4.81168602e-18-3.57652937e-17j
@@ -69,7 +69,7 @@ Output information:
   1.53080850e-17+4.30636606e-17j -6.77434951e-17+1.42877818e-16j
  -1.76635402e-16+3.49342407e-17j -6.76037238e-17-1.06950849e-16j]
   - Verification error: 6.661402059540416e-16
-  - Computation time (s): 0.005527496337890625
+  - Computation time (s): 0.009066581726074219
 
 Summary:
   Execution successful. Verification error: 0.0000

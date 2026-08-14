@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-08-13T17:29:13.965630</dc:date>
+    <dc:date>2026-08-14T16:01:27.130180</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -33,7 +33,7 @@ z
    <g id="line2d_1">
     <path d="M 68.74125 59.254 
 L 344.48625 59.254 
-" clip-path="url(#p23373d8541)" style="fill: none; stroke: #686868; stroke-width: 2; stroke-linecap: square"/>
+" clip-path="url(#pe4b167b523)" style="fill: none; stroke: #686868; stroke-width: 2; stroke-linecap: square"/>
    </g>
    <g id="patch_2">
     <path d="M 57.58125 78.658 
@@ -46,7 +46,7 @@ C 40.109054 49.172072 38.05125 54.107999 38.05125 59.254
 C 38.05125 64.400001 40.109054 69.335928 43.771455 72.9747 
 C 47.433855 76.613472 52.401833 78.658 57.58125 78.658 
 z
-" clip-path="url(#p23373d8541)" style="fill: #2b2b2b; stroke: #3a3a3a; stroke-linejoin: miter"/>
+" clip-path="url(#pe4b167b523)" style="fill: #2b2b2b; stroke: #3a3a3a; stroke-linejoin: miter"/>
    </g>
    <g id="text_1">
     <!-- Trotter Hamiltonian Simulation Algorithm Circuit -->
@@ -461,7 +461,7 @@ Q 96.64125 37.078 96.64125 43.1764
 L 96.64125 75.3316 
 Q 96.64125 81.43 102.77925 81.43 
 z
-" clip-path="url(#p23373d8541)" style="fill: #0057ff"/>
+" clip-path="url(#pe4b167b523)" style="fill: #0057ff"/>
    </g>
    <g id="text_2">
     <path d="M 51.8775 52.7155 
@@ -534,7 +534,7 @@ z
 " style="fill: #ffffff"/>
    </g>
    <g id="text_3">
-    <g clip-path="url(#p23373d8541)">
+    <g clip-path="url(#pe4b167b523)">
      <!-- Trotter**12 -->
      <g style="fill: #ffffff" transform="translate(120.556406 66.428375) scale(0.26 -0.26)">
       <defs>
@@ -710,7 +710,7 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="p23373d8541">
+  <clipPath id="pe4b167b523">
    <rect x="35.26125" y="25.99" width="314.805" height="66.528"/>
   </clipPath>
  </defs>

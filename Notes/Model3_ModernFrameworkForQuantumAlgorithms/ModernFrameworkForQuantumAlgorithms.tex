@@ -460,6 +460,13 @@ $\ket{0^a} = \ket{0}^{\otimes a}$.
     共 $\frac{1}{s} A_{ij}$ —— 即左上块为 $A/s$, 证毕.
 \end{Proof}
 
+\begin{Note}[与 GSLW 完整构造的关系]
+    上述电路是 Gily\'en--Su--Low--Wiebe(GSLW) $s$-稀疏 block-encoding 的简化版: 完整构造还需
+    同时访问\textbf{行索引 oracle} $O_r$ 与\textbf{列索引 oracle} $O_c$, 并在行、列寄存器间做一次
+    SWAP 与 uncomputation(见 GSLW 引理 48). 本节的列 oracle 构造对每列非零元个数恰为 $s$、
+    且列 oracle 足以确定全部稀疏结构的矩阵成立; 对一般 $s$-稀疏矩阵应以 GSLW 的完整电路为准.
+\end{Note}
+
 \begin{Eg}[SVD 构造: $(1,1)$-block-encoding 的一般性]
     对任意满足 $\norm{A} \le 1$ 的矩阵, 由\textbf{奇异值分解(SVD)} $A = U\Sigma V^\dagger$ 可构造
     \begin{equation}
@@ -1378,8 +1385,8 @@ $H'_i = \mathrm{span}\{\ket{0^a}\ket{u_i}, \ket{\Phi'_i}\}$, 且矩阵表示为�
 
 \begin{Eg}[Hermitian 情形]
     若 $A = A^\dagger$, 本征分解与奇异值分解通过 $\ket{u_i} = \mathrm{sgn}(\lambda_i)\ket{v_i}$
-    联系. 对\textbf{偶}多项式 $P$: $P^\triangleleft(A) = P(A)$; 对\textbf{奇}多项式 $P$:
-    $P(A) = P(A)$(此处 $P(A) := \sum_i P(\lambda_i)\ket{v_i}\bra{v_i}$ 为特征值函数).
+    联系. 对\textbf{偶}多项式 $P$: $P^\triangleleft(A) = P^\triangleright(A) = P(A)$; 对\textbf{奇}多项式 $P$:
+    $P^\triangleleft(A) = P(|A|) = \sum_i \mathrm{sgn}(\lambda_i)\,P(\lambda_i)\ket{v_i}\bra{v_i}$，而 QET 给出的特征值函数为 $P(A) = \sum_i P(\lambda_i)\ket{v_i}\bra{v_i}$.
     因此在 Hermitian 矩阵上 QET 与 QSVT 实现同一个矩阵函数, 只是视角不同.
 \end{Eg}
 
@@ -1562,9 +1569,9 @@ block-encoding 为矩阵的\textbf{每一个}奇异值 $\sigma_j$ 都提供一�
 奇异值位于 $[1/\kappa, 1]$. 目标函数 $f(x) = x^{-1}$ 在 $x = 0$ 奇异, 不能直接在
 $[-1,1]$ 上做\textbf{多项式逼近(polynomial approximation)}, 因此用\textbf{奇多项式} $p$ 在区间外逼近:
 \begin{equation}
-    \Big|p(x) - \frac{\kappa}{x}\Big| \le \varepsilon, \qquad x \in [-1, -1/\kappa] \cup [1/\kappa, 1],
+    \Big|p(x) - \frac{1}{\kappa x}\Big| \le \varepsilon, \qquad x \in [-1, -1/\kappa] \cup [1/\kappa, 1],
 \end{equation}
-且 $|p(x)| \le 1$($x \in [-1,1]$, 通过整体缩放因子实现). 这样的多项式存在且
+且 $|p(x)| \le 1$($x \in [-1,1]$，因 $1/(\kappa x)$ 在 $[1/\kappa,1]$ 上取值 $\le 1$). 这样的多项式存在且
 $\deg p = O(\kappa \log(\kappa/\varepsilon))$ 量级. 用 QSVT(奇多项式, $d$ 奇)得到
 $p(A) \in \mathrm{BE}_{1,a+1}(p(A))$.
 
@@ -1578,7 +1585,7 @@ $p(A) \in \mathrm{BE}_{1,a+1}(p(A))$.
         O\!\Big(\frac{\kappa^2}{\zeta}\,\log\frac{\kappa}{\varepsilon}\Big),
     \end{equation}
     若 $\ket{b}$ 与最小奇异值对应的左奇异向量有 $\Omega(1)$ 重叠
-    (此时 $\zeta = \Omega(1/\kappa)$), 则降为 $O(\kappa\log(1/\varepsilon))$;
+    (此时 $\zeta = \Omega(\kappa)$、成功概率 $\Theta(\zeta^2/\kappa^2)=\Omega(1)$，无需振幅放大), 则降为 $O(\kappa\log(\kappa/\varepsilon))$;
     对 $U_b$ 的查询数为 $O(\kappa/\zeta)$.
 \end{Thm}
 

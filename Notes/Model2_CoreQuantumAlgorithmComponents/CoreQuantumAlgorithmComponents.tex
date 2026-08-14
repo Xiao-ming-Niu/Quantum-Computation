@@ -487,7 +487,7 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
 \begin{Note}[近似实现 $U$ 的误差分离处理]
     QPE 分析中的理想化条件之一是 $U$ 可精确实现. 若只能用 $\tilde U$ 近似 $U$ 且
     $\norm{\tilde U - U} \le \varepsilon$, 则由酉矩阵的扰动理论, 单位圆上本征值的扰动至多为
-    $\varepsilon$, 相应\textbf{相角}的扰动至多为 $\varepsilon/4\pi$. 因此\textbf{实现误差可以作为
+    $\varepsilon$, 相应\textbf{相角}（以周期为单位）的扰动至多为 $\varepsilon/4$（由 $|e^{2\pi i\Delta}-1|=2|\sin(\pi\Delta)|\ge 4|\Delta|$，$|\Delta|\le 1/2$）. 因此\textbf{实现误差可以作为
     相角误差的加性项单独计入}, 其余分析仍可在 $U$ 精确实现的假设下进行. 实际中
     $U = e^{-iHt}$ 由 Hamiltonian 模拟近似实现, 其模拟误差正是这一项;
     HHL 等应用正是把 QPE 的相位误差与 Hamiltonian 模拟误差分开讨论.
@@ -512,7 +512,7 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
 
 \begin{Prop}[振幅估计]
     设 Grover 算子 $G$ 在二维不变子空间 $\mathrm{span}\{\ket{\mathrm{good}}, \ket{\mathrm{bad}}\}$ 上
-    的矩阵表示为旋转角 $\theta$ 的旋转(即 $e^{-i\theta Y}$),
+    的矩阵表示为旋转角 $\theta$ 的旋转(即 $e^{+i\theta Y}$),
     其两个特征态为 $\ket{\pm} = \frac{1}{\sqrt{2}}(\ket{\mathrm{good}} \pm i\ket{\mathrm{bad}})$,
     对应特征值 $e^{\pm i\theta}$.
     用 QPE 估计 $\theta$ 到加性精度 $\varepsilon$, 即可得到 $p_0 = \sin^2(\theta/2)$ 的估计, 
@@ -526,10 +526,10 @@ $k_0 \approx T\theta_0 = 22.4$ 处形成宽度 $\sim 1/T$ 的窄峰, 峰值处 $
     $[G] = \left(\begin{smallmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{smallmatrix}\right)$
     (见定理 \ref{thm:grover} 的推导). 直接作用:
     \[ G\ket{\pm} = \frac{1}{\sqrt{2}}\Big(
-       (\cos\theta \mp i\sin\theta)\ket{\mathrm{good}}
-       + (\sin\theta \pm i\cos\theta)\ket{\mathrm{bad}}\Big), \]
+       (\cos\theta \pm i\sin\theta)\ket{\mathrm{good}}
+       + (-\sin\theta \pm i\cos\theta)\ket{\mathrm{bad}}\Big), \]
     利用 $e^{\pm i\theta} = \cos\theta \pm i\sin\theta$ 与
-    $\sin\theta \pm i\cos\theta = \pm i e^{\pm i\theta}$, 得
+    $-\sin\theta \pm i\cos\theta = \pm i e^{\pm i\theta}$, 得
     \[ G\ket{\pm} = e^{\pm i\theta} \frac{1}{\sqrt{2}}\big(\ket{\mathrm{good}} \pm i\ket{\mathrm{bad}}\big)
        = e^{\pm i\theta}\ket{\pm}. \]
     故 $\ket{\pm}$ 是特征态, 特征值为 $e^{\pm i\theta}$.
@@ -669,7 +669,7 @@ $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
         = \begin{pmatrix} -\cos\theta & \sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}
         \begin{pmatrix} -1 & 0 \\ 0 & 1 \end{pmatrix}
         = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}
-        = e^{-i\theta Y},
+        = e^{+i\theta Y},
     \end{equation}
     即 $G$ 是旋转角 $\theta$ 的旋转, 两个反射的乘积确实是旋转(这是"$\mathrm{span}$ 不变"
     的代数证明). 直接作用于初态:
@@ -756,6 +756,54 @@ $\mathrm{span}\{\ket{x_0},\ket{x_0^\perp}\}$ 内每次旋转角度 $\theta$;
     以概率 $> 1/2$ 正确识别的估计子必然偏向二者之一, 矛盾. 故最坏情形至少需要
     $N-1$ 次查询(live\_notes 命题 11.1). 量子下界 $\Omega(\sqrt{N})$ 的混合论证
     参见讲义第 2.4 节.
+\end{Proof}
+
+\begin{Prop}[量子查询下界: $\Omega(\sqrt N)$]
+    无结构搜索(恰有一个标记元素)的量子查询复杂度为 $\Omega(\sqrt N)$: 任何量子算法都需要
+    $\Omega(\sqrt N)$ 次 oracle 查询才能以常数成功概率识别标记元素. 该下界由\textbf{混合论证
+    (hybrid argument)}给出, 与上面的经典下界 $N-1$ 形成对照.
+\end{Prop}
+
+\begin{Proof}[混合论证(hybrid argument)]
+    取相位 oracle $O_x = I - 2\ket{x}\bra{x}$(即 $O_x\ket{x}=-\ket{x}$, 其余计算基态不变).
+    设算法做 $t$ 次查询, 记标记为 $x$ 时 $t$ 次查询后的状态为 $\ket{\psi_t^x}$, 并以
+    \textbf{恒等 oracle} 演化 $t$ 次的状态为 $\ket{\psi_t}$(参考态, 不对应任何真实标记).
+    记 $D_t := \sum_x \norm{\ket{\psi_t^x}-\ket{\psi_t}}^2$. 先证 $\sqrt{D_t}\le 2t$. $D_0=0$;
+    第 $t+1$ 次查询后的公共酉门 $U_{t+1}$ 不影响范数, 于是
+    \begin{equation}
+        \begin{aligned}
+            D_{t+1} &= \sum_x \norm{O_x\ket{\psi_t^x}-\ket{\psi_t}}^2
+            = \sum_x \norm{\ket{\psi_t^x}-\ket{\psi_t} + (O_x-I)\ket{\psi_t}}^2 \\
+            &\le \sum_x \Big(\norm{\ket{\psi_t^x}-\ket{\psi_t}} + \norm{(O_x-I)\ket{\psi_t}}\Big)^2
+            = \sum_x \Big(\norm{\ket{\psi_t^x}-\ket{\psi_t}} + 2\,|\braket{x}{\psi_t}|\Big)^2.
+        \end{aligned}
+    \end{equation}
+    展开平方, 由 $\sum_x|\braket{x}{\psi_t}|^2\le 1$ 与 Cauchy--Schwarz,
+    \begin{equation}
+        D_{t+1} \le D_t + 4\sum_x|\braket{x}{\psi_t}|^2
+        + 4\sum_x \norm{\ket{\psi_t^x}-\ket{\psi_t}}\,|\braket{x}{\psi_t}|
+        \le D_t + 4 + 4\sqrt{D_t} = \big(\sqrt{D_t}+2\big)^2,
+    \end{equation}
+    故 $\sqrt{D_t}\le 2t$.
+
+    再设算法经 $T$ 次查询后以概率 $\ge 2/3$ 输出正确标记. 记输出寄存器上"输出 $x$"的
+    正交投影为 $\Pi_x$($\sum_x\Pi_x\le I$), 则 $\norm{\Pi_x\ket{\psi_T^x}}^2\ge 2/3$ 对每个 $x$ 成立.
+    于是
+    \begin{equation}
+        \begin{aligned}
+            \sqrt{\tfrac{2}{3}}\,N &\le \sum_x \norm{\Pi_x\ket{\psi_T^x}}
+            \le \sum_x \norm{\Pi_x\ket{\psi_T}}
+            + \sum_x \norm{\Pi_x(\ket{\psi_T^x}-\ket{\psi_T})} \\
+            &\le \sqrt N\Big(\sum_x\norm{\Pi_x\ket{\psi_T}}^2\Big)^{1/2}
+            + \sqrt N\Big(\sum_x\norm{\ket{\psi_T^x}-\ket{\psi_T}}^2\Big)^{1/2} \\
+            &\le \sqrt N + \sqrt N\sqrt{D_T}
+            \le \sqrt N\,(1+2T),
+        \end{aligned}
+    \end{equation}
+    其中用了 $\sum_x\norm{\Pi_x\ket{\psi_T}}^2\le\norm{\ket{\psi_T}}^2=1$. 故
+    $T\ge\big(\sqrt{2/3}\,\sqrt N-1\big)/2=\Omega(\sqrt N)$.
+    这正是"经典每查询线性更新概率、量子以旋转更新振幅、信息按 $\sqrt p$ 增长"的定量来源
+    (Bennett--Bernstein--Brassard--Vazirani 混合论证).
 \end{Proof}
 
 \subsection{振幅放大}
@@ -1237,7 +1285,7 @@ $O(L\tau^2) = O(t^2/L)$.}
     则组合 $U_p(s_m\tau)\cdots U_p(s_1\tau)$ 至少是 $p+1$ 阶.
     特别地, \textbf{Trotter--Suzuki 递推(Trotter--Suzuki recursion)}给出 $2k$ 阶公式
     \begin{equation}
-        U_{2k}(\tau) = U_{2k-2}(s_k\tau)\; U_{2k-2}\big((1-4s_k)\tau\big)\; U_{2k-2}(s_k\tau),
+        U_{2k}(\tau) = U_{2k-2}(s_k\tau)\; U_{2k-2}(s_k\tau)\; U_{2k-2}\big((1-4s_k)\tau\big)\; U_{2k-2}(s_k\tau)\; U_{2k-2}(s_k\tau),
         \qquad s_k = \frac{1}{4 - 4^{1/(2k-1)}},
     \end{equation}
     每个 $U_{2k}$ 调用 5 次 $U_{2k-2}$, 故 $U_{2k}$ 含至多 $5^{k-1}$ 次 $U_2$.
@@ -1418,7 +1466,7 @@ $O(\varepsilon^{-1/p})$(多项式). 对一般哈密顿量, 由\textbf{无快速�
     \end{equation}
     对 $0\le x\le1$, 用 $(K+2)\cdots(K+1+m)\ge m!$ 放缩:
     \begin{equation}
-        \sum_{k>K}\frac{x^k}{k!} = \frac{x^{K+1}}{(K+1)!}\sum_{m\ge0}\frac{(K+1)!}{(K+1+m)!}
+        \sum_{k>K}\frac{x^k}{k!} = \frac{x^{K+1}}{(K+1)!}\sum_{m\ge0}\frac{(K+1)!}{(K+1+m)!}\,x^m
         \le \frac{x^{K+1}}{(K+1)!}\,e^{x}
         \le e\left(\frac{e}{K+1}\right)^{K+1},
     \end{equation}
@@ -1461,7 +1509,7 @@ $O(\varepsilon^{-1/p})$(多项式). 对一般哈密顿量, 由\textbf{无快速�
     $O(t^{1+1/p}/\varepsilon^{1/p})$(关于 $\varepsilon$ 是幂次的), 截断 Taylor 级数
     在 $\varepsilon\to0$ 时显著更优. 其"先做 LCU(block-encoding)再绕过了后选择代价"的
     结构, 正是下一模块 \textbf{qubitization} 与 \textbf{QSVT} 的雏形: qubitization 把
-    复杂度进一步改进为 $O(\lambda t + \log(1/\varepsilon))$(消去 $\log\log$ 因子),
+    复杂度进一步改进为 $O(\lambda t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$,
     QSVT 则把同样的机制推广到任意矩阵函数 $f(H)$(见 QPE 一节对矩阵函数的讨论).
 \end{Note}
 

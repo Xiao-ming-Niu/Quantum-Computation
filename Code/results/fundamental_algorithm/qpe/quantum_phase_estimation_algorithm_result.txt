@@ -20,7 +20,7 @@
   - Estimated phase: 0.125
   - Best phase bit string: 0010
   - Best phase probability: 1.0
-  - Computation time (s): 0.0009989738464355469
+  - Computation time (s): 0.0010063648223876953
   - Phase probabilities: [('0010', np.float64(1.0))]
 
   Execution successful. Estimated phase: 0.125000 (bits: 0010, prob: 1.0000)
