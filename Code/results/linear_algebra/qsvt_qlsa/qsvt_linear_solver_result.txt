@@ -1,0 +1,25 @@
+
+=========================
+QSVT Linear Solver Algorithm Result
+=========================
+Status: success
+
+Input parameters:
+  - Matrix in the linear system: [[1. +0.j 0. +0.j]
+ [0. +0.j 0.5+0.j]]
+  - Source vector: [0.70710678+0.j 0.70710678+0.j]
+  - Target precision (epsilon): 0.001
+
+Runtime logs:
+  - Calling the QSVT linear solver from unitarylab...
+  -   - QSVT linear solver completed in 0.1021 seconds
+  - Saving results and generating output...
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\qsvt_qlsa/qsvt_linear_solver_circuit.svg
+
+Output information:
+  - Solution vector: [0.70710679+0.j 1.41402416+0.j]
+  - Scaling factor applied: 3.9999999999999996
+  - Simulation time (s): 0.10210037231445312
+
+Summary:
+  QSVT linear solver executed successfully in 0.1021 seconds. Solution vector: [0.70710679+0.j 1.41402416+0.j], Scaling factor: 3.9999999999999996

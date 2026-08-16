@@ -1,0 +1,1265 @@
+% ============================================================================
+% Model 3: 现代量子算法统一框架（面向 PDE 数值计算研究生的 beamer 课件）
+% 编译方式: xelatex (两遍)
+%   基于笔记 Notes/Model3_ModernFrameworkForQuantumAlgorithms 与暑期学校 day2 课件
+%   与 Model 1/2 同一风格；本模块为系列"重点部分"
+% ============================================================================
+\documentclass[aspectratio=169,9pt]{ctexbeamer}
+\usetheme{default}
+\usefonttheme{professionalfonts}
+\usepackage{amsmath,amssymb,mathtools,bm,braket}
+\usepackage{booktabs,array,multirow}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,decorations.pathreplacing,shapes.geometric,fit,backgrounds}
+\usepackage{quantikz}
+\usepackage[most]{tcolorbox}
+\usepackage{physics}
+\usepackage{hyperref}
+
+% --- 配色：与 Model 1/2 一致 ---
+\definecolor{navy}{RGB}{0,0,145}
+\definecolor{deepred}{RGB}{150,0,0}
+\definecolor{softblue}{RGB}{238,242,255}
+\definecolor{softred}{RGB}{255,238,238}
+\definecolor{softgreen}{RGB}{238,250,238}
+\definecolor{softyellow}{RGB}{255,248,225}
+\definecolor{darkgreen}{RGB}{30,105,50}
+\definecolor{graytext}{RGB}{70,70,70}
+
+\setbeamercolor{frametitle}{fg=white,bg=navy}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamercolor{title}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=navy}
+\setbeamercolor{block title}{fg=white,bg=navy}
+\setbeamercolor{block body}{fg=black,bg=softblue}
+\setbeamercolor{alerted text}{fg=deepred}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{navy}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{navy}$\triangleright$}
+\setbeamertemplate{enumerate item}{\color{navy}\insertenumlabel.}
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.9ex,dp=0.9ex,leftskip=1.0em]{frametitle}
+    \insertframetitle
+  \end{beamercolorbox}}
+\setbeamertemplate{footline}{%
+  \hfill\scriptsize\color{graytext}\insertframenumber{} / \inserttotalframenumber\hspace{1.5em}\vspace{0.7em}}
+
+\setbeamersize{text margin left=0.9em,text margin right=0.9em}
+\setbeamertemplate{itemize/enumerate body begin}{\small}
+\setbeamertemplate{itemize/enumerate subbody begin}{\footnotesize}
+\setlength{\abovedisplayskip}{4pt}
+\setlength{\belowdisplayskip}{4pt}
+\setlength{\abovedisplayshortskip}{3pt}
+\setlength{\belowdisplayshortskip}{3pt}
+
+\newtcolorbox{keybox}[1]{colback=softblue,colframe=navy,title={#1},fonttitle=\bfseries,boxrule=0.5pt,arc=1mm,left=1mm,right=1mm,top=0.6mm,bottom=0.6mm,boxsep=0.5mm}
+\newtcolorbox{warnbox}[1]{colback=softred,colframe=deepred,title={#1},fonttitle=\bfseries,boxrule=0.5pt,arc=1mm,left=1mm,right=1mm,top=0.6mm,bottom=0.6mm,boxsep=0.5mm}
+\newtcolorbox{exbox}[1]{colback=softyellow,colframe=darkgreen,title={#1},fonttitle=\bfseries,boxrule=0.5pt,arc=1mm,left=1mm,right=1mm,top=0.6mm,bottom=0.6mm,boxsep=0.5mm}
+
+\newtheorem*{Def}{定义}
+\newtheorem*{Thm}{定理}
+\newtheorem*{Lem}{引理}
+\newtheorem*{Cor}{推论}
+\newtheorem*{Prop}{命题}
+
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\poly}{\operatorname{poly}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\e}{\mathrm{e}}
+\newcommand{\ketzero}{\ket{0}}
+\newcommand{\ketone}{\ket{1}}
+\newcommand{\ketplus}{\ket{+}}
+\newcommand{\ketminus}{\ket{-}}
+\newcommand{\smallcite}[1]{\par\vspace{1.2mm}{\scriptsize\color{graytext}#1}}
+
+\title{Modern Framework for Quantum Algorithms\\[2mm] \large 现代量子算法统一框架：Block-Encoding、Qubitization 与 QSVT}
+\author{基于 Model 3 笔记与暑期学校 day2 课件整理}
+\date{\today}
+
+\begin{document}
+
+% ============================================================================
+% 封面与课程定位
+% ============================================================================
+\begin{frame}[plain]
+\vspace{0.9cm}
+{\LARGE\bfseries Modern Framework for Quantum Algorithms}\par\vspace{3mm}
+{\large 现代量子算法统一框架：Block-Encoding、Qubitization 与 QSVT}\par\vspace{6mm}
+\begin{center}
+\begin{tikzpicture}[node distance=4mm, every node/.style={font=\small,align=center}]
+\node[draw,rounded corners,fill=softblue,minimum width=2.1cm,minimum height=0.75cm] (lcu) {LCU\\线性组合酉};
+\node[draw,rounded corners,fill=softgreen,minimum width=2.3cm,minimum height=0.75cm,right=of lcu] (be) {Block-encoding\\非酉矩阵输入};
+\node[draw,rounded corners,fill=softyellow,minimum width=2.3cm,minimum height=0.75cm,right=of be] (qz) {Qubitization\\谱 $\to$ 旋转};
+\node[draw,rounded corners,fill=softred,minimum width=2.1cm,minimum height=0.75cm,right=of qz] (qsp) {QSP/QET\\相位编码多项式};
+\node[draw,rounded corners,fill=white,minimum width=2.1cm,minimum height=0.75cm,right=of qsp] (qsvt) {QSVT\\奇异值变换};
+\draw[-Latex,thick] (lcu)--(be); \draw[-Latex,thick] (be)--(qz);
+\draw[-Latex,thick] (qz)--(qsp); \draw[-Latex,thick] (qsp)--(qsvt);
+\end{tikzpicture}
+\end{center}
+\vfill
+{\small 把 Model 2 的"构件"统一为一条知识链：\textbf{输入矩阵 $\to$ 变换矩阵 $\to$ 逼近函数}。
+本模块是系列的\textbf{重点}：一切现代量子矩阵算法（模拟、求逆、滤波、PDE）都建立在其上。}
+\smallcite{素材：Model 3 笔记 \emph{ModernFrameworkForQuantumAlgorithms}；湘潭大学暑期学校 day17 课件。}
+\end{frame}
+
+\begin{frame}{从原语到统一框架：为什么要"统一"？}
+Model 2 的四类\textbf{原语}有一个共同困难：都要处理\textbf{非酉的对象}。
+\begin{itemize}
+\item Trotter 型 Hamiltonian 模拟：对时间依赖与病态哈密顿量误差控制较差
+（$L=O(t^{1+1/p}\eps^{-1/p})$）；
+\item QPE：需要访问 $U^{2^j}$，而一般\textbf{矩阵函数}（如 $A^{-1}$、$e^{-\ii At}$）
+并不对应直接的\textbf{酉 oracle}；
+\item 振幅放大：需要构造\textbf{反射算子}，其实现依赖具体问题。
+\end{itemize}
+\begin{keybox}{本模块的知识链（线索）}
+\[
+\boxed{\ \text{LCU}\ \to\ \text{Block-encoding}\ \to\ \text{Qubitization}\ \to\ \text{QSP/QET}\ \to\ \text{QSVT}\ }
+\]
+\begin{enumerate}
+\item \textbf{LCU}：用 prepare/select oracle 实现矩阵的线性组合（最简单的"输入矩阵"方式）；
+\item \textbf{Block-encoding}：把任意非酉矩阵 $A$ 嵌入更大酉算子 $U_A$ 的左上角；
+\item \textbf{Qubitization + Chebyshev}：把每个本征（奇异）方向上的"反射"变"旋转"，
+一步实现 Chebyshev 多项式 $T_k(A)$；
+\item \textbf{QSP/QET 与 QSVT}：用相位因子序列把任意（满足奇偶性条件的）多项式 $P(A)$
+直接"写入"量子电路 —— 统一实现层。
+\end{enumerate}
+\end{keybox}
+\smallcite{Model 3 笔记第 1 节。}
+\end{frame}
+
+% ============================================================================
+\section{OAA 复习与 LCU}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} OAA 复习与 LCU}\par\vspace{4mm}
+{\large Oblivious Amplitude Amplification and Linear Combination of Unitaries}
+\end{frame}
+
+\begin{frame}{OAA 复习：与输入态无关的振幅放大}
+若酉算子 $U$ 被编码为
+\[
+V\ket{0^a}\ket\psi=\frac1\alpha\ket{0^a}U\ket\psi+\ket{\Phi^\perp},
+\qquad (\bra{0^a}\otimes I_n)\ket{\Phi^\perp}=0,
+\]
+则单次后选择成功概率 $p=1/\alpha^2$ 与输入态 $\ket\psi$ 无关。
+\begin{Def}[\textbf{OAA 走算子}]
+记成功子空间投影 $\Pi=\ket{0^a}\bra{0^a}\otimes I_n$、反射 $Z_\Pi=I-2\Pi$：
+\[
+Q_{\mathrm{obl}}:=-V\,Z_\Pi\,V^\dagger\,Z_\Pi,
+\qquad \sin\theta=1/\alpha.
+\]
+$Q_{\mathrm{obl}}$ 在二维不变子空间 $\mathrm{span}\{\ket{0^a}U\ket\psi,\ket{\Phi^\perp}\}$
+上是角度 $2\theta$ 的旋转，与输入态 $\ket\psi$ 无关。
+\end{Def}
+\begin{keybox}{几何与关键性质}
+经 $k$ 轮放大：$(\Pi\otimes I_n)Q_{\mathrm{obl}}^k V\ket\psi=U\ket\psi\cdot\sin((2k+1)\theta)$，
+振幅随 $k$ 线性增长，$O(\alpha)$ 轮逼近 $1$。三个关键性质：
+① 旋转角与输入态无关（可安全嵌套进多步算法）；
+② $\alpha=2$ 时一轮即可把成功概率从 $1/4$ 提高到 $1$；
+③ 目标块非酉时不能用 oblivious 版本，应回到 Model 2 的标准振幅放大。
+\end{keybox}
+\smallcite{Model 3 笔记第 2 节；Model 2 第 4.3 节。}
+\end{frame}
+
+\begin{frame}{LCU：线性组合的量子实现}
+\textbf{线性组合酉（LCU）}把通常非酉的算子 $A$ 表示为若干易实现酉算子的线性组合，
+再借助辅助寄存器、受控酉与量子干涉嵌入更大的酉演化。
+\begin{Def}[\textbf{基本设定}]
+设目标算子 $A=\sum_{j=0}^{L-1}\alpha_jU_j$（$U_j^\dagger U_j=I$），系数 $\alpha_j\ge0$，
+归一化常数 $\alpha:=\sum_j\alpha_j$。若系数是复数 $c_j=|c_j|e^{\ii\phi_j}$，
+把相位吸收进 $\widetilde U_j:=e^{\ii\phi_j}U_j$ —— 总可以写成非负系数形式。
+目标是实现 $A\ket\psi=\sum_j\alpha_jU_j\ket\psi$；由于 $A$ 一般非酉，须嵌入更大酉算子。
+\end{Def}
+\begin{Def}[\textbf{PREPARE 与 SELECT 算子}]
+\begin{itemize}
+\item \textbf{PREPARE}：$O_{\mathrm{prep}}\ket{0^a}=\sum_j\sqrt{\alpha_j/\alpha}\,\ket j=:\ket\chi$
+（系数以\textbf{平方根}编码进振幅，因为概率是振幅的模方）；
+\item \textbf{SELECT}：$O_{\mathrm{sel}}:=\sum_j\ket j\bra j\otimes U_j$，
+辅助态 $\ket j$ 决定数据寄存器执行哪个 $U_j$。
+\end{itemize}
+\end{Def}
+\smallcite{Model 3 笔记第 3.1--3.2 节。}
+\end{frame}
+
+\begin{frame}{LCU 引理}
+定义整个 LCU 酉算子 $W:=(O_{\mathrm{prep}}^\dagger\otimes I_n)\,O_{\mathrm{sel}}\,(O_{\mathrm{prep}}\otimes I_n)$，
+对应电路 $O_{\mathrm{prep}}\to O_{\mathrm{sel}}\to O_{\mathrm{prep}}^\dagger$。
+\begin{Thm}[\textbf{LCU 引理}]
+对任意 $\ket\psi$，
+\[
+(\bra{0^a}\otimes I_n)\,W\,(\ket{0^a}\otimes I_n)=\frac{A}{\alpha},
+\qquad
+W\ket{0^a}\ket\psi=\frac1\alpha\ket{0^a}A\ket\psi+\ket{\Phi_\psi^\perp},
+\]
+其中 $(\bra{0^a}\otimes I_n)\ket{\Phi_\psi^\perp}=0$。第一项为\textbf{成功分量}、
+第二项为\textbf{失败分量}；测量辅助得到 $\ket{0^a}$ 时，数据寄存器态为
+$A\ket\psi/\|A\ket\psi\|$ —— LCU 是\textbf{概率性}实现一般线性算子 $A$ 的方法。
+\end{Thm}
+\begin{keybox}{证明（三步追踪）}
+由 $\bra{0^a}O_{\mathrm{prep}}^\dagger=\sum_j\sqrt{\alpha_j/\alpha}\bra j$ 与 SELECT 正交性
+$(\bra j\otimes I)O_{\mathrm{sel}}(\ket k\otimes I)=\delta_{jk}U_k$：
+\[
+(\bra{0^a}\otimes I)W(\ket{0^a}\otimes I)
+=\sum_{j,k}\sqrt{\frac{\alpha_j}{\alpha}}\sqrt{\frac{\alpha_k}{\alpha}}
+\,(\bra j\otimes I)O_{\mathrm{sel}}(\ket k\otimes I)
+=\sum_j\frac{\alpha_j}{\alpha}U_j=\frac{A}{\alpha}.
+\]
+辅助比特数只依赖 $\log L$ —— LCU 高效性的关键。
+\end{keybox}
+\smallcite{Model 3 笔记定理 3.1 与证明。}
+\end{frame}
+
+\begin{frame}{LCU：成功概率、振幅放大与数学本质}
+\begin{keybox}{成功概率与振幅放大}
+成功概率 $p_{\mathrm{success}}=\|A\ket\psi\|^2/\alpha^2$，直接重复平均需
+$(\alpha/\|A\ket\psi\|)^2$ 次；结合振幅放大降为 $O(\alpha/\|A\ket\psi\|)$。
+若 $A$ 本身是酉算子，成功概率 $=1/\alpha^2$ 与输入态无关，可直接用 \textbf{OAA} 放大，
+重复次数从 $O(\alpha^2)$ 降为 $O(\alpha)$。
+\textbf{LCU 构造线性组合，OAA 放大其成功振幅 —— 两者经常组合使用。}
+\end{keybox}
+\begin{keybox}{数学本质：三步}
+$\underbrace{\text{PREPARE}}_{\text{superposition}}
+\to\underbrace{\text{SELECT}}_{\text{controlled unitaries}}
+\to\underbrace{\text{PREPARE}^\dagger}_{\text{interference}}$：
+PREPARE 把系数编码进辅助振幅，SELECT 在不同分支执行不同酉算子，
+PREPARE$^\dagger$ 使量子路径重新干涉，在成功分支产生所需线性组合。
+\end{keybox}
+\begin{exbox}{两项 LCU 电路（$A=aU_0+bU_1$，$\alpha=a+b$）}
+\begin{center}
+\begin{quantikz}[row sep=0.18cm,column sep=0.28cm]
+\lstick{$\ket0$} & \gate{O_{\mathrm{prep}}} & \ctrl{1} & \ctrl{1} & \gate{O_{\mathrm{prep}}^\dagger} & \qw & \rstick{测量} \\
+\lstick{$\ket\psi$} & \qw & \gate{U_0} & \gate{U_1} & \qw & \qw & \qw
+\end{quantikz}
+\end{center}
+两条量子路径在 $O_{\mathrm{prep}}^\dagger$ 处干涉：辅助回到 $\ket0$ 的分量恰为
+$(aU_0+bU_1)\ket\psi/\alpha$（$a=b$ 时 $O_{\mathrm{prep}}=H$）。
+\end{exbox}
+\smallcite{Model 3 笔记第 3.4--3.6 节。}
+\end{frame}
+
+\begin{frame}{LCU 的局限与通向 block-encoding}
+\begin{warnbox}{LCU 的局限}
+\begin{itemize}
+\item prepare oracle 的振幅 $\sqrt{\alpha_j/\alpha}$ 需要多比特受控旋转，
+直接实现时代价随 $L$ 线性增长；
+\item $f(A)$ 的 1-范数 $\alpha$ 通常较大（如 Chebyshev 展开的 $\alpha$ 随度数增长）；
+\item 后面的 QSP/QET 正是为消除这两个困难而提出。
+\end{itemize}
+\end{warnbox}
+\begin{keybox}{LCU $\to$ block-encoding}
+LCU 的核心结果 $(\bra{0^a}\otimes I)W(\ket{0^a}\otimes I)=A/\alpha$ 意味着
+$W=\begin{pmatrix}A/\alpha&\ast\\\ast&\ast\end{pmatrix}$：
+一般非酉算子 $A$ 被编码进更大的酉矩阵 $W$ 的一个块中 ——
+这正是 \textbf{block-encoding} 的基本思想。
+\textbf{LCU 是构造 block-encoding 的一种重要方法。}
+\end{keybox}
+\begin{exbox}{与 Hamiltonian 模拟的联系}
+若 $H=\sum_j\alpha_jU_j$，Taylor 展开 $e^{-\ii Ht}=\sum_{k\ge0}\frac{(-\ii t)^k}{k!}H^k$
+中 $H^k$ 是酉算子之积的线性组合 —— Hamiltonian 模拟转化为 LCU 问题
+（Model 2 的截断 Taylor 方法）。
+\end{exbox}
+\smallcite{Model 3 笔记第 3.7--3.8 节。}
+\end{frame}
+
+% ============================================================================
+\section{Block-encoding：非酉矩阵的输入模型}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} Block-encoding：非酉矩阵的输入模型}\par\vspace{4mm}
+{\large Block-Encoding: How to Input Arbitrary Matrices}
+\end{frame}
+
+\begin{frame}{为什么需要 block-encoding}
+设 $A\in\C^{N\times N}$ 是希望在量子计算机上处理的矩阵。一般情况下 $A^\dagger A\ne I$，
+而封闭量子系统的确定性演化必须由\textbf{酉算子}描述 —— 不能直接执行 $\ket\psi\to A\ket\psi$。
+\begin{Def}[\textbf{输入模型与矩阵查询 oracle}]
+\begin{itemize}
+\item 若 $A$ 是\textbf{稠密矩阵}，任何输入模型都需要指数多资源 —— 通常假设 $A$ 是
+\textbf{$s$-稀疏}的（每行每列至多 $s$ 个非零元），非零元位置与数值可高效查询；
+\item \textbf{矩阵查询 oracle}（$\|A\|_{\max}:=\max_{ij}|A_{ij}|$）：
+$O_A\ket0\ket i\ket j=A_{ij}\ket0\ket i\ket j+\sqrt{1-|A_{ij}|^2}\,\ket1\ket i\ket j$
+（以 $A_{ij}$ 为振幅做受控旋转；$\|A\|_{\max}\ge1$ 时先缩放 $A/\alpha$）。
+\end{itemize}
+\end{Def}
+\begin{keybox}{Block-encoding 的基本策略}
+不直接把 $A$ 作为量子门，而是寻找更大的酉算子 $U_A$ 使 $A$ 出现在其某个矩阵块中：
+$A\;\longrightarrow\;U_A=\begin{pmatrix}A/\alpha&\ast\\\ast&\ast\end{pmatrix}$，
+$U_A^\dagger U_A=I$。它建立了 \textbf{general matrix $\to$ unitary quantum circuit} 的桥梁。
+\end{keybox}
+\smallcite{Model 3 笔记第 4.1--4.2 节。}
+\end{frame}
+
+\begin{frame}{Block-encoding 的定义}
+\begin{Def}[\textbf{Block-encoding}]
+给定 $n$ 比特矩阵 $A$，若存在 $\alpha>0$、非负整数 $a$ 与 $(a+n)$ 比特酉算子 $U_A$ 使
+\[
+\big\|A-\alpha(\bra{0^a}\otimes I)U_A(\ket{0^a}\otimes I)\big\|\le\eps,
+\]
+则称 $U_A$ 是 $A$ 的 $(\alpha,a,\eps)$-\textbf{block-encoding}；$\eps=0$ 时称
+\textbf{exact block-encoding}，简记 $(\alpha,a)$，此时
+$(\bra{0^a}\otimes I)U_A(\ket{0^a}\otimes I)=A/\alpha$。
+记 $\mathrm{BE}_{\alpha,a}(A,\eps)$ 为所有这样的 $U_A$ 的集合。
+\end{Def}
+\begin{keybox}{投影形式与块矩阵形式}
+定义成功子空间投影 $\Pi=\ket{0^a}\bra{0^a}\otimes I$，定义可等价写成
+\[
+\Pi U_A\Pi=\ket{0^a}\bra{0^a}\otimes\frac{A}{\alpha},
+\qquad
+U_A=\begin{pmatrix}U_{00}&U_{01}\\U_{10}&U_{11}\end{pmatrix},\quad
+U_{00}=(\bra{0^a}\otimes I)U_A(\ket{0^a}\otimes I)=\frac{A}{\alpha}.
+\]
+即在辅助寄存器处于 $\ket{0^a}$ 的子空间中，$U_A$ 的有效作用等于 $A/\alpha$ ——
+这是 "block encoding" 名称的来源。三个参数分别刻画
+\textbf{归一化因子} $\alpha$、\textbf{辅助比特数} $a$、\textbf{编码误差} $\eps$。
+\end{keybox}
+\smallcite{Model 3 笔记定义 4.1 与注。}
+\end{frame}
+
+\begin{frame}{测量、成功概率与归一化因子 $\alpha$}
+\begin{Prop}[\textbf{测量与成功概率}]
+设 $U_A$ 是 $A$ 的 $(\alpha,a)$-block-encoding，对任意 $n$ 比特态 $\ket b$，
+$U_A\ket{0^a}\ket b=\frac1\alpha\ket{0^a}A\ket b+\ket{\Phi^\perp}$，
+$(\bra{0^a}\otimes I)\ket{\Phi^\perp}=0$。测量 $a$ 个辅助比特全部得到 $0$ 的概率
+\[
+p(0^a)=\frac1{\alpha^2}\|A\ket b\|^2,
+\]
+且测量后系统寄存器处于归一化的 $A\ket b/\|A\ket b\|$。
+\end{Prop}
+\begin{keybox}{归一化因子 $\alpha$ 的作用}
+由于 $U_A$ 酉，其任意子块算子范数 $\le1$，故必须 $\|A/\alpha\|\le1$
+$\Rightarrow$ $\alpha\ge\|A\|$（通常取谱范数 $\sigma_{\max}(A)$）。
+$\alpha$ 是把 $A$ 缩放到单位范数以内的归一化常数；\textbf{过大的 $\alpha$ 会降低
+成功概率、增加后续算法复杂度} —— $\alpha$ 是 block-encoding 线路代价的核心参数。
+\end{keybox}
+\smallcite{Model 3 笔记命题 4.1 与注。}
+\end{frame}
+
+\begin{frame}{构造 1：标量与实对角矩阵}
+\begin{exbox}{标量 $c$ 的 block-encoding}
+对 $|c|\le1$，$U_c=\begin{smallmatrix}c&\sqrt{1-|c|^2}\\\sqrt{1-|c|^2}&-c^*\end{smallmatrix}$
+满足 $U_c^\dagger U_c=I$ 且 $\bra0U_c\ket0=c$，即 $(1,1)$-block-encoding
+（$|c|>1$ 时编码 $c/\alpha$，$\alpha=|c|$）。对\textbf{实}标量
+$x\in[-1,1]$，$U_x=\begin{smallmatrix}x&\sqrt{1-x^2}\\\sqrt{1-x^2}&-x\end{smallmatrix}=R_y(2\theta)Z$
+—— 单比特 $y$ 旋转与 $Z$ 之积，是后面 Qubitization/QSP 中每个归一化谱变量
+$x=\lambda/\alpha$ 的\textbf{标量模型}。
+\end{exbox}
+\begin{exbox}{实对角矩阵}
+设 $A=\sum_j a_j\ket j\bra j$（$a_j\in[-1,1]$），对每个 $a_j$ 定义
+$R(a_j)=\begin{smallmatrix}a_j&-\sqrt{1-a_j^2}\\\sqrt{1-a_j^2}&a_j\end{smallmatrix}$，
+构造 $U_A=\sum_j R(a_j)\otimes\ket j\bra j$，则
+$(\bra0\otimes I)U_A(\ket0\otimes I)=A$。
+\end{exbox}
+\begin{keybox}{要点}
+block-encoding 并不限制矩阵的"大小"：单个复数也可编码进酉矩阵；
+困难只在于 $U_A$ 能否用\textbf{简单电路}实现。
+\end{keybox}
+\smallcite{Model 3 笔记第 4.4 节例。}
+\end{frame}
+
+\begin{frame}{构造 2：$s$-稀疏矩阵（行/列 oracle）}
+设 $s=2^{s'}$，可访问行索引 oracle $O_c$ 与矩阵元 oracle $O_A$；
+令 $D=I_{n-s'}\otimes H^{\otimes s'}$（扩散算子）：
+\begin{center}
+\begin{quantikz}[row sep=0.18cm,column sep=0.26cm]
+\lstick{$\ket0$} & \qw & \qw & \qw & \qw & \qw & \rstick{测量} \\
+\lstick{$\ket{0^{s'}}$} & \gate{D} & \gate{O_A} & \gate{D} & \qw & \qw & \qw \\
+\lstick{$\ket j$} & \qw & \qw & \gate{O_c} & \qw & \qw & \rstick{$\ket i$}
+\end{quantikz}
+\end{center}
+\begin{Thm}[\textbf{$s$-稀疏矩阵的 block-encoding}]
+上述电路定义的 $U_A\in\mathrm{BE}_{s,\,s'+1}(A)$，即
+$(\bra0\bra{0^{s'}}\otimes I_n)U_A(\ket0\ket{0^{s'}}\otimes I_n)=A/s$。
+\end{Thm}
+\begin{keybox}{证明要点}
+源态 $D,O_A,O_c$ 后 $\frac1{\sqrt s}\sum_\ell(A_{c(j,\ell),j}\ket0+\cdots)\ket\ell\ket{c(j,\ell)}$；
+目标态 $\bra0\bra{0^{s'}}\bra i$ 施加 $D$ 后求内积（$D^\dagger=D$），
+非零贡献仅来自 $c(j,\ell)=i$ 的项，共 $\frac1sA_{ij}$。
+\end{keybox}
+\begin{warnbox}{与 GSLW 完整构造的关系}
+这是 Gily\'en--Su--Low--Wiebe（GSLW）$s$-稀疏 block-encoding 的简化版：
+完整构造需同时访问\textbf{行/列索引 oracle} $O_r,O_c$，并在行、列寄存器间做
+SWAP 与 uncomputation（GSLW 引理 48）。
+\end{warnbox}
+\smallcite{Model 3 笔记定理 4.1 与注；GSLW, STOC 2019.}
+\end{frame}
+
+\begin{frame}{构造 3：SVD、厄米膨胀与一般收缩}
+\begin{exbox}{SVD 构造（$(1,1)$-block-encoding 的一般性）}
+对任意 $\|A\|\le1$ 的矩阵，由 $A=U\Sigma V^\dagger$：
+$U_A=\begin{smallmatrix}U&0\\0&I_n\end{smallmatrix}
+\begin{smallmatrix}\Sigma&\sqrt{I-\Sigma^2}\\\sqrt{I-\Sigma^2}&-\Sigma\end{smallmatrix}
+\begin{smallmatrix}V&0\\0&I_n\end{smallmatrix}$，
+它是 $A$ 的 $(1,1)$-block-encoding —— block-encoding 模型本身不限制矩阵结构，
+困难只在于 $U_A$ 能否用简单电路实现。
+\end{exbox}
+\begin{exbox}{厄米矩阵的酉扩张}
+若 $A=A^\dagger$ 且 $\|A\|\le1$：$U_A=\begin{smallmatrix}A&\sqrt{I-A^2}\\\sqrt{I-A^2}&-A\end{smallmatrix}$
+（$A$ 与 $\sqrt{I-A^2}$ 对易，故酉）—— $(1,1,0)$-block-encoding。
+一般矩阵：$U_A=\begin{smallmatrix}A&\sqrt{I-AA^\dagger}\\\sqrt{I-A^\dagger A}&-A^\dagger\end{smallmatrix}$
+（任意 contraction 都可嵌入酉算子）。
+\end{exbox}
+\begin{warnbox}{关键教训}
+"数学上存在 $U_A$" $\ne$ "可以高效构造 $U_A$"。
+具体矩阵如何构造 block-encoding，需要利用它的\textbf{稀疏性、对角结构、张量积结构、
+LCU 结构或 PDE 离散结构}。
+\end{warnbox}
+\smallcite{Model 3 笔记第 4.4 节例；Camps--Lin--Van Beeumen--Yang, SIMAX 2023.}
+\end{frame}
+
+\begin{frame}{Hermitian block-encoding 与基本运算}
+\begin{Def}[\textbf{Hermitian block-encoding}]
+若 $U_A$ 本身也是厄米矩阵，则称其为 $A$ 的 $(\alpha,a,\eps)$-Hermitian-block-encoding
+（$U_A\in\mathrm{HBE}_{\alpha,a}(A,\eps)$）。一般的 $s$-稀疏厄米矩阵可用
+两个信号比特加 SWAP 构造 $U_A\in\mathrm{HBE}_{s,n+2}(A)$。
+\end{Def}
+\begin{Prop}[\textbf{Block-encoding 的基本运算（矩阵运算微积分）}]
+设 $U_A\in\mathrm{BE}_{\alpha,a}(A)$、$U_B\in\mathrm{BE}_{\beta,b}(B)$：
+\begin{enumerate}
+\item \textbf{共轭转置}：$U_A^\dagger\in\mathrm{BE}_{\alpha,a}(A^\dagger)$；
+\item \textbf{乘积}（独立辅助寄存器）：$(U_A\otimes I_b)(I_a\otimes U_B)\in\mathrm{BE}_{\alpha\beta,a+b}(AB)$；
+\item \textbf{张量积}：$U_A\otimes U_B\in\mathrm{BE}_{\alpha\beta,a+b}(A\otimes B)$；
+\item \textbf{加法}（LCU 特例）：$(O_{\mathrm{prep}}^\dagger\otimes I)O_{\mathrm{sel}}(O_{\mathrm{prep}}\otimes I)
+\in\mathrm{BE}_{\alpha+\beta,a+1}(A+B)$。
+\end{enumerate}
+后选择成功概率随 $\alpha$ 变化，因此 $\alpha$ 是线路代价的核心参数。
+\end{Prop}
+\begin{keybox}{矩阵多项式}
+乘法规则使 $A^2,A^3,\dots$ 的 block-encoding 逐次可得（归一化因子 $\alpha^2,\alpha^3,\dots$），
+加上加法规则：$P(A)=c_0I+c_1A+\cdots+c_dA^d$。
+QSP/QSVT 的核心思想之一正是更高效地实现这种矩阵多项式变换。
+\end{keybox}
+\smallcite{Model 3 笔记定义 4.2 与命题 4.2。}
+\end{frame}
+
+\begin{frame}{与奇异值、qubitization、OAA 的联系}
+设 $A=\sum_j\sigma_j\ket{u_j}\bra{v_j}$（奇异值分解），block-encoding 编码 $A/\alpha$，
+归一化奇异值 $x_j=\sigma_j/\alpha\in[0,1]$。
+\begin{keybox}{关键数学思想：奇异值 $\leftrightarrow$ 旋转角}
+在后续 qubitization/QSVT 的分析中，每个奇异值 $x_j$ 对应一个二维不变子空间，
+其中 block-encoding 的作用转化为依赖于 $x_j$ 的二维旋转：
+\[
+\underbrace{\frac{\sigma_j}{\alpha}}_{\text{normalized singular value}}
+\quad\longleftrightarrow\quad
+\underbrace{\theta_j}_{\text{two-dimensional rotation angle}}
+\qquad (\cos\theta_j=\sigma_j/\alpha).
+\]
+若 $A=A^\dagger$ 厄米，特征值 $\lambda_j/\alpha\in[-1,1]$；设计
+$P(x)\approx f(\alpha x)$ 即可构造 $P(A/\alpha)\approx f(A)$ ——
+现代量子矩阵函数算法的核心。
+\end{keybox}
+\begin{keybox}{与 OAA 的联系}
+block-encoding 与 OAA 共享同一成功子空间投影 $\Pi=\ket{0^a}\bra{0^a}\otimes I$：
+\begin{itemize}
+\item \textbf{LCU}：construct a desired linear combination；
+\item \textbf{block-encoding}：represent a general matrix inside a unitary；
+\item \textbf{OAA}：amplify the desired projected component。
+\end{itemize}
+\end{keybox}
+\smallcite{Model 3 笔记第 4.5--4.6 节。}
+\end{frame}
+
+\begin{frame}{应用路线与"真正的算法成本"}
+\begin{keybox}{典型发展路线}
+\[
+\text{LCU}\ \to\ \text{block-encoding}\ \to\ \text{qubitization}\ \to\ \text{QSP}\ \to\ \text{QSVT}.
+\]
+\begin{itemize}
+\item \textbf{Hamiltonian 模拟}：对厄米 $H$，由 block-encoding 给出 $\lambda/\alpha$ 的
+二维子空间编码，用 qubitization 与 QSP 构造 $P(x)\approx e^{-\ii\alpha tx}$ 实现 $e^{-\ii Ht}$；
+\item \textbf{线性方程组（QLSP）}：用 QSVT 构造 $P(x)\approx1/x$，制备
+$\ket x=A^{-1}\ket b/\|A^{-1}\ket b\|$；
+\item \textbf{偏微分方程（PDE）}：$A\mathbf u=\mathbf f$（如 Poisson 方程离散），量子路线
+\[
+\text{PDE discretization}\to A\to\text{block-encoding of }A\to\text{QSVT}\to A^{-1}\to\ket u,
+\]
+关键问题是如何利用 PDE 离散矩阵的\textbf{结构}（稀疏、Pauli 分解、LCU、
+结构化有限差分、张量积）高效构造 $A$ 的 block-encoding。
+\end{itemize}
+\end{keybox}
+\begin{warnbox}{真正的算法成本}
+分析 block-encoding 需同时考虑：归一化因子 $\alpha$、辅助比特数 $a$、近似误差 $\eps$、
+实现 $U_A$ 的门复杂度、调用 $U_A$/$U_A^\dagger$ 的查询复杂度。
+仅仅写出 $U_A=\begin{pmatrix}A/\alpha&\ast\\\ast&\ast\end{pmatrix}$ 不等于获得有效算法
+—— 重要的是存在一个 \textbf{efficiently implementable block-encoding}。
+\end{warnbox}
+\smallcite{Model 3 笔记第 4.7 节。}
+\end{frame}
+
+% ============================================================================
+\section{Qubitization 与 Chebyshev 多项式}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} Qubitization 与 Chebyshev 多项式}\par\vspace{4mm}
+{\large Qubitization: From Spectral Variables to Rotations}
+\end{frame}
+
+\begin{frame}{Qubitization 的核心思想：谱变量到旋转}
+设 $H=H^\dagger$，谱分解 $H=\sum_j\lambda_j\ket{\lambda_j}\bra{\lambda_j}$，
+$(\bra{0^a}\otimes I)U_H(\ket{0^a}\otimes I)=H/\alpha$（$\alpha\ge\|H\|$）。
+定义\textbf{归一化谱变量} $x_j:=\lambda_j/\alpha\in[-1,1]$。
+\begin{keybox}{核心作用}
+\[
+\boxed{\ \text{把矩阵的特征值信息转化为二维不变子空间中的旋转角}\ }
+\]
+\begin{itemize}
+\item 定义成功子空间投影 $\Pi=\ket{0^a}\bra{0^a}\otimes I$ 与反射 $R_\Pi:=2\Pi-I$
+（与 OAA 中反射结构相同：projection $\to$ reflection $\to$ 2D invariant subspace）；
+\item 数学链条：
+\[
+\frac{H}{\alpha}\;\longrightarrow\;\text{Qubitization}\;\longrightarrow\;
+x=\cos\theta\;\longrightarrow\;\cos(n\theta)=T_n(x)\;\longrightarrow\;
+P(x)\approx f(x)\;\longrightarrow\;f(H);
+\]
+\item $T_n(\cos\theta)=\cos(n\theta)$ 使量子旋转的重复作用与 \textbf{Chebyshev 多项式}
+之间建立直接联系。
+\end{itemize}
+\end{keybox}
+\smallcite{Model 3 笔记第 5.1--5.2 节。}
+\end{frame}
+
+\begin{frame}{标量启发：两个反射 $=$ 旋转}
+先看标量情形（$1\times1$ 矩阵 $x\in[-1,1]$）。block-encoding 的矩阵是\textbf{反射}
+\[
+U_x=\begin{pmatrix}x&\sqrt{1-x^2}\\\sqrt{1-x^2}&-x\end{pmatrix},\qquad U_x^2=I,
+\]
+成功子空间反射为 $Z=\mathrm{diag}(1,-1)$。\textbf{两个反射的复合是一个旋转}：
+\[
+O(x):=U_xZ=\begin{pmatrix}x&-\sqrt{1-x^2}\\\sqrt{1-x^2}&x\end{pmatrix}
+=\begin{pmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{pmatrix},\qquad x=\cos\theta,
+\]
+$O(x)$ 称为\textbf{qubitization 迭代算子}（qubitized walk）。
+\begin{keybox}{$k$ 次幂与 Chebyshev}
+$O(x)^k$ 是旋转角 $k\theta$ 的旋转，$(1,1)$ 元为 $\cos(k\theta)=T_k(x)$：
+$O(x)^k=\begin{pmatrix}T_k(x)&-\sqrt{1-x^2}\,U_{k-1}(x)\\
+\sqrt{1-x^2}\,U_{k-1}(x)&T_k(x)\end{pmatrix}$，
+其中 $T_k,U_{k-1}$ 为第一、二类 Chebyshev 多项式
+（$T_k(\cos\theta)=\cos(k\theta)$，$U_{k-1}(\cos\theta)=\sin(k\theta)/\sin\theta$）。
+\end{keybox}
+\begin{warnbox}{核心思想}
+若能把矩阵 $A$ 每个本征方向上的反射结构变成这样的旋转，
+就立即得到 $T_k(A)$ 的 block-encoding —— 下面提升到矩阵版本。
+\end{warnbox}
+\smallcite{Model 3 笔记第 5.3 节。}
+\end{frame}
+
+\begin{frame}{Hermitian block-encoding 的 qubitization（一）：二维不变子空间}
+设 $U_A\in\mathrm{HBE}_{1,a}(A)$，$A=\sum_i\lambda_i\ket{v_i}\bra{v_i}$。
+\begin{keybox}{第一步：每个本征方向对应一个二维不变子空间}
+对每个本征态 $\ket{v_i}$：
+\[
+U_A\ket{0^a}\ket{v_i}=\lambda_i\ket{0^a}\ket{v_i}+\sqrt{1-\lambda_i^2}\,\ket{\Phi_i},
+\]
+其中 $\ket{\Phi_i}$ 是与所有 $\ket{0^a}\ket\cdot$ 正交的归一化态（第一项系数由
+$(\bra{0^a}\bra{v_i})U_A(\ket{0^a}\ket{v_i})=\bra{v_i}A\ket{v_i}=\lambda_i$，
+第二项由范数归一确定）。又因 $U_A$ 厄米，
+$\bra{0^a}\bra{v_i}U_A\ket{\Phi_i}=(\bra{\Phi_i}U_A\ket{0^a}\ket{v_i})^*\ne0$，
+故 $\ket{\Phi_i}$ 也被送到同一子空间 $H_i:=\mathrm{span}\{\ket{0^a}\ket{v_i},\ket{\Phi_i}\}$
+—— $H_i$ 是 $U_A$ 的\textbf{二维不变子空间}。
+\end{keybox}
+\begin{warnbox}{"qubitization"名称来源}
+整个高维问题被分块对角化为 $N$ 个互不相干的 $2\times2$ 块：
+每个特征方向被"量子化"成一个二维系统。
+\end{warnbox}
+\smallcite{Model 3 笔记第 5.4 节。}
+\end{frame}
+
+\begin{frame}{Hermitian block-encoding 的 qubitization（二）：反射 $\to$ 旋转 $\to T_k$}
+\begin{keybox}{第二步：$U_A$ 在二维子空间上是反射}
+记 $B_i=\{\ket{0^a}\ket{v_i},\ket{\Phi_i}\}$，由第一列、厄米性与 $U_A^2=I$：
+$[U_A]_{B_i}=\begin{pmatrix}\lambda_i&\sqrt{1-\lambda_i^2}\\\sqrt{1-\lambda_i^2}&-\lambda_i\end{pmatrix}$，
+$[U_A]_{B_i}^2=I$ —— $U_A$ 在该子空间上是\textbf{反射}（Householder 翻转）。
+\end{keybox}
+\begin{keybox}{第三、四步：$Z$ 复合、迭代与 $T_k$}
+投影 $\Pi$ 在 $B_i$ 中为 $\mathrm{diag}(1,0)$，故 $Z:=2\Pi-I$ 为 $\mathrm{diag}(1,-1)$。
+\textbf{两个反射的复合是旋转}：
+$[U_AZ]_{B_i}=\begin{pmatrix}\lambda_i&-\sqrt{1-\lambda_i^2}\\\sqrt{1-\lambda_i^2}&\lambda_i\end{pmatrix}
+=\begin{pmatrix}\cos\theta_i&-\sin\theta_i\\\sin\theta_i&\cos\theta_i\end{pmatrix}$（$\cos\theta_i=\lambda_i$）。
+重复 $k$ 次并投影回成功子空间：
+\[
+\boxed{(\bra{0^a}\otimes I_n)(U_AZ)^k(\ket{0^a}\otimes I_n)=T_k(A).}
+\]
+每次迭代只需交替作用 $U_A$ 与 $Z$，无需知道 $A$ 的任何本征信息。
+\end{keybox}
+\smallcite{Model 3 笔记第 5.4 节。}
+\end{frame}
+
+\begin{frame}{一般 block-encoding 的 qubitization}
+当 $U_A\notin\mathrm{HBE}$ 时，对奇异（或本征）方向需交替使用 $U_A$ 与 $U_A^\dagger$。
+\begin{Thm}[\textbf{一般 block-encoding 的 qubitization}]
+设 $U_A\in\mathrm{BE}_{1,a}(A)$（不要求厄米）。定义
+\[
+O:=U_AZU_A^\dagger Z,
+\]
+则 $O^k=(U_AZU_A^\dagger Z)^k$ 是 $T_{2k}(A)$ 的 $(1,a)$-block-encoding，
+而 $U_AZ\,O^k$ 是 $T_{2k+1}(A)$ 的 $(1,a)$-block-encoding。
+电路上只需把 $U_A$、$U_A^\dagger$ 与 $Z$ 交替作用；Hermitian 情形
+（$U_A^\dagger=U_A$）自动退化为上一小节的结构。
+\end{Thm}
+\begin{keybox}{证明（二维子空间中的旋转）}
+在每个二维子空间上 $U_AZ$ 与 $U_A^\dagger Z$ 都是旋转角 $\theta_i$
+（$\cos\theta_i=\lambda_i$）的旋转，故 $O=U_AZU_A^\dagger Z$ 是旋转 $2\theta_i$，
+对应 $T_{2k}$；奇数情形在末尾多乘一次 $U_AZ$ 即旋转 $(2k+1)\theta_i$。
+\end{keybox}
+\begin{warnbox}{qubitization 名称的来源}
+每个本征（奇异）向量被"量子化"到一个二维不变子空间，
+大矩阵 $U_A$ 被部分分块对角化为 $N$ 个 $2\times2$ 块
+（也可从 Jordan 引理或 CS 分解理解）—— 这是 QSP/QSVT 的代数基础。
+\end{warnbox}
+\smallcite{Model 3 笔记定理 5.1 与注。}
+\end{frame}
+
+\begin{frame}{本征相位与二维子空间分解}
+二维旋转矩阵 $O(x)=\begin{pmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{pmatrix}$
+的本征值为 $e^{\pm\ii\theta}$。由于 $\cos\theta=\lambda/\alpha$，Hamiltonian 的特征值被
+编码为迭代算子 $O$ 的\textbf{本征相位}：
+\[
+\lambda\;\longrightarrow\;\frac{\lambda}{\alpha}\;\longrightarrow\;
+\theta=\arccos\Big(\frac{\lambda}{\alpha}\Big)\;\longrightarrow\;e^{\pm\ii\theta}.
+\]
+\begin{keybox}{Qubitization = eigenvalue-to-eigenphase transformation}
+虽然完整 Hamiltonian 作用在高维 Hilbert 空间，但每个本征态 $\ket{\lambda_j}$ 对应一个
+二维不变子空间 $\mathcal K_j$，整个高维问题分解为许多彼此独立的二维旋转问题：
+\[
+\mathcal H\;\longrightarrow\;\bigoplus_j\mathcal K_j,
+\qquad
+O(x_j)=\begin{pmatrix}x_j&-\sqrt{1-x_j^2}\\\sqrt{1-x_j^2}&x_j\end{pmatrix}.
+\]
+这正是后续 QSP 能\textbf{同时对所有特征值进行函数变换}的原因。
+\end{keybox}
+\smallcite{Model 3 笔记第 5.5 节。}
+\end{frame}
+
+\begin{frame}{Chebyshev 多项式：定义与性质}
+\begin{Def}[\textbf{Chebyshev 多项式}]
+第一类 $T_k(x)$ 由 $T_k(\cos\theta)=\cos(k\theta)$ 定义，
+第二类 $U_k(x)$ 由 $U_k(\cos\theta)=\sin((k+1)\theta)/\sin\theta$ 定义。前几项：
+$T_0=1,\ T_1=x,\ T_2=2x^2-1,\ T_3=4x^3-3x$；$U_0=1,\ U_1=2x$。
+二者都满足\textbf{三项递推} $f_{k+1}=2xf_k-f_{k-1}$，$\deg T_k=\deg U_k=k$。
+\end{Def}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.52\textwidth}
+\begin{keybox}{有界性、正交性、极值性}
+\begin{itemize}
+\item 在 $[-1,1]$ 上 $|T_n(x)|\le1$，在 $x=\cos(j\pi/k)$ 处交替取 $\pm1$；
+\item 权重 $1/\sqrt{1-x^2}$ 下正交：$\int_{-1}^1\frac{T_iT_j}{\sqrt{1-x^2}}dx=0$（$i\ne j$）；
+\item \textbf{极值性（minimax）}：首一多项式中 $2^{1-k}T_k$ 在 $[-1,1]$ 上 $\sup$ 范数最小
+—— Chebyshev 是最优多项式逼近的基础。
+\end{itemize}
+\end{keybox}
+\column{0.48\textwidth}
+\begin{warnbox}{为什么用 Chebyshev 基而非幂基}
+幂基 $1,x,x^2,\dots$ 高阶逼近数值条件差；Chebyshev 基具有：$[-1,1]$ 有界、正交、
+near-minimax、对解析函数\textbf{指数型收敛}，以及与二维量子旋转 $\cos(n\theta)$ 的
+\textbf{天然对应} —— 同时具有\textbf{逼近结构}与\textbf{量子旋转结构}。
+\end{warnbox}
+\end{columns}
+\smallcite{Model 3 笔记定义 5.1 与注。}
+\end{frame}
+
+\begin{frame}{Chebyshev 展开、截断与指数收敛}
+\begin{keybox}{Chebyshev 展开与截断}
+$f(x)=\frac{c_0}{2}+\sum_{n=1}^{\infty}c_nT_n(x)$，
+$c_n=\frac2\pi\int_0^\pi f(\cos\theta)\cos(n\theta)d\theta$。
+截断到 $d$ 阶 $P_d\approx f$：光滑函数系数超代数衰减，截断误差指数小。
+\end{keybox}
+\begin{keybox}{一般谱区间与 Bernstein 椭圆}
+谱位于 $[a,b]$ 时用 $x=\frac{2\lambda-(a+b)}{b-a}$ 映射到 $[-1,1]$（block-encoding 的
+归一化 $H/\alpha$ 承担类似谱缩放）。对可解析延拓到\textbf{Bernstein 椭圆}
+$E_\rho$（$\rho>1$）且 $|f(z)|\le M$ 的函数：
+$\|f-P_d\|_\infty\lesssim\frac{2M}{\rho-1}\rho^{-d}$ —— \textbf{指数收敛}：
+达到误差 $\eps$ 的度数只随 $\log(1/\eps)$ 增长（多项式量子算法精度复杂度的关键）。
+\end{keybox}
+\begin{warnbox}{带奇点的函数：区间外逼近}
+对 $[-1,1]$ 内部有奇点的函数（如 $x^{-1}$，用于 QLSP），在奇点 $x=0$ 处留出邻域
+$[-1/\kappa,1/\kappa]$，用奇多项式 $p$ 在 $[1/\kappa,1]$ 上逼近 $\kappa/x$，
+所需度数 $O(\kappa\log(\kappa/\eps))$ —— "区间外逼近"是 QSVT 处理
+$A^{-1}$、符号函数的基本技术。
+\end{warnbox}
+\smallcite{Model 3 笔记第 5.7--5.8 节。}
+\end{frame}
+
+\begin{frame}{矩阵函数的 Chebyshev 逼近与 Hamiltonian 模拟}
+\begin{keybox}{矩阵函数的 Chebyshev 逼近}
+若 $P_d(x)\approx f(\alpha x)$ 在 $[-1,1]$ 上成立，则由函数演算
+$P_d(H/\alpha)=\sum_jP_d(\lambda_j/\alpha)\ket{\lambda_j}\bra{\lambda_j}\approx f(H)$。
+而 $f(H/\alpha)\approx\frac{c_0}{2}I+\sum_{n=1}^{d}c_nT_n(H/\alpha)$，
+qubitization 已给出 $T_n(H/\alpha)\leftrightarrow O^n$ —— 适当组合不同次数的迭代算子
+$O$ 即可实现一般矩阵函数 $f(H)$。
+\end{keybox}
+\begin{keybox}{Hamiltonian 模拟的 Chebyshev 表示（Jacobi--Anger）}
+令 $x=\lambda/\alpha$，目标标量函数 $f(x)=e^{-\ii\alpha tx}$。利用
+\textbf{Jacobi--Anger 展开}（$J_n$ 为第一类 Bessel 函数，$\tau=\alpha t$）：
+$e^{-\ii\tau x}=J_0(\tau)+2\sum_{n=1}^{\infty}(-\ii)^nJ_n(\tau)T_n(x)$，即
+\[
+e^{-\ii Ht}=J_0(\alpha t)I+2\sum_{n=1}^{\infty}(-\ii)^nJ_n(\alpha t)T_n(H/\alpha).
+\]
+\end{keybox}
+\begin{warnbox}{与 Lie--Trotter 的本质区别}
+Trotter：时间域\textbf{算子分裂 + 时间步进}（$e^{-\ii(H_1+H_2)t}\approx(e^{-\ii H_1t/r}e^{-\ii H_2t/r})^r$）；
+Qubitization/Chebyshev：\textbf{谱变换 + 多项式逼近}（$e^{-\ii Ht}\approx P_d(H/\alpha)$）。
+\end{warnbox}
+\smallcite{Model 3 笔记第 5.9 节。}
+\end{frame}
+
+% ============================================================================
+\section{QSP 与 QET：相位因子编码多项式}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} QSP 与 QET：相位因子编码多项式}\par\vspace{4mm}
+{\large Quantum Signal Processing and Quantum Eigenvalue Transformation}
+\end{frame}
+
+\begin{frame}{QSP 基本思想：signal + phase + interference}
+\begin{keybox}{从 qubitization 到 QSP：相干组合}
+Qubitization 自然产生 $T_n(H/\alpha)$，但简单执行 $O,O^2,\dots,O^d$ 并不自动实现
+$P_d(H/\alpha)=\sum_nc_nT_n(H/\alpha)$ —— 不同项需以正确系数 $c_n$ 进行
+\textbf{相干组合}。LCU 需要额外辅助寄存器与振幅放大；
+\textbf{量子信号处理（QSP）}提供更直接的方法：在迭代算子 $O$ 之间插入一系列可调相位
+\[
+U_{\vec\phi}(x)=e^{\ii\phi_0Z}O(x)\,e^{\ii\phi_1Z}O(x)\cdots O(x)\,e^{\ii\phi_dZ},
+\]
+通过适当选择相位序列 $\vec\phi=(\phi_0,\dots,\phi_d)$ 使某个矩阵元实现目标多项式 $P(x)$。
+\end{keybox}
+\begin{keybox}{核心公式}
+\[
+\underbrace{\text{signal}}_{\text{$O(x)$（含 $x$）}}
++\underbrace{\text{phase modulation}}_{\text{$e^{\ii\phi_kZ}$（不含 $x$）}}
++\underbrace{\text{quantum interference}}_{\text{各路径相长/相消}}
+\;\longrightarrow\;\text{polynomial transformation } x\mapsto P(x).
+\]
+\end{keybox}
+\begin{warnbox}{两个子问题}
+\textbf{approximation problem}：找满足 QSP 条件的 $P(x)\approx f(x)$；
+\textbf{phase synthesis problem}：计算对应相位序列。
+Qubitization + Chebyshev 结构是 QSP 的数学基础，而非 QSP 本身。
+\end{warnbox}
+\smallcite{Model 3 笔记第 5.10 节与第 6.1 节。}
+\end{frame}
+
+\begin{frame}{QSP 表示定理}
+标量情形 $x\in[-1,1]$ 的 block-encoding 取反射 $U_A(x)=\begin{pmatrix}x&\sqrt{1-x^2}\\\sqrt{1-x^2}&-x\end{pmatrix}$，
+乘以 $Z=\mathrm{diag}(1,-1)$ 得\textbf{signal unitary} $O(x)=U_A(x)Z$。
+考虑相位调制序列
+\[
+U_\Phi(x):=e^{\ii\phi_0Z}O(x)\,e^{\ii\phi_1Z}O(x)\cdots e^{\ii\phi_{d-1}Z}O(x)\,e^{\ii\phi_dZ},
+\]
+$\Phi=(\phi_0,\dots,\phi_d)\in\R^{d+1}$，共调用 $d$ 次 $O(x)$；
+相位旋转 $S(\phi_k):=e^{\ii\phi_kZ}=\mathrm{diag}(e^{\ii\phi_k},e^{-\ii\phi_k})$ 不依赖信号 $x$。
+\begin{Thm}[\textbf{QSP 表示定理}]
+对任意 $\Phi\in\R^{d+1}$，存在多项式 $P,Q\in\C[x]$ 使
+\[
+U_\Phi(x)=\begin{pmatrix}P(x)&-Q(x)\sqrt{1-x^2}\\
+\overline{Q(x)}\,\sqrt{1-x^2}&\overline{P(x)}\end{pmatrix},
+\]
+且满足：(1) $\deg P\le d$，$\deg Q\le d-1$；
+(2) $P$ 的奇偶性为 $d\bmod2$，$Q$ 的奇偶性为 $(d-1)\bmod2$；
+(3) $|P(x)|^2+(1-x^2)|Q(x)|^2=1$，$x\in[-1,1]$。
+反之，任何满足这三条的 $P,Q$ 都可由某个相位序列 $\Phi$ 表示。
+\end{Thm}
+\smallcite{Model 3 笔记定理 6.1。}
+\end{frame}
+
+\begin{frame}{signal unitary 的约定与"为什么一定是多项式"}
+\begin{exbox}{signal unitary 的约定}
+文献常见约定 $W(x)=\begin{pmatrix}x&\ii\sqrt{1-x^2}\\\ii\sqrt{1-x^2}&x\end{pmatrix}=e^{\ii\theta X}$
+（$x=\cos\theta$）；本讲义采用实旋转约定 $O(x)=U_A(x)Z$。不同约定只改变某些 $i$、
+符号与乘法顺序，\textbf{可实现的多项式类 $P$ 完全相同}。
+\end{exbox}
+\begin{keybox}{为什么最后一定是多项式}
+signal unitary 的矩阵元只有 $x$ 与 $\sqrt{1-x^2}$ 两种基本形式。连续乘法中，若一条
+量子路径最终从第一个信号态回到第一个信号态，$\sqrt{1-x^2}$ 必须\textbf{成对}出现
+（$\sqrt{1-x^2}\cdot\sqrt{1-x^2}=1-x^2$ 是多项式）。因此对角矩阵元只留下 $x$ 的
+普通多项式；非对角元保留一个 $\sqrt{1-x^2}$ 因子。这就是 QSP 结构必然形如
+$\begin{pmatrix}P(x)&\ast\\\ast&\overline{P(x)}\end{pmatrix}$ 的原因。
+\end{keybox}
+\begin{keybox}{表示定理证明（正方向，归纳）}
+$d=0$ 时 $U_\Phi=e^{\ii\phi_0Z}$ 给出 $P=e^{\ii\phi_0}$、$Q=0$。设
+$U_{(\phi_0,\dots,\phi_{d-1})}$ 形如上式，右乘 $O(x)e^{\ii\phi_dZ}$ 并左乘 $e^{\ii\phi_0Z}$，
+逐项展开知新 $P$ 形如 $e^{\ii\phi_0}(xP-(1-x^2)Q)$，度数至多增 $1$ 且奇偶性与 $d$ 相反。
+条件 (3) 是酉性的直接推论。
+\end{keybox}
+\smallcite{Model 3 笔记第 6.1 节（注与证明）。}
+\end{frame}
+
+\begin{frame}{次数、奇偶性、酉性约束与 polynomial completion}
+\begin{keybox}{约束}
+每调用一次 $O(x)$，矩阵元关于 $x$ 的次数至多增加 $1$：
+$\deg P\le d$、$\deg Q\le d-1$ —— 多项式次数与量子查询复杂度直接对应。
+由酉性 $U_\Phi^\dagger U_\Phi=I$：$|P(x)|^2+(1-x^2)|Q(x)|^2=1$，
+$|P(x)|\le1$（$x\in[-1,1]$）—— 来自概率归一化的最基本要求。
+因此 QSP 不能直接实现无界多项式：若目标函数超过 $1$，需先归一化
+$\tilde f(x)=f(x)/\beta$ 使 $|\tilde f|\le1$。
+\end{keybox}
+\begin{keybox}{Polynomial completion 与实多项式充分条件}
+给定目标多项式 $P(x)$，还必须存在\textbf{补多项式} $Q(x)$ 使
+$|P|^2+(1-x^2)|Q|^2=1$：phase synthesis 不只是寻找 $\phi_k$，还隐含 completion
+（$P(x)\to(P(x),Q(x))\to\{\phi_k\}$）。
+\textbf{实多项式充分条件}：若 $P_{\mathrm{Re}}\in\R[x]$ 满足 (1) 奇偶性为 $d\bmod2$、
+(2) $|P_{\mathrm{Re}}(x)|\le1$，则存在相位序列使 $(1,1)$ 元恰为 $P_{\mathrm{Re}}(x)$
+（条件 (2) 只需归一化缩放）。相位因子的数值求解已有成熟软件（如 QSPPACK）。
+\end{keybox}
+\smallcite{Model 3 笔记第 6.1 节（注）。}
+\end{frame}
+
+\begin{frame}{零相位 $=$ Chebyshev；$d=2$ 例子}
+\begin{keybox}{零相位情形：Chebyshev 多项式}
+若所有相位为零，$U_{\vec\phi}(x)=O(x)^d$。由 $x=\cos\theta$ 与多倍角公式：
+$O(x)^d=\begin{pmatrix}T_d(x)&-\sqrt{1-x^2}\,U_{d-1}(x)\\
+\sqrt{1-x^2}\,U_{d-1}(x)&T_d(x)\end{pmatrix}$，
+恰为 QSP 标准形式 —— \textbf{qubitization 自然产生 Chebyshev 多项式}；
+QSP 通过插入不同相位，把单一的 Chebyshev 模式推广为一般可编程多项式 $P(x)$。
+\end{keybox}
+\begin{keybox}{相位通过干涉改变多项式}
+$S(\phi_k)=e^{\ii\phi_kZ}$ 不依赖信号 $x$，但改变不同量子路径间的\textbf{相对相位}：
+各路径在最后相长或相消\textbf{干涉}，从而控制最终 $x^k$ 项的系数。
+注意 $\phi_k$ 并不直接等于多项式系数，而是通过非线性的 SU(2) 干涉关系共同决定 $P(x)$。
+\end{keybox}
+\begin{exbox}{二阶 QSP：$d=2$}
+$U_{\vec\phi}(x)=S(\phi_0)O(x)S(\phi_1)O(x)S(\phi_2)$，记 $s=\sqrt{1-x^2}$，直接计算左上角元：
+\[
+P(x)=e^{\ii(\phi_0+\phi_2)}\big[x^2e^{\ii\phi_1}-(1-x^2)e^{-\ii\phi_1}\big]
+=e^{\ii(\phi_0+\phi_2)}\big[2\cos(\phi_1)x^2-e^{-\ii\phi_1}\big],
+\]
+确实是二次多项式且只含 $x^0,x^2$ 项（$d=2$ 偶奇偶性）；改变 $\phi_1$ 即改变
+$x^2$ 与常数项的相对系数 —— phase parameters $\to$ polynomial coefficients。
+\end{exbox}
+\smallcite{Model 3 笔记第 6.2 节。}
+\end{frame}
+
+\begin{frame}{QET：从标量到矩阵（量子本征值变换）}
+把标量 $x$ 换成矩阵 $A$ 即可把 QSP"提升"为矩阵版本 —— 每个本征方向上的二维旋转
+同步进行，相位调制序列作用在辅助比特上、与矩阵方向无关。
+\begin{Thm}[\textbf{QET：Hermitian block-encoding}]
+设 $U_A\in\mathrm{HBE}_{1,a}(A)$。对任意相位序列 $\Phi\in\R^{d+1}$，
+$U:=e^{\ii\phi_0Z}U_Ae^{\ii\phi_1Z}U_A\cdots e^{\ii\phi_{d-1}Z}U_Ae^{\ii\phi_dZ}$
+满足 $U=\begin{pmatrix}P(A)&\ast\\\ast&\ast\end{pmatrix}$，
+即 $U\in\mathrm{BE}_{1,a}(P(A))$，其中 $P$ 满足 QSP 定理的三条条件；
+电路为相位旋转与 $U_A$ 交替作用 $O(d)$ 次。
+\end{Thm}
+\begin{keybox}{证明与例子}
+\textbf{证明}：qubitization 在每个不变子空间上把 $U_A$ 化为反射矩阵
+$[\lambda_i,\sqrt{1-\lambda_i^2};\sqrt{1-\lambda_i^2},-\lambda_i]$，恰为标量情形
+$U_A(\lambda_i)$ 的形式 —— 标量 QSP 定理逐块成立。
+\textbf{例子}：取所有相位为零，$U=(U_AZ)^d$ 回到 $T_d(A)$ 的 block-encoding；
+由于 $Z$ 可吸收进相位因子，QET 电路无需单独实现 $Z$ 门。
+\end{keybox}
+\begin{warnbox}{QET 与 LCU 的对比}
+QET 用 $O(d)$ 次 $U_A$ 与单比特旋转实现任意（满足奇偶条件的）多项式，
+辅助比特只增加 $O(1)$ 个，也不需要 prepare/select oracle ——
+正是 LCU 一节的\textbf{两个缺点}。
+\end{warnbox}
+\smallcite{Model 3 笔记定理 6.2 与注。}
+\end{frame}
+
+\begin{frame}{QSP 的两个数学问题与七步流程}
+\begin{keybox}{两个彼此不同的问题}
+\begin{enumerate}
+\item \textbf{多项式逼近（approximation problem）}：给定目标函数 $f(x)$，寻找低阶
+$P_d(x)\approx f(x)$（Chebyshev 逼近、minimax、截断 Taylor、问题特化逼近）；
+\item \textbf{相位综合（phase synthesis problem）}：已知 $P_d(x)$，寻找相位序列
+$\vec\phi$ 使 QSP 电路实现该多项式。
+\end{enumerate}
+\[
+f(x)\;\xrightarrow{\text{approximation}}\;P_d(x)
+\;\xrightarrow{\text{phase synthesis}}\;\{\phi_k\}
+\;\xrightarrow{\text{QSP circuit}}\;P_d(x).
+\]
+\textbf{一定要区分这两步}：Chebyshev 逼近回答"什么多项式能逼近 $f$"，
+QSP 回答"如何让量子电路实现这个多项式" —— 得到 $P_d(x)$ 后还不能说
+量子计算机已经实现了它，还需要 phase synthesis。
+\end{keybox}
+\begin{keybox}{完整 QSP 流程（七步）}
+① 确定目标函数 $f(x)$（如 $e^{-\ii tx}$、$1/x$、$\mathrm{sign}(x)$）；
+② 确定目标谱区间 $\mathcal D\subseteq[-1,1]$；
+③ 寻找低阶 $P_d$ 使 $\max_{\mathcal D}|P_d-f|\le\eps$；
+④ 检查次数/奇偶性/有界性条件（必要时归一化 $f/\beta$）；
+⑤ polynomial completion：找补多项式 $Q$；
+⑥ phase synthesis：$P_d\to\phi_0,\dots,\phi_d$；
+⑦ 实现电路 $U_{\vec\phi}$，得 $\bra0U_{\vec\phi}\ket0=P_d(x)\approx f(x)$。
+\end{keybox}
+\smallcite{Model 3 笔记第 6.4 节。}
+\end{frame}
+
+% ============================================================================
+\section{QSVT：一般矩阵的奇异值变换}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} QSVT：一般矩阵的奇异值变换}\par\vspace{4mm}
+{\large Quantum Singular Value Transformation}
+\end{frame}
+
+\begin{frame}{QSVT：SVD 与双向结构}
+\textbf{量子奇异值变换（QSVT）}是现代量子线性代数最核心的统一框架之一：
+QSP 解决标量问题 $x\mapsto P(x)$（$x\in[-1,1]$）；QSVT 把这一标量多项式变换
+提升到一般矩阵的\textbf{奇异值}上。
+\begin{Def}[\textbf{广义矩阵函数}]
+对 $A=U\Sigma V^\dagger=\sum_j\sigma_j\ket{u_j}\bra{v_j}$ 与定义在奇异值上的 $f$：
+\[
+f(A):=Uf(\Sigma)V^\dagger,\qquad
+f^\triangleleft(A):=Vf(\Sigma)V^\dagger,\qquad
+f^\triangleright(A):=Uf(\Sigma)U^\dagger,
+\]
+分别称为（对称、左、右）\textbf{奇异值变换}；且
+$f^\triangleleft(A)=f(\sqrt{A^\dagger A})$，$f^\triangleright(A)=f(\sqrt{AA^\dagger})$。
+\end{Def}
+\begin{keybox}{双向结构（为何需要 $U_A$ 与 $U_A^\dagger$）}
+每一个奇异值 $\sigma_j$ 天然对应一对 $(\ket{v_j},\ket{u_j})$：
+\[
+\ket{v_j}\;\xrightarrow{A}\;\sigma_j\ket{u_j}
+\;\xrightarrow{A^\dagger}\;\sigma_j\ket{v_j}.
+\]
+一般非厄米矩阵的左右奇异向量构成自然的\textbf{双向结构} —— 这是 QSVT 电路
+同时使用 $U_A$ 与 $U_A^\dagger$ 的根本原因。
+\end{keybox}
+\smallcite{Model 3 笔记第 7.1--7.2 节。}
+\end{frame}
+
+\begin{frame}{Projected unitary encoding 与二维奇异值子空间}
+\begin{Def}[\textbf{Projected unitary encoding}]
+设 $\Pi$、$\widetilde\Pi$ 分别为输入、输出信号子空间投影，若
+$\widetilde\Pi\,U_A\,\Pi=A/\alpha$，则称 $(U_A,\Pi,\widetilde\Pi)$ 构成 $A/\alpha$ 的
+projected unitary encoding（$\Pi$ 对应右奇异空间、$\widetilde\Pi$ 对应左奇异空间）。
+对标准方阵 block-encoding：$\Pi=\widetilde\Pi=\ket{0^a}\bra{0^a}\otimes I$。
+\end{Def}
+\begin{keybox}{二维奇异值子空间}
+由于 $A\ket{v_j}=\sigma_j\ket{u_j}$，block-encoding 在对应信号空间产生与归一化奇异值
+$x_j=\sigma_j/\alpha$ 相关的二维结构：$\mathcal H\to\bigoplus_j\mathcal K_j$，
+$x_j=\sigma_j/\alpha$。每个二维子空间 $\mathcal K_j$ 对应一个标量 $x_j$，
+因此\textbf{同一套} QSP 相位序列同时作用于所有奇异值子空间，实现 $x_j\mapsto P(x_j)$
+—— 这是 QSVT 的核心机制。
+\end{keybox}
+\begin{Thm}[\textbf{一般矩阵的 qubitization}]
+设 $U_A\in\mathrm{BE}_{1,a}(A)$（不需要厄米）。交替作用 $U_A,U_A^\dagger,Z$：
+$(U_AZU_A^\dagger Z)^k\in\mathrm{BE}_{1,a}(T_{2k}(A))$，
+$U_AZ(U_AZU_A^\dagger Z)^k\in\mathrm{BE}_{1,a}(T_{2k+1}(A))$，
+其中 $T_k(A)=UT_k(\Sigma)V^\dagger$ 是奇异值版本的 Chebyshev 变换。
+\end{Thm}
+\smallcite{Model 3 笔记第 7.3 节。}
+\end{frame}
+
+\begin{frame}{QSVT 定理（实多项式版本）}
+\begin{Thm}[\textbf{QSVT 定理}]
+设 $A$ 由 $U_A\in\mathrm{BE}_{1,a}(A)$ 给出。对满足
+(1) $\deg P_{\mathrm{Re}}=d$ 且奇偶性为 $d\bmod2$；
+(2) $|P_{\mathrm{Re}}(x)|\le1$，$x\in[-1,1]$ 的实多项式 $P_{\mathrm{Re}}$，
+存在相位序列 $\Phi\in\R^{d+1}$ 使 QSP/QET 型电路 $U$（$U_A,U_A^\dagger$ 交替，
+共 $O(d)$ 次，另用 $O(a)$ 个受控门与 $O(d)$ 个单比特旋转）满足：
+\[
+d\ \text{为奇数}:\ U\in\mathrm{BE}_{1,a+1}\big(P_{\mathrm{Re}}(A)\big),\qquad
+d\ \text{为偶数}:\ U\in\mathrm{BE}_{1,a+1}\big(P_{\mathrm{Re}}^\triangleleft(A)\big).
+\]
+\end{Thm}
+\begin{keybox}{奇偶性的意义}
+\textbf{奇多项式}（$d$ 奇）把左、右奇异向量"配对"，实现 $UP(\Sigma)V^\dagger$；
+\textbf{偶多项式}（$d$ 偶）只作用在右奇异向量上，实现 $VP(\Sigma)V^\dagger$。
+由于奇异值非负，任何目标函数 $f$ 都可先做\textbf{奇（偶）延拓}再用 QSVT 实现
+（例如 $f(A)$ 可用 $f$ 的奇延拓经 $P_{\mathrm{Re}}(A)$ 实现）。
+\end{keybox}
+\begin{exbox}{Hermitian 情形}
+若 $A=A^\dagger$，本征分解与奇异值分解通过 $\ket{u_i}=\mathrm{sgn}(\lambda_i)\ket{v_i}$ 联系：
+对偶多项式 $P^\triangleleft(A)=P(A)$；对奇多项式 $P^\triangleleft(A)=P(|A|)$。
+在 Hermitian 矩阵上 QET 与 QSVT 实现同一个矩阵函数，只是视角不同。
+\end{exbox}
+\smallcite{Model 3 笔记定理 7.1 与注。}
+\end{frame}
+
+\begin{frame}{QSVT 的电路结构与普通矩阵多项式的区别}
+\begin{keybox}{电路结构：为什么需要 $U_A$ 与 $U_A^\dagger$}
+奇异值动力学在左右奇异子空间之间往返（$\ket{v_j}\xrightarrow{A}\ket{u_j}
+\xrightarrow{A^\dagger}\ket{v_j}$），一般 QSVT 电路自然交替使用 $U_A$ 与 $U_A^\dagger$
+—— 这是与 Hermitian 情形（$U_A^\dagger=U_A$，只需 $U_A$）的本质区别。
+对 projected unitary encoding，定义反射 $R_\Pi:=2\Pi-I$、$R_{\widetilde\Pi}:=2\widetilde\Pi-I$，
+QSVT 电路由 $U_A$、$U_A^\dagger$ 与信号空间相位旋转 $e^{\ii\phi_k(2\Pi-I)}$、
+$e^{\ii\phi_k(2\widetilde\Pi-I)}$ 交替组合而成：在每个奇异值子空间中该高维电路
+等价于一个普通的 QSP sequence。
+\end{keybox}
+\begin{warnbox}{QSVT $\ne$ 普通矩阵多项式}
+对一般（非厄米）矩阵，QSVT 实现的是
+\[
+P^{(\mathrm{SV})}(A)=\sum_jP(\sigma_j)\ket{u_j}\bra{v_j},
+\]
+而一般情形 $P^{(\mathrm{SV})}(A)\ne P(A)$：例如 $P(x)=x^2$ 时
+$P^{(\mathrm{SV})}(A)=U\Sigma^2V^\dagger$ 而
+$A^2=U\Sigma V^\dagger U\Sigma V^\dagger\ne U\Sigma^2V^\dagger$（$V^\dagger U\ne I$）。
+只有 $A$ 厄米（$\ket{u_j}\propto\ket{v_j}$）时二者一致。
+\end{warnbox}
+\smallcite{Model 3 笔记第 7.4--7.5 节。}
+\end{frame}
+
+\begin{frame}{矩阵膨胀：QET($\bar A$) 蕴含 QSVT($A$)}
+\begin{Def}[\textbf{厄米膨胀}]
+对一般矩阵 $A$，定义 $\bar A:=\begin{pmatrix}0&A\\A^\dagger&0\end{pmatrix}$，
+由 $U_{\bar A}=\ket0\bra1\otimes U_A+\ket1\bra0\otimes U_A^\dagger$ 可得其 $(1,a)$-block-encoding。
+$\bar A$ 的特征向量为
+$\ket{z_i^\pm}=\frac1{\sqrt2}(\ket0\ket{v_i}\pm\ket1\ket{u_i})$，
+$\bar A\ket{z_i^\pm}=\pm\lambda_i\ket{z_i^\pm}$。
+\end{Def}
+\begin{Prop}[\textbf{QET($\bar A$) 蕴含 QSVT($A$)}]
+对任意 $f\in\C[x]$，记 $f_{\mathrm{even}}(x)=\frac{f(x)+f(-x)}2$、
+$f_{\mathrm{odd}}(x)=\frac{f(x)-f(-x)}2$，则
+\[
+f(\bar A)=\begin{pmatrix}
+f_{\mathrm{even}}^\triangleleft(A)&f_{\mathrm{odd}}(A)^\dagger\\
+f_{\mathrm{odd}}(A)&f_{\mathrm{even}}^\triangleright(A)
+\end{pmatrix}.
+\]
+特别地：对\textbf{偶}函数 $f$，$f(\bar A)\ket0\ket\psi=\ket0
+f_{\mathrm{even}}^\triangleleft(A)\ket\psi$；对\textbf{奇}函数 $f$，
+$f(\bar A)\ket0\ket\psi=\ket1 f(A)\ket\psi$ —— 信号比特测量结果是\textbf{确定性}的，
+这正是 QSVT 在偶函数情形\textbf{不需要后选择}的原因。
+\end{Prop}
+\begin{keybox}{统一}
+对 $\bar A$ 施加 QET 自动实现了对 $A$ 的 QSVT：框架统一处理厄米与非厄米矩阵
+（非厄米线性方程组、一般哈密顿量模拟、伪逆等都可直接用 QSVT 实现）。
+\end{keybox}
+\smallcite{Model 3 笔记第 7.6 节。}
+\end{frame}
+
+\begin{frame}{矩阵函数应用：求逆、滤波与统一视角}
+\begin{keybox}{矩阵求逆}
+设 $A=\sum_j\sigma_j\ket{u_j}\bra{v_j}$ 可逆，则 $A^{-1}=\sum_j\frac1{\sigma_j}\ket{v_j}\bra{u_j}$
+—— 求逆本质上实现 $\sigma\mapsto1/\sigma$。注意其方向与 QSVT 奇多项式输出
+$\sum_jP(\sigma_j)\ket{u_j}\bra{v_j}$ 互为\textbf{共轭转置}：为制备 $A^{-1}\ket b$，
+应对 $U_A^\dagger$ 施加同一 QSVT（或利用厄米膨胀 $\ket1\to\ket0$ 分支）。
+由于 $1/x$ 在 $x=0$ 发散而多项式必须保持有界，须假设谱与零之间存在\textbf{间隙}
+$|x|\ge1/\kappa$（$\kappa$ 为条件数），多项式逼近发生在
+$[-1,-1/\kappa]\cup[1/\kappa,1]$ 上 —— 这是条件数进入量子线性系统复杂度的原因。
+\end{keybox}
+\begin{keybox}{奇异值滤波与统一视角}
+设计 $P(x)\approx\mathbf 1_{x>\tau}$（阈值 $\tau$ 附近留过渡带），QSVT 实现
+$\sigma_j\mapsto P(\sigma_j)$：大于阈值的分量保留、小于的被抑制 ——
+基态制备与特征值滤波的基础。
+许多量子线性代数算法统一为"设计函数 $f(x)$ 并用多项式逼近它"：
+$e^{-\ii tx}$（模拟）、$1/x$（求逆）、$\mathbf 1_{x>\tau}$（滤波）、
+$\mathrm{sign}(x)$（符号函数）—— 本质上都是矩阵函数逼近问题。
+若目标函数可被次数 $d$ 的多项式逼近，QSVT 需要 $O(d)$ 次对 $U_A$ 或 $U_A^\dagger$ 的调用：
+\[
+\boxed{\text{polynomial degree}\ \sim\ \text{quantum query complexity}},
+\]
+因此算法效率的关键是寻找尽可能\textbf{低阶}的多项式逼近。
+\end{keybox}
+\smallcite{Model 3 笔记第 7.7 节。}
+\end{frame}
+
+\begin{frame}{QSVT 算法流程与完整知识链}
+\begin{keybox}{QSVT 完整流程}
+① 给定矩阵 $A$，构造 block-encoding $U_A$；
+② 确定目标函数 $f(x)$（如 $e^{-\ii tx}$、$1/x$、$\mathrm{sign}(x)$）与目标奇异值区间；
+③ 在目标区间上寻找低阶 $P_d\approx f$（Chebyshev、minimax、截断 Taylor）；
+④ 检查 $P_d$ 满足 QSP/QSVT 的次数、奇偶性、有界性条件（必要时归一化）；
+⑤ phase synthesis：$P_d\to\phi_0,\dots,\phi_d$（含 completion）；
+⑥ 把相位与 $U_A$、$U_A^\dagger$ 组合成 QSVT 电路；
+⑦ 最终实现 $P^{(\mathrm{SV})}(A/\alpha)\approx f^{(\mathrm{SV})}(A)$。
+\end{keybox}
+\begin{keybox}{从 QSP 表示定理到 QSVT 的核心论证}
+QSP 表示定理说明：满足次数、奇偶性、有界性条件的 $P$ 存在相位序列使二维 QSP 电路
+实现 $x\mapsto P(x)$。QSVT 的关键观察是：block-encoding 为矩阵的\textbf{每一个}
+奇异值 $\sigma_j$ 都提供一个二维信号子空间，因此\textbf{同一个} QSP 表示定理可以在
+所有这些二维子空间中\textbf{同时}应用：
+\[
+\boxed{\ \text{QSP representation theorem}\ +\ \text{SVD}\ +\ \text{Block Encoding}
+\;\Longrightarrow\;\text{QSVT}\ }
+\]
+\end{keybox}
+\begin{keybox}{完整知识链}
+\[
+A=\sum_j\alpha_jU_j
+\xrightarrow{\text{LCU/BE}}U_A
+\xrightarrow{\text{Qubitization}}x=\sigma_j/\alpha
+\xrightarrow{\text{QSP}}P(x)
+\xrightarrow{\text{QSVT}}P^{(\mathrm{SV})}(A/\alpha)\approx f^{(\mathrm{SV})}(A).
+\]
+\end{keybox}
+\smallcite{Model 3 笔记第 7.8 节。}
+\end{frame}
+
+% ============================================================================
+\section{应用}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 应用}\par\vspace{4mm}
+{\large Applications: Hamiltonian Simulation, QLSP, Filtering}
+\end{frame}
+
+\begin{frame}{应用 1：基于 QET/QSVT 的 Hamiltonian 模拟}
+\begin{Thm}[\textbf{基于 QET/QSVT 的 Hamiltonian 模拟}]
+设 $H$ 由 $U_H\in\mathrm{BE}_{1,a}(H)$ 给出（$\|H\|\le1$）。利用
+\textbf{Jacobi--Anger 展开}（$J_\nu$ 为第一类 Bessel 函数）：
+\[
+\cos(tx)=J_0(t)+2\sum_{k\ge1}(-1)^kJ_{2k}(t)T_{2k}(x),\qquad
+\sin(tx)=2\sum_{k\ge0}(-1)^kJ_{2k+1}(t)T_{2k+1}(x),
+\]
+截断到 $d=2r+1$ 阶、$r=O\big(t+\frac{\log(1/\eps)}{\log(e+\log(1/\eps)/t)}\big)$
+即可使 $e^{\ii tx}$ 的误差 $\le\eps$。分别用 QET 实现 $\cos$、$\sin$ 部分
+（奇偶性恰好匹配）再组合，得到 $e^{\ii tH}$ 的 $(2,m+2)$-block-encoding，
+\textbf{电路深度} $O\big(t+\frac{\log(1/\eps)}{\log\log(1/\eps)}\big)$，每个 $U_H$ 调用一次。
+\end{Thm}
+\begin{warnbox}{加性 vs 乘性（本质改进）}
+该复杂度匹配模拟查询下界 $\Omega(t+\frac{\log(1/\eps)}{\log\log(1/\eps)})$；
+对比 Trotter 的 $L=O(t^{1+1/p}\eps^{-1/p})$（$t$ 与 $\eps$ \textbf{乘性}耦合），
+这里 $t$ 与 $\log(1/\eps)$ 是\textbf{加性}关系（$(\alpha,m)$-block-encoding 时 $t$ 换 $\alpha t$，
+后选择概率约 $1/4$，用 OAA 补偿）。
+\end{warnbox}
+\smallcite{Model 3 笔记定理 8.1；Low--Chuang, Quantum 3, 2019.}
+\end{frame}
+
+\begin{frame}{应用 1（续）：为什么能避免时间分段}
+\begin{keybox}{Jacobi--Anger 直接在整段时间上逼近}
+\[
+e^{\ii tx}=\sum_{n\in\mathbb{Z}}\ii^nJ_n(t)e^{\ii n\theta}\quad
+(x=\cos\theta)\ \Longleftrightarrow\ e^{\ii tx}=J_0(t)+2\sum_{n\ge1}\ii^nJ_n(t)T_n(x).
+\]
+Bessel 系数在 $n\gtrsim t$ 后\textbf{超指数衰减}：$J_n(t)\approx(t/2)^n/n!$，
+因此截断阶数与 $t$ 成\textbf{线性}而非乘积关系。
+\end{keybox}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.5\textwidth}
+\begin{keybox}{Trotter 型方法}
+每步误差 $O(\tau^{p+1})$ 把 $t$ 与 $\eps$ 耦合：
+$L=O(t^{1+1/p}\eps^{-1/p})$（时间域分裂）。
+\end{keybox}
+\column{0.5\textwidth}
+\begin{keybox}{Qubitization/QSP}
+谱变换 + 多项式逼近：$O(t+\frac{\log(1/\eps)}{\log\log(1/\eps)})$（加性）——
+对长时间模拟与高精度要求是本质改进。
+\end{keybox}
+\end{columns}
+\begin{keybox}{与 Model 2 的对照}
+Model 2 的截断 Taylor/LCU 已达 $O(\lambda t\,\poly\log)$（对 $t$ 线性）；
+Qubitization/QSP 进一步把 $\poly\log$ 中 $1/\eps$ 的依赖改进为
+$\log(1/\eps)/\log\log(1/\eps)$ 并达到查询下界。
+\end{keybox}
+\smallcite{Model 3 笔记第 8.1 节注。}
+\end{frame}
+
+\begin{frame}{应用 2：求解线性方程组（QLSP）}
+设 $A$ 可逆且 $\|A\|\le1$，条件数 $\kappa=\|A\|\|A^{-1}\|$，奇异值位于 $[1/\kappa,1]$。
+目标函数 $f(x)=x^{-1}$ 在 $x=0$ 奇异，用\textbf{奇多项式} $p$ 在区间外逼近：
+$\big|p(x)-\frac1{\kappa x}\big|\le\eps$（$x\in[-1,-1/\kappa]\cup[1/\kappa,1]$）且
+$|p(x)|\le1$；存在且 $\deg p=O(\kappa\log(\kappa/\eps))$。
+\begin{Thm}[\textbf{QLSP 的查询复杂度}]
+设右端 $\ket b$ 由 oracle $U_b$ 制备，$\zeta:=\|A^{-1}\ket b\|$。施加 QSVT 并测量辅助，
+成功概率 $\Theta(\zeta^2/\kappa^2)$，成功时与 $\ket x\propto A^{-1}\ket b$ 的误差
+$O(\eps\kappa/\zeta)$；用振幅放大提升到 $\Omega(1)$ 后，对 $U_A$ 及其逆的总查询数
+\[
+\boxed{O\Big(\frac{\kappa^2}{\zeta}\log\frac{\kappa}{\eps}\Big)},
+\]
+若 $\ket b$ 与最小奇异值左奇异向量有 $\Omega(1)$ 重叠（$\zeta=\Omega(\kappa)$，
+无需振幅放大），则降为 $O(\kappa\log(\kappa/\eps))$；对 $U_b$ 的查询数为 $O(\kappa/\zeta)$。
+\end{Thm}
+\begin{warnbox}{与 HHL 的关系}
+QSVT 求解线性方程组是 HHL 的现代替代：不需要 QPE 的位数寄存器、不需要假设 $A$ 厄米
+（无需膨胀）、精度依赖为 $\log(1/\eps)$ 而非 $1/\eps$ 量级；
+两者都以 $\kappa$ 的（拟）线性或二次代价为特征。
+\end{warnbox}
+\smallcite{Model 3 笔记定理 8.2 与注。}
+\end{frame}
+
+\begin{frame}{应用 3：基态制备、特征值滤波与统一重访}
+\begin{keybox}{基态制备与特征值滤波}
+设谱隙 $\Delta=E_1-E_0>0$（$E_0,E_1$ 为基态与第一激发态能量）。用偶多项式近似
+$[0,1]$ 上的符号函数（在 $E_0,E_1$ 附近留 $\Delta/2$ 过渡带），度数
+$O(\Delta^{-1}\log(1/\eps))$。施加 QET 后以概率 $p_0(1-\eps)$（$p_0$ 为初态与基态重叠）
+得到基态近似；配合振幅放大后总查询数 $O(\Delta^{-1}p_0^{-1/2}\log(1/\eps))$
+—— 这是 VQE 与绝热演化的现代替代。
+\end{keybox}
+\begin{keybox}{Grover 搜索与固定点振幅放大的重访}
+在 QSVT 视角下，Grover 迭代正是对奇异值 $1/\sqrt N$ 的奇多项式变换
+（$p(x)\approx1$ 于 $x\in[1/\sqrt N,1]$）；单比特 QSP 电路统一了反射序列的几何。
+更重要的是\textbf{固定点振幅放大}：用单调逼近 $1$ 的多项式变换旋转角，
+可在\textbf{未知}成功概率 $p$ 的情形下使最终成功概率任意接近 $1$
+—— 解决了 Model 2 普通振幅放大"需要知道 $p$"的根本缺陷。
+\end{keybox}
+\begin{keybox}{统一视角}
+{\small 结论：}QFT/QPE、Grover/AA、Trotter、HHL 等原语全部统一在
+\textbf{block-encoding + qubitization + QSP/QSVT} 框架之下。
+\begin{itemize}
+\item Hamiltonian 模拟：$f(x)=e^{-\ii tx}$；线性系统：$f(x)=1/x$；
+谱滤波：$f(x)\approx\mathbf 1_{x>\tau}$；符号函数：$f(x)=\mathrm{sign}(x)$。
+\end{itemize}
+\end{keybox}
+\smallcite{Model 3 笔记第 8.3 节。}
+\end{frame}
+
+\begin{frame}{本模块的主要文献与工具}
+\footnotesize
+\begin{thebibliography}{9}
+\bibitem{GSLW} A. Gily\'en, Y. Su, G. H. Low, N. Wiebe, \emph{Quantum singular value transformation and beyond}, STOC 2019; arXiv:1806.01838.
+\bibitem{LC} G. H. Low, I. L. Chuang, \emph{Hamiltonian simulation by qubitization}, Quantum 3, 163 (2019); arXiv:1610.06546.
+\bibitem{BCCKS} D. W. Berry, A. M. Childs, R. Cleve, R. Kothari, R. D. Somma, \emph{Simulating Hamiltonian dynamics with a truncated Taylor series}, PRL 114, 090502 (2015).
+\bibitem{LinNotes} L. Lin, \emph{Lecture Notes on Quantum Algorithms for Scientific Computation}, 2022; L. Lin \& N. Wiebe, 同名讲义（2026）.
+\bibitem{CLVY} D. Camps, L. Lin, R. Van Beeumen, C. Yang, \emph{Explicit quantum circuits for block encodings of certain sparse matrices}, SIAM J. Matrix Anal. Appl. (2023).
+\bibitem{KH} C. Kane, H. Hariprakash, \emph{Block encoding by signal processing}, arXiv:2408.16824 (2024).
+\end{thebibliography}
+\vspace{1mm}
+{\tiny\color{graytext}相位因子的数值求解：QSPPACK, \url{https://github.com/qsppack/QSPPACK}。
+暑期学校 day17 课件（Block-encoding、LCU、QSVT 的应用视角）。}
+\end{frame}
+
+% ============================================================================
+\section{总结}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 总结}\par\vspace{4mm}
+{\large Summary}
+\end{frame}
+
+\begin{frame}{本课总结：一条知识链贯穿全部量子矩阵算法}
+\begin{center}
+\begin{tikzpicture}[node distance=4mm, every node/.style={font=\scriptsize,align=center}]
+\node[draw,rounded corners,fill=softblue,minimum width=2.2cm,minimum height=0.8cm] (lcu) {LCU\\construct a\\linear combination};
+\node[draw,rounded corners,fill=softgreen,minimum width=2.2cm,minimum height=0.8cm,right=of lcu] (be) {Block-encoding\\represent a matrix\\inside a unitary};
+\node[draw,rounded corners,fill=softyellow,minimum width=2.2cm,minimum height=0.8cm,right=of be] (qz) {Qubitization\\spectrum as\\rotation angles};
+\node[draw,rounded corners,fill=softred,minimum width=2.2cm,minimum height=0.8cm,right=of qz] (qsp) {QSP/QET\\programmable\\polynomial transform};
+\node[draw,rounded corners,fill=white,minimum width=2.2cm,minimum height=0.8cm,right=of qsp] (qsvt) {QSVT\\singular-value\\transformation};
+\draw[-Latex,thick] (lcu)--(be); \draw[-Latex,thick] (be)--(qz);
+\draw[-Latex,thick] (qz)--(qsp); \draw[-Latex,thick] (qsp)--(qsvt);
+\end{tikzpicture}
+\end{center}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.5\textwidth}
+\begin{keybox}{各部分回答不同的问题}
+\begin{itemize}
+\item Block-encoding：如何量子化表示矩阵？
+\item Qubitization：如何把谱信息变成信号（旋转角）？
+\item Chebyshev：如何用多项式逼近目标函数（指数收敛）？
+\item QSP：如何用相位实现标量多项式？
+\item QSVT：如何把多项式作用到矩阵奇异值？
+\end{itemize}
+\end{keybox}
+\column{0.5\textwidth}
+\begin{warnbox}{对 PDE 数值研究者的要点}
+\begin{itemize}
+\item 多项式度数 $\sim$ 量子查询复杂度：低阶逼近 = 高效算法；
+\item $\alpha$（归一化因子）与 $\kappa$（条件数）是代价核心参数；
+\item PDE 路线：离散 $A\to$ block-encoding（利用稀疏/Pauli/张量积结构）
+$\to$ QSVT $\to A^{-1}\to\ket u$；
+\item "数学上存在 $U_A$" $\ne$ "可高效构造 $U_A$"。
+\end{itemize}
+\end{warnbox}
+\end{columns}
+\smallcite{Model 3 笔记第 6.4 节知识链与第 7.8 节。}
+\end{frame}
+
+\begin{frame}{参考文献与阅读建议}
+\scriptsize
+\begin{thebibliography}{9}
+\bibitem{notes3} 牛晓铭, \emph{Model 3 现代量子算法统一框架}（ModernFrameworkForQuantumAlgorithms 笔记），Github 项目 Quantum-Computation.
+\bibitem{day17} 湘潭大学暑期学校, \emph{偏微分方程的量子算法} day17 课件：Block-encoding、QSVT、Hamiltonian simulation.
+\bibitem{NC} M. A. Nielsen and I. L. Chuang, \emph{Quantum Computation and Quantum Information}, Cambridge Univ. Press, 2010.
+\bibitem{GSLW} A. Gily\'en, Y. Su, G. H. Low, N. Wiebe, \emph{QSVT and beyond}, STOC 2019, arXiv:1806.01838.
+\bibitem{LC} G. H. Low, I. L. Chuang, \emph{Hamiltonian simulation by qubitization}, Quantum 3, 163 (2019).
+\bibitem{LinNotes} L. Lin, \emph{Lecture Notes on Quantum Algorithms for Scientific Computation}, 2022, \url{https://math.berkeley.edu/~linlin/qasc/qasc_notes.pdf}.
+\end{thebibliography}
+\vspace{1mm}
+{\tiny\color{graytext}课后建议：① 验证标量 $U_xZ$ 是旋转并推出 $O(x)^k$ 的 Chebyshev 形式；
+② 手推 Hermitian qubitization 四步；③ 验证 QSP $d=2$ 例子的 $P(x)$；
+④ 推导厄米膨胀 $\bar A$ 的特征向量与 QET($\bar A$)$\Rightarrow$QSVT($A$)；
+⑤ 用 Jacobi--Anger 写出 $e^{-\ii Ht}$ 的 Chebyshev 表示并比较与 Trotter 的复杂度。}
+\end{frame}
+
+\end{document}

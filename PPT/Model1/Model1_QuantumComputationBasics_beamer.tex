@@ -1,0 +1,1575 @@
+% ============================================================================
+% Model 1: 量子计算基础（面向 PDE 数值计算研究生的 beamer 课件）
+% 编译方式: xelatex (两遍)
+%   基于笔记 Notes/Model1_QuantumComputationBasics 与暑期学校 day2 课件整理
+% ============================================================================
+\documentclass[aspectratio=169,10pt]{ctexbeamer}
+\usetheme{default}
+\usefonttheme{professionalfonts}
+\usepackage{amsmath,amssymb,mathtools,bm,braket}
+\usepackage{booktabs,array,multirow}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,decorations.pathreplacing,shapes.geometric,fit,backgrounds}
+\usepackage{quantikz}
+\usepackage[most]{tcolorbox}
+\usepackage{physics}
+\usepackage{hyperref}
+
+% --- 配色：参照 uploaded PDE quantum foundations 课件的深蓝风格 ---
+\definecolor{navy}{RGB}{0,0,145}
+\definecolor{deepred}{RGB}{150,0,0}
+\definecolor{softblue}{RGB}{238,242,255}
+\definecolor{softred}{RGB}{255,238,238}
+\definecolor{softgreen}{RGB}{238,250,238}
+\definecolor{softyellow}{RGB}{255,248,225}
+\definecolor{darkgreen}{RGB}{30,105,50}
+\definecolor{graytext}{RGB}{70,70,70}
+
+\setbeamercolor{frametitle}{fg=white,bg=navy}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamercolor{title}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=navy}
+\setbeamercolor{block title}{fg=white,bg=navy}
+\setbeamercolor{block body}{fg=black,bg=softblue}
+\setbeamercolor{alerted text}{fg=deepred}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{navy}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{navy}$\triangleright$}
+\setbeamertemplate{enumerate item}{\color{navy}\insertenumlabel.}
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.9ex,dp=0.9ex,leftskip=1.0em]{frametitle}
+    \insertframetitle
+  \end{beamercolorbox}}
+\setbeamertemplate{footline}{%
+  \hfill\scriptsize\color{graytext}\insertframenumber{} / \inserttotalframenumber\hspace{1.5em}\vspace{0.7em}}
+
+% --- 紧凑化排版：为密集内容腾出空间 ---
+\setbeamersize{text margin left=0.9em,text margin right=0.9em}
+\setbeamertemplate{itemize/enumerate body begin}{\small}
+\setbeamertemplate{itemize/enumerate subbody begin}{\footnotesize}
+\setlength{\abovedisplayskip}{4pt}
+\setlength{\belowdisplayskip}{4pt}
+\setlength{\abovedisplayshortskip}{3pt}
+\setlength{\belowdisplayshortskip}{3pt}
+
+\newtcolorbox{keybox}[1]{colback=softblue,colframe=navy,title={#1},fonttitle=\bfseries,boxrule=0.6pt,arc=1.5mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm}
+\newtcolorbox{warnbox}[1]{colback=softred,colframe=deepred,title={#1},fonttitle=\bfseries,boxrule=0.6pt,arc=1.5mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm}
+\newtcolorbox{exbox}[1]{colback=softyellow,colframe=darkgreen,title={#1},fonttitle=\bfseries,boxrule=0.6pt,arc=1.5mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm}
+
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\poly}{\operatorname{poly}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\e}{\mathrm{e}}
+\newcommand{\ketzero}{\ket{0}}
+\newcommand{\ketone}{\ket{1}}
+\newcommand{\ketplus}{\ket{+}}
+\newcommand{\ketminus}{\ket{-}}
+\newcommand{\smallcite}[1]{\par\vspace{1.2mm}{\scriptsize\color{graytext}#1}}
+
+% 定理类环境（beamer 内以 block 形式呈现）
+\newtheorem*{Def}{定义}
+\newtheorem*{Thm}{定理}
+\newtheorem*{Lem}{引理}
+\newtheorem*{Cor}{推论}
+\newtheorem*{Prop}{命题}
+
+\title{Quantum Computation Basics\\[2mm] \large 量子计算基础：面向 PDE 数值计算研究生的第一课}
+\author{基于 Model 1 笔记与暑期学校 day2 课件整理}
+\date{\today}
+
+\begin{document}
+
+% ============================================================================
+% 封面与课程定位
+% ============================================================================
+\begin{frame}[plain]
+\vspace{0.9cm}
+{\LARGE\bfseries Quantum Computation Basics}\par\vspace{3mm}
+{\large 量子计算基础：面向 PDE 数值计算研究生的第一课}\par\vspace{6mm}
+\begin{center}
+\begin{tikzpicture}[node distance=5mm, every node/.style={font=\small,align=center}]
+\node[draw,rounded corners,fill=white,minimum width=2.0cm,minimum height=0.75cm] (pde) {连续 PDE\\$u_t=Lu$};
+\node[draw,rounded corners,fill=softgreen,minimum width=2.0cm,minimum height=0.75cm,right=of pde] (disc) {离散化\\$A_h,\ H_h$};
+\node[draw,rounded corners,fill=softyellow,minimum width=2.0cm,minimum height=0.75cm,right=of disc] (enc) {量子编码\\ $\ket{u_h}$};
+\node[draw,rounded corners,fill=softred,minimum width=2.0cm,minimum height=0.75cm,right=of enc] (alg) {量子变换\\QFT/QPE/HS};
+\node[draw,rounded corners,fill=white,minimum width=2.0cm,minimum height=0.75cm,right=of alg] (out) {读出结果\\观测量/样本};
+\draw[-Latex,thick] (pde)--(disc); \draw[-Latex,thick] (disc)--(enc);
+\draw[-Latex,thick] (enc)--(alg); \draw[-Latex,thick] (alg)--(out);
+\end{tikzpicture}
+\end{center}
+\vfill
+{\small 从数值分析（离散化、谱方法、误差、复杂度）出发，建立量子计算的语言：
+量子态、酉线路、测量、复杂度、量子优势。}
+\smallcite{素材：Model 1 笔记 \emph{QuantumComputationBasics}；湘潭大学暑期学校 day2 课件（day16--19）。}
+\end{frame}
+
+\begin{frame}{从 PDE 到量子算法：本课在四天课程中的位置}
+\begin{center}
+\setlength{\tabcolsep}{3pt}
+\scriptsize
+\begin{tabular}{@{}p{0.235\textwidth}p{0.235\textwidth}p{0.235\textwidth}p{0.235\textwidth}@{}}
+\toprule
+\textbf{第 1 天（本课）} & \textbf{第 2 天} & \textbf{第 3 天} & \textbf{第 4 天}\\
+\midrule
+量子计算基础：态、酉线路、测量、复杂度；QFT / QPE；周期 Schrödinger 方程
+&
+Block-encoding、LCU、QSVT；Hamiltonian simulation；一般矩阵的酉实现
+&
+Schrödingerisation；一般线性演化 $u_t=Au$；耗散/非酉系统的酉化
+&
+PDE 案例；误差与复杂度分析；经典/量子基线对比\\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{1mm}
+\begin{keybox}{本课定位}
+本课是"地基"：把\textbf{量子态、酉演化、线路、测量、复杂度、量子优势}讲清楚，
+并在结尾用 QFT/QPE 接入 Fourier 谱方法，形成第一个完整的 PDE 量子算法例子，
+为第 2--4 天的 block-encoding、QSVT、薛定谔化铺路。
+\end{keybox}
+\smallcite{湘潭大学暑期学校课件 day16 (day16\_pde\_quantum\_foundations), day17--19。}
+\end{frame}
+
+\begin{frame}{学习目标与符号约定}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.5\textwidth}
+\begin{keybox}{学完本课你将能够}
+\begin{itemize}
+\item 用 Dirac 符号描述量子态、酉演化与测量（Born 规则）；
+\item 读懂并画简单的量子线路（H、CNOT、受控-$U$、QFT）；
+\item 区分三种复杂度：\textbf{gate / query / depth} 与输入、运行、输出成本；
+\item 解释"量子加速"的严格定义、证据层级，以及 QFT/QPE 如何接入谱方法。
+\end{itemize}
+\end{keybox}
+\column{0.5\textwidth}
+\begin{exbox}{全课符号（数值研究者对照）}
+\begin{itemize}
+\item $\ket{\psi}=\sum_x a_x\ket{x}$：态向量（类比：归一化向量）；
+\item $U^\dagger U=I$：酉演化（类比：正交变换/保范数）；
+\item $\Pr(x)=|a_x|^2$：Born 规则（类比：概率密度平方根+相位）；
+\item $n$ 个 qubit $\leftrightarrow$ $N=2^n$ 维空间（指数压缩）；
+\item $\ket{u_h}$：网格函数 $u_h$ 的归一化编码（amplitude encoding）。
+\end{itemize}
+\end{exbox}
+\end{columns}
+\begin{warnbox}{PDE 研究者最大的"认知转换"}
+量子计算机\textbf{不输出完整网格向量}：它天然输出归一化态、样本或少量观测量。
+端到端优势的有无，取决于输入制备与输出读出是否隐藏 $\Omega(N)$ 成本。
+\end{warnbox}
+\end{frame}
+
+\begin{frame}{两个维数：$n$ 与 $N=2^n$}
+\begin{center}
+\begin{tikzpicture}[node distance=8mm, every node/.style={font=\small,align=center}]
+\node[draw,rounded corners,fill=softblue,minimum width=3.2cm,minimum height=0.8cm] (n) {量子比特数\\ $n=\#$qubits};
+\node[draw,rounded corners,fill=softyellow,minimum width=3.2cm,minimum height=0.8cm,right=of n] (N) {Hilbert 空间维数\\ $N=2^n,\ \mathcal H\cong\C^N$};
+\draw[-Latex,thick] (n)--(N) node[midway,above]{指数};
+\end{tikzpicture}
+\end{center}
+\begin{itemize}
+\item 1 qubit：$\C^2$；2 qubits：$\C^4$；$n$ qubits：$\C^{2^n}$（\textbf{张量积结构}的必然结果）；
+\item $n=50$：$2^{50}\approx 1.13\times 10^{15}$，已超过 $10^{15}$ —— 任何经典显式向量都无法存储；
+\item 量子算法的目标复杂度是 $\poly(n)=\poly(\log N)$，而经典显式算法至少要"看见" $N$ 个自由度。
+\end{itemize}
+\begin{exbox}{对数值分析的意义}
+PDE 离散后自由度 $N_{\text{dof}}=N^d$。用 \textbf{amplitude encoding}，
+$N_{\text{dof}}$ 个网格值只需 $n=d\log_2 N$ 个 qubit 编码。\textbf{指数压缩}由此而来。
+\end{exbox}
+\smallcite{day16 课件第 9 页"两个维数：$n$ 与 $N=2^n$"。}
+\end{frame}
+
+% ============================================================================
+\section{科学计算中的量子优势}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 科学计算中的量子优势}\par\vspace{4mm}
+{\large Quantum Advantage in Scientific Computing}
+\end{frame}
+
+\begin{frame}{为什么数值研究者要关心量子计算？}
+\begin{keybox}{从 Church--Turing 论题说起}
+经典计算机科学建立在\textbf{图灵机}模型上：一切已知经典计算系统彼此图灵等价。
+扩展 Church--Turing 论题断言：\emph{任何}合理的计算模型都能被概率图灵机以\textbf{多项式开销}模拟。
+\end{keybox}
+\begin{itemize}
+\item EPR 与 Bell：纠缠无法被经典\textbf{局部实在论}合理描述 —— 物理原理层面冲击 Church--Turing；
+\item Shannon/Landauer：信息是物理的，擦除 1 比特信息必须付出热力学能量代价；
+\item Manin (1980) 与 Feynman (1982) 独立指出：$n$ 个量子比特的态空间维数为 $2^n$，
+\textbf{直接模拟量子力学在经典计算机上需要指数时间，而物理系统自身却能高效演化}。
+\end{itemize}
+\begin{warnbox}{核心论点}
+充分利用量子力学原理的计算机，有可能在某些问题上\textbf{指数地}超越图灵机。
+本课只讨论"如何评价这种优势"，不构造具体算法。
+\end{warnbox}
+\smallcite{R. P. Feynman, Int. J. Theor. Phys. 21, 467--488 (1982); Y. I. Manin, \emph{Computable and Uncomputable}, 1980.}
+\end{frame}
+
+\begin{frame}{量子加速：宣称之前必须回答的四个问题}
+$n$ 个 qubit 处于 $2^n$ 个基态的叠加，\textbf{看似}处处应有加速；但实际远为微妙：
+\begin{enumerate}
+\item 量子算法是否需要\textbf{指数规模}的经典\textbf{输入}？
+\item 量子算法是否产生需要\textbf{指数规模}提取的经典\textbf{输出}？
+\item 若经典态空间大小为 $2^n$，经典算法是否必须遍历\textbf{全部}状态才能达到所需精度？
+\item 若经典态空间大小仅为 $n$，但现有经典算法代价为 $2^n$，
+未来的经典算法能否把代价降至 $\poly(n)$？
+\end{enumerate}
+\begin{keybox}{宏观视角}
+这四个问题基本无需复杂量子术语即可讨论，且对\textbf{任何}声称的量子加速都适用
+—— 这正是"细读细则"的第一步。
+\end{keybox}
+\smallcite{Model 1 笔记第 1.1 节；Lin \& Wiebe, \emph{Quantum Algorithms for Scientific Computation} notes.}
+\end{frame}
+
+\begin{frame}{量子加速的定义：一个对数比值}
+\begin{Def}[\textbf{量子加速 quantum speedup}]
+以系统规模 $n$ 的函数衡量量子与经典算法代价，
+\[
+\text{量子加速}=\frac{\log\big(\min \mathrm{Cost}_{\text{经典}}(n)\big)}
+                        {\log\big(\mathrm{Cost}_{\text{量子}}(n)\big)}.
+\]
+\end{Def}
+\begin{itemize}
+\item 若经典与量子代价渐近正比于 $n^{c}$ 与 $n^{q}$，则比值 $\to c/q$：
+\textbf{二次加速} $=2$，\textbf{三次加速} $=3$，依次类推；
+\item $\min \mathrm{Cost}_{\text{经典}}$ 应对\textbf{所有}经典算法取极小（含未来算法！），
+实践中只能以现有最优算法的证据来估计；
+\item 例：我们至今不知道素因数分解能否在多项式时间内经典完成。
+\end{itemize}
+\smallcite{Model 1 笔记定义 1.1 及其后注记。}
+\end{frame}
+
+\begin{frame}{超多项式加速与指数量子优势}
+\begin{Def}[\textbf{超多项式加速} 与 \textbf{指数量子优势 (EQA)}]
+若 $c\to\infty$（经典代价指数增长）而量子代价保持\textbf{多项式有界}，
+则称加速为\textbf{超多项式}（superpolynomial）的；这一情形称为
+\textbf{指数量子优势}（exponential quantum advantage, EQA）。
+\end{Def}
+\begin{keybox}{二次加速的根源：概率密度 vs 振幅}
+量子力学常被描述为概率理论，但其核心对象是\textbf{振幅}（amplitude）：
+Born 规则 $p=|\alpha|^2$ 下，振幅是概率的"平方根"+ 相位。
+概率密度与振幅的差别，往往是\textbf{二次加速}（$c/q=2$）的根源，
+最典型的是非结构搜索的 \textbf{Grover 算法}。
+\end{keybox}
+\begin{warnbox}{本课口径}
+仅凭二次加速恐怕不是早期容错量子计算机最具突破性的应用。
+本课用\textbf{显著量子加速}泛指高于二次乃至超多项式的加速。
+\end{warnbox}
+\smallcite{Model 1 笔记定义 1.2、注 1.5；L. K. Grover, STOC 1996.}
+\end{frame}
+
+\begin{frame}{例：Shor 素因数分解 —— "最干净"的显著加速}
+已知 $m=pq$（$p,q$ 素数），求 $p,q$。规模取 $m$ 的二进制位数 $n$。
+\begin{center}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & 渐近代价 & 性质\\
+\midrule
+经典最优（GNFS 一般数域筛法） & $\exp\big[c\,n^{1/3}(\log n)^{2/3}\big]$ & 超多项式 \\
+Shor 量子算法 & $\tilde O(n^2)$（$n^2\log n\log\log n$ 门） & 多项式\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item 加速是\textbf{超多项式}的；按严格定义尚不是"指数级"（经典代价非指数），
+但实践中已相当满意；
+\item 数学结构：模幂函数的\textbf{周期性}（隐藏子群问题 hidden subgroup problem）；
+\item 问题"可验证"：把返回的因子相乘即可高效检验。
+\end{itemize}
+\smallcite{P. W. Shor, SIAM J. Comput. 26(5), 1484--1509 (1997). 复杂度式见 Model 1 笔记例 1.1。}
+\end{frame}
+
+\begin{frame}{量子成本的分解：输入、运行、输出}
+量子代价 $\approx$（总门复杂度）$\times$（因测量导致的重复运行次数），分解为三部分：
+\begin{enumerate}
+\item \textbf{输入成本 input cost}：制备输入态 $\ket{\psi_I}=U_I\ket{0^n}$ 的门复杂度；
+若输入由实验制备，则是\textbf{样本复杂度}（实验重复次数）；
+\item \textbf{运行成本 running cost}：单次相干运行的算法门复杂度（不含 $U_I$）；
+\item \textbf{输出成本 output cost}：达到所需精度需重复运行的次数 $M$（测量成本）。
+\end{enumerate}
+\begin{warnbox}{输出端：量子态层析的代价}
+若算法最终产物本身是\textbf{量子态}，经典恢复它需要\textbf{量子态层析}（tomography），
+代价随系统规模\textbf{指数}增长。应把注意力集中在
+"最终结果只需测量少量可观测量即可获得"的问题上。
+\end{warnbox}
+\smallcite{Model 1 笔记定义 1.3、注 1.6；day16 课件第 27 页。}
+\end{frame}
+
+\begin{frame}{"细读细则"：量子计算机是加速器，而非通用替代品}
+如 Aaronson 所强调，评估量子优势主张时必须"read the fine print"，以下条件须同时满足：
+\begin{enumerate}
+\item 该问题在经典硬件上是\textbf{计算密集}的；
+\item 该任务在量子设备上能够\textbf{高效}求解；
+\item 数据\textbf{输入与输出}的开销（加载与提取数据）不应当主导总代价。
+\end{enumerate}
+\begin{itemize}
+\item 针对经典数据的线性代数与机器学习加速主张，依赖很强的\textbf{数据访问假设}；
+在类似假设下，"量子启发"的经典算法有时也能达到可比复杂度；
+\item 满足全部条件远非易事：这是重大的理论、实验与算法挑战。
+\end{itemize}
+\begin{keybox}{结论}
+量子计算机不应被看作注定取代经典计算机的通用设备，
+而应视为在特定任务上提供显著加速的\textbf{加速器（accelerator）}。
+\end{keybox}
+\smallcite{S. Aaronson, ``Read the fine print,'' Nature Physics 11, 291--293 (2015); Model 1 笔记注 1.7。}
+\end{frame}
+
+\begin{frame}{量子优势层级：四层金字塔}
+\begin{center}
+\begin{tikzpicture}[x=1cm, y=1cm, scale=0.75]
+    \fill[blue!60] (3,4.2) -- (3.85,3.35) -- (2.15,3.35) -- cycle;
+    \fill[blue!45] (3.85,3.35) -- (4.7,2.5) -- (1.3,2.5) -- (2.15,3.35) -- cycle;
+    \fill[blue!30] (4.7,2.5) -- (5.55,1.65) -- (0.45,1.65) -- (1.3,2.5) -- cycle;
+    \fill[blue!18] (5.55,1.65) -- (6.2,0.8) -- (-0.2,0.8) -- (0.45,1.65) -- cycle;
+    \draw (3,4.2) -- (6.2,0.8) -- (-0.2,0.8) -- cycle;
+    \draw (3.85,3.35) -- (2.15,3.35);
+    \draw (4.7,2.5) -- (1.3,2.5);
+    \draw (5.55,1.65) -- (0.45,1.65);
+    \node[text=white, font=\small] at (3,3.78) {I};
+    \node[text=white, font=\small] at (3,2.93) {II};
+    \node[font=\small] at (3,2.08) {III};
+    \node[font=\small] at (3,1.23) {IV};
+    \node[anchor=west, align=left, font=\scriptsize] at (6.6,3.9)  {高度结构化问题\\[-2pt] {\footnotesize 可证明的速度提升}};
+    \node[anchor=west, align=left, font=\scriptsize] at (6.6,3.0)  {酉动力学、采样与学习\\[-2pt] {\footnotesize 经验上的困难}};
+    \node[anchor=west, align=left, font=\scriptsize] at (6.6,2.15) {量子性质与有效动力学\\[-2pt] {\footnotesize 经验上的困难}};
+    \node[anchor=west, align=left, font=\scriptsize] at (6.6,1.3)  {强经典基线与 I/O 受限\\[-2pt] {\footnotesize 高效的经典基线}};
+    \draw[->,thick] (-1.0,0.8) -- (-1.0,4.6);
+    \node[rotate=90] at (-1.55,2.7) {\footnotesize 证据强度};
+    \draw[->,thick] (-0.2,0.35) -- (7.4,0.35);
+    \node at (3.4,0.05) {\footnotesize 应用范围};
+\end{tikzpicture}
+\end{center}
+\smallcite{依据 Model 1 笔记图 1.1（Lin--Wiebe live notes 图 1.1）重绘。}
+\end{frame}
+
+\begin{frame}{四层：典型问题与经典代价证据}
+\footnotesize
+\begin{tabular}{@{}p{1.5cm}p{3.2cm}p{4.6cm}p{4.7cm}@{}}
+\toprule
+层级 & 问题类型 & 经典代价的证据 & 典型例子\\
+\midrule
+水平 I & 高度结构化问题 & 可证明地昂贵 & Shor 分解/离散对数；DQI 求解结构化优化\\
+水平 II & 酉动力学、采样与学习 & 经验上昂贵 & Hamiltonian 模拟；随机电路采样；带量子记忆的学习\\
+水平 III & 量子性质与有效动力学 & 经验上昂贵；经典近似方法强大但通常不能任意精度收敛 & 基态能量估计；热态制备；Green 函数；开放系统动力学\\
+水平 IV & 强经典基线与 I/O 受限 & 高效（超大系统除外） & 经典 PDE 与随机微分方程；非结构化优化；经典机器学习\\
+\bottomrule
+\end{tabular}
+\begin{itemize}
+\item \textbf{水平 I}：数学结构使量子算法绕开穷举搜索；但此类结构在一般科学计算中\textbf{十分罕见}；
+\item \textbf{水平 II}：$n$ qubit 物理 Hamiltonian 的演化，$\poly(n,t,1/\eps)$ 代价；验证量子优势困难；
+\item \textbf{水平 III}：非酉对象需 LCU、postselection 或辅助比特等间接映射；基态能量估计可遇 \textbf{QMA-hard} 瓶颈；
+\item \textbf{水平 IV}：多数"经典问题量子化"落入此层 —— 见下一页。
+\end{itemize}
+\smallcite{Model 1 笔记表 1.1 及各水平说明。}
+\end{frame}
+
+\begin{frame}{水平 IV 与 PDE：强经典基线 + I/O 限制}
+为什么大多数"用量子计算机解 PDE"的朴素想法落在金字塔最底层？
+\begin{enumerate}
+\item \textbf{强经典基线}：网格规模 $N$ 上的许多 PDE 可经典地在 $\poly(N)$ 时间求解
+（快速算法常常近似\textbf{线性}）；
+\item \textbf{I/O 限制}：仅把大小为 $N$ 的任意输入向量加载进量子态就需要线性于 $N$ 的时间，
+足以抵消任何潜在的指数加速。
+\end{enumerate}
+\begin{itemize}
+\item 例外：经典数据具有显著\textbf{结构}因而可以高效加载；
+最近对大规模经典谐振子的量子求解器就在此情形下展示了潜在优势；
+\item 非结构化搜索：Grover 的二次加速通常不足以克服容错\textbf{量子纠错}的常数开销
+与高度优化的经典启发式之间的差距；
+\item 反向机会：许多密码问题可表述为经典优化问题 ——
+量子算法的下一个突破，可能再次来自经典问题。
+\end{itemize}
+\smallcite{Model 1 笔记第 1.2.4 节；day16 课件第 75 页"何时可能有端到端优势"。}
+\end{frame}
+
+\begin{frame}{何时可能有端到端优势？（day16 的条件清单）}
+以周期 Schrödinger 量子谱方法为例（后文详述），端到端优势需要：
+\begin{enumerate}
+\item \textbf{结构化初态}：$u_0$ 可由线路 $U_{u_0}$ 高效制备（$\poly$ 门），
+而不是任意 $N^d$ 维经典向量免费加载；
+\item \textbf{少量输出}：目标是归一化态、样本或 $O(1)$ 个观测量，
+\textbf{不}要求打印全部 $N^d$ 个网格值；
+\item \textbf{高效频域操作}：Fourier symbol（如 $\e^{\ii|k|^2t}$）可由酉线路高效实现；
+\item \textbf{比较对象}：经典基线确实需要显式处理高维网格向量（$O(dN^d\log N)$ 运算）。
+\end{enumerate}
+\begin{warnbox}{不能省略的限制}
+若输入是任意完整数组，或要求恢复全部 $N^d$ 个网格值，
+加载/读出本身就可能需要 $\Omega(N^d)$，\textbf{不能}宣称端到端指数加速。
+\end{warnbox}
+\smallcite{day16 课件第 73--75 页；Model 1 笔记注 1.10。}
+\end{frame}
+
+% ============================================================================
+\section{量子力学的四大公设}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 量子力学的四大公设}\par\vspace{4mm}
+{\large Four Postulates of Quantum Mechanics}
+\end{frame}
+
+\begin{frame}{四大公设概览}
+与 Newton 力学不同，量子力学不试图从"直觉"出发，而是从\textbf{四条数学公设}出发，
+推导出一切可观测结论。后续所有算法、协议与约束都建立在其上：
+\begin{enumerate}
+\item \textbf{态空间公设}（Postulate 1）：系统状态由 \textbf{Hilbert 空间}中的单位向量描述；
+\item \textbf{演化公设}（Postulate 2）：封闭系统的演化由\textbf{酉变换}
+（或 Schrödinger 方程）描述；
+\item \textbf{测量公设}（Postulate 3）：测量由一组测量算子描述，结果满足概率规则；
+\item \textbf{复合系统公设}（Postulate 4）：复合系统的态空间为子系统态空间的\textbf{张量积}。
+\end{enumerate}
+\begin{keybox}{数值研究者的视角}
+这四条公设 = 向量空间 + 保范线性映射 + 概率读出 + 张量积结构。
+每条都可在数值线性代数中找到对应物。
+\end{keybox}
+\end{frame}
+
+\begin{frame}{公设 1：态空间（State space）}
+\begin{Thm}
+任意孤立的物理系统都与一个复内积向量空间（\textbf{Hilbert 空间}）相联系；
+系统状态由其中的\textbf{单位向量}（状态向量）完全描述。
+\end{Thm}
+最重要的量子系统是 \textbf{量子比特（qubit）}，其态空间为 $\mathcal H=\C^2$：
+\[
+\ket{\psi}=\alpha\ket{0}+\beta\ket{1},\qquad \alpha,\beta\in\C,\quad |\alpha|^2+|\beta|^2=1,
+\]
+其中 $\ket{0}=\begin{pmatrix}1\\0\end{pmatrix}$、$\ket{1}=\begin{pmatrix}0\\1\end{pmatrix}$
+为计算基（computational basis）。
+\begin{warnbox}{与经典比特的本质区别}
+经典比特任何时刻非 0 即 1；qubit 可以处于 \textbf{叠加态（superposition）}
+$\alpha\ket0+\beta\ket1$。注意：叠加是数学意义上的\textbf{线性组合}，
+而非"同时处于 0 和 1"——后者是常见误解。
+\end{warnbox}
+\end{frame}
+
+\begin{frame}{公设 2：演化（Unitary evolution）}
+\begin{Thm}
+封闭量子系统在 $t_1$ 与 $t_2$ 时刻的状态通过\textbf{酉算子} $U$ 联系：
+$\ket{\psi'}=U\ket{\psi}$，$U^\dagger U=I$。等价地，连续时间演化满足
+\textbf{Schrödinger 方程} $\ii\frac{d}{dt}\ket{\psi(t)}=H(t)\ket{\psi(t)}$，
+其中 $H=H^\dagger$ 是\textbf{厄米}的哈密顿量（取 $\hbar=1$）。
+\end{Thm}
+\begin{keybox}{谱分解下的演化}
+若 $H\ket{\psi_\ell}=\lambda_\ell\ket{\psi_\ell}$，则
+$\e^{-\ii Ht}\ket{\psi_\ell}=\e^{-\ii\lambda_\ell t}\ket{\psi_\ell}$：
+\textbf{谱信息变成相位}（QPE 的任务就是读出这个相位）。
+\end{keybox}
+\begin{exbox}{与数值分析的接口}
+量子计算中通常考虑离散时间酉门；但 Hamiltonian 模拟需从 Schrödinger 方程构造酉门
+—— 时间步进 $\e^{-\ii Ht}$ 就是"精确的隐式时间步"。
+\end{exbox}
+\smallcite{day16 课件第 14--15 页。}
+\end{frame}
+
+\begin{frame}{公设 3：测量与 Born 规则}
+\begin{Thm}
+量子测量由测量算子族 $\{M_m\}$ 描述，满足\textbf{完备性关系}
+$\sum_m M_m^\dagger M_m=I$。对 $\ket{\psi}$ 测量：
+\begin{enumerate}
+\item 结果 $m$ 的概率为 $p(m)=\mel{\psi}{M_m^\dagger M_m}{\psi}$；
+\item 测量后状态\textbf{坍缩（collapse）}为 $\dfrac{M_m\ket{\psi}}{\sqrt{p(m)}}$。
+\end{enumerate}
+\end{Thm}
+\begin{itemize}
+\item 完备性关系 $\Leftrightarrow$ $\sum_m p(m)=1$ 对所有 $\ket{\psi}$ 成立；
+\item 测量是量子力学中唯一\textbf{非酉}的操作：测量后状态发生不可逆改变 ——
+这是量子算法设计中必须考虑的核心约束。
+\end{itemize}
+\begin{keybox}{全局相位与相对相位}
+$e^{\ii\theta}\ket{\psi}$ 与 $\ket{\psi}$ 的测量统计完全相同（\textbf{全局相位}不可观测）；
+但 $\ket{+}=\tfrac1{\sqrt2}(\ket0+\ket1)$ 与 $\ket{-}=\tfrac1{\sqrt2}(\ket0-\ket1)$
+中 $\ket1$ 的振幅相差负号（\textbf{相对相位}）—— 干涉实验中可观测。
+\end{keybox}
+\end{frame}
+
+\begin{frame}{公设 4：复合系统与张量积}
+\begin{Thm}
+复合物理系统的状态空间是子系统状态空间的\textbf{张量积}；若系统 $i$ 处于
+$\ket{\psi_i}$，则联合状态为
+\[
+\ket{\psi_1}\otimes\ket{\psi_2}\otimes\cdots\otimes\ket{\psi_n}.
+\]
+\end{Thm}
+\begin{itemize}
+\item $n$ 个 qubit：$(\C^2)^{\otimes n}\cong\C^{2^n}$，维数 $2^n$（而非 $2n$！）；
+\item 计算基：$\ket{x}:=\ket{x_1}\otimes\cdots\otimes\ket{x_n}$，
+$x\in\{0,1\}^n$（简写 $\ket{01}\equiv\ket{0,1}\equiv\ket0\ket1$）；
+\item 张量积结构是"指数爆炸"的根源，也是量子计算潜力的数学基础。
+\end{itemize}
+\begin{exbox}{Bell 态（EPR 对）与纠缠}
+\[
+\ket{\Phi^+}=\frac1{\sqrt2}\big(\ket{00}+\ket{11}\big)
+\]
+无法写成任何乘积态 $\ket a\otimes\ket b$（系数比较可证）。
+这种性质称为\textbf{纠缠（entanglement）}，是量子计算区别于经典计算的核心资源之一。
+\end{exbox}
+\end{frame}
+
+\begin{frame}{线性代数工具箱：谱定理、SVD 与矩阵函数}
+数值研究者熟悉的工具，在量子算法中反复使用：
+\begin{Thm}[\textbf{正规矩阵谱定理}]
+$A\in\C^{N\times N}$ 正规（$AA^\dagger=A^\dagger A$）$\Leftrightarrow$
+存在酉 $V$ 与对角 $D$ 使 $A=VDV^\dagger$。厄米与酉矩阵都是正规矩阵。
+\end{Thm}
+\begin{itemize}
+\item \textbf{厄米谱分解}（全书最常用）：$A=\sum_i\lambda_i\ket{v_i}\bra{v_i}$，
+$\lambda_i\in\R$。后文 qubitization、QET、HHL 中 $H=\sum_j\lambda_j\ket{\lambda_j}\bra{\lambda_j}$ 均指此式；
+\item \textbf{SVD}：任意 $A\in\C^{M\times N}$ 有 $A=U\Sigma V^\dagger$ ——
+量子奇异值变换（QSVT）以奇异值分解为基础；
+\item \textbf{矩阵指数}：$e^{A}:=\sum_j A^j/j!$；酉矩阵总可写成 $U=e^{-\ii H}$（$H$ 厄米）。
+\end{itemize}
+\smallcite{Model 1 笔记第 2.5 节；N. Higham, \emph{Functions of Matrices}, 2008.}
+\end{frame}
+
+\begin{frame}{矩阵指数与 Pauli 旋转公式}
+\begin{Lem}[\textbf{二次幂矩阵指数闭式}]
+若 $H^2=\omega^2 I$（$\omega\ge0$），则
+\[
+e^{-\ii Ht}=\cos(\omega t)\,I-\ii\,\frac{\sin(\omega t)}{\omega}\,H.
+\]
+\end{Lem}
+\begin{Cor}[\textbf{泡利向量旋转}]
+对 $\mathbf n=(n_x,n_y,n_z)$、$\omega=|\mathbf n|$：
+\[
+e^{-\ii(\mathbf n\cdot\boldsymbol\sigma)t}
+=\cos(\omega t)\,I-\ii\,\frac{\sin(\omega t)}{\omega}\,(\mathbf n\cdot\boldsymbol\sigma),
+\qquad (\mathbf n\cdot\boldsymbol\sigma)^2=\omega^2 I.
+\]
+\end{Cor}
+\begin{itemize}
+\item 单比特哈密顿量的演化是 Bloch 球上绕 $\mathbf n$ 轴的\textbf{旋转}；
+\item 特例 $R_P(\theta)=e^{-\ii\theta P/2}$ 即旋转门（后文）；
+\item BCH 公式 $e^{A}e^{B}=e^{A+B+\frac12[A,B]+O(\|A\|^3)}$ 是 Trotter--Suzuki
+分裂（Hamiltonian 模拟）误差分析的基础。
+\end{itemize}
+\smallcite{Model 1 笔记引理 2.8--2.11 与推论 2.12。}
+\end{frame}
+
+% ============================================================================
+\section{量子比特与数据编码}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 量子比特与数据编码}\par\vspace{4mm}
+{\large Qubits, Density Operators, and Amplitude Encoding}
+\end{frame}
+
+\begin{frame}{单量子比特与 Bloch 球}
+任意单 qubit 态可写为（忽略全局相位 $e^{\ii\gamma}$ 后由 $(\theta,\varphi)$ 完全确定）：
+\[
+\ket{\psi}=e^{\ii\gamma}\Big(\cos\tfrac{\theta}{2}\ket0+e^{\ii\varphi}\sin\tfrac{\theta}{2}\ket1\Big),
+\qquad
+\mathbf a=(\sin\theta\cos\varphi,\ \sin\theta\sin\varphi,\ \cos\theta)\in S^2.
+\]
+\begin{center}
+\begin{tikzpicture}[scale=0.48]
+\draw[thick] (0,0) circle (2.2);
+\draw[->,thick] (0,-2.4) -- (0,2.4) node[above]{$\ket0$};
+\node[below] at (0,-2.4){$\ket1$};
+\draw[->,thick] (-2.4,0) -- (2.4,0) node[right]{$x$};
+\node[below right] at (2.15,0){$\ket{+}$}; \node[below left] at (-2.15,0){$\ket{-}$};
+\draw[thick,deepred] (0,0) -- (2.2,0);
+\draw[thick,darkgreen] (0,0) -- (70:2.2);
+\draw[thick,->] (0,1.1) arc (90:70:1.1) node[midway,right]{$\theta$};
+\filldraw[deepred] (70:2.2) circle (1.6pt) node[above right]{$\ket{\psi}$};
+\end{tikzpicture}
+\end{center}
+\begin{keybox}{自由度记账}
+4 个实参数（$\alpha,\beta$ 各 2 个）$-$ 归一化 $-$ 全局相位 $=$ \textbf{2 个自由度}：$(\theta,\varphi)$。
+\end{keybox}
+\smallcite{Model 1 笔记第 3.2 节；day16 课件第 13 页。}
+\end{frame}
+
+\begin{frame}{密度算子：纯态、混合态与子系统}
+\begin{Def}[\textbf{密度算子 density operator}]
+系统以概率 $p_i$ 处于纯态 $\ket{\psi_i}$（$\sum_i p_i=1$）时，
+$\rho:=\sum_i p_i\ket{\psi_i}\bra{\psi_i}$，满足 $\rho=\rho^\dagger$、$\rho\succeq0$、$\Tr\rho=1$。
+$\rho^2=\rho$ 为\textbf{纯态}，否则为\textbf{混合态}（mixed state）。
+\end{Def}
+\begin{Def}[\textbf{部分迹与约化密度算子}]
+$\rho_A:=\Tr_B\rho_{AB}$；只作用在 $A$ 上的可观测量统计只依赖 $\rho_A$：$p(m)=\Tr(P_m\rho_A)$。
+\end{Def}
+\begin{exbox}{Bell 态的约化密度算子}
+$\ket{\Phi^+}$ 对系统 $B$ 求部分迹：
+$\rho_A=\Tr_B\ket{\Phi^+}\bra{\Phi^+}=\tfrac12(\ket0\bra0+\ket1\bra1)=I/2$
+—— 复合系统的\textbf{纯态}在子系统上表现为\textbf{最大混合态}：
+纠缠的信息完全存在于子系统间的关联中。
+\end{exbox}
+\smallcite{Model 1 笔记第 3.4 节；day16 课件第 24 页。}
+\end{frame}
+
+\begin{frame}{PDE 桥接：网格函数的 amplitude encoding}
+设周期网格有 $N=2^n$ 个点，网格函数 $u=(u_0,\dots,u_{N-1})^\top\in\C^N$。
+量子态编码为\textbf{归一化}向量：
+\[
+\ket{u}=\frac{1}{\|u\|_2}\sum_{j=0}^{N-1}u_j\ket{j}.
+\]
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.5\textwidth}
+\begin{keybox}{$L^2$ 与 $\ell^2$ 的尺度}
+空间步长 $h$ 时，一维情形
+\[
+\|u\|_{L^2}^2\approx h\sum_j|u_j|^2=h\,\|u\|_2^2.
+\]
+量子振幅是\textbf{归一化后的网格值}；原始范数需另行记录或估计。
+\end{keybox}
+\column{0.5\textwidth}
+\begin{warnbox}{两个不同的复杂度问题}
+\begin{itemize}
+\item \textbf{单次运行}：制备 $\ket{u_N(t)}$ 需要多少门？$\to \poly(d,\log N,\log 1/\eps)$ 可能；
+\item \textbf{端到端读出}：把观测量估计到给定误差需多少次运行？$\to O(1/\eps_{\text{meas}}^2)$。
+\end{itemize}
+加载\textbf{任意} $N$ 维经典向量仍需 $\Omega(N)$ —— 结构是关键。
+\end{warnbox}
+\end{columns}
+\smallcite{day16 课件第 25 页、第 33 页。}
+\end{frame}
+
+% ============================================================================
+\section{量子线路与量子门}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 量子线路与量子门}\par\vspace{4mm}
+{\large Quantum Circuits and Quantum Gates}
+\end{frame}
+
+\begin{frame}{量子线路语言：线、门、控制与测量}
+\begin{center}
+\begin{quantikz}[row sep=0.28cm,column sep=0.45cm]
+\lstick{$\ket{0}$} & \gate{H} & \ctrl{1} & \gate{R_z(\theta)} & \qw \\
+\lstick{$\ket{0}$} & \qw      & \targ{}  & \qw             & \meter{}
+\end{quantikz}
+\end{center}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.55\textwidth}
+\begin{itemize}
+\item 每条线（wire）表示一个 qubit，自上而下编号；时间从左到右；
+\item 方框表示\textbf{酉门}；黑点表示\textbf{控制}；$\oplus$ 表示 CNOT 目标位；
+\item 测量是非酉过程，输出经典随机结果。
+\end{itemize}
+\column{0.43\textwidth}
+\begin{keybox}{约定}
+一个门作用在对应 qubit 子空间，并隐含与其余 qubit 的\textbf{恒等张量积}。
+例如单比特门 $G$ 在 2-qubit 系统上实际是 $G\otimes I$。
+\end{keybox}
+\end{columns}
+\smallcite{day16 课件第 17 页。}
+\end{frame}
+
+\begin{frame}{单比特门：Pauli 门、Hadamard 与相位门}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}lcccl@{}}
+\toprule
+门 & 矩阵 & 作用 & 性质\\
+\midrule
+$X$ & $\begin{pmatrix}0&1\\1&0\end{pmatrix}$ & $\ket0\leftrightarrow\ket1$（比特翻转） & $X^2=I$\\
+$Y$ & $\begin{pmatrix}0&-\ii\\\ii&0\end{pmatrix}$ & 比特+相位翻转 & $Y^2=I$\\
+$Z$ & $\begin{pmatrix}1&0\\0&-1\end{pmatrix}$ & $\ket1\mapsto-\ket1$（相位翻转） & $Z^2=I$\\
+$H$ & $\tfrac1{\sqrt2}\begin{pmatrix}1&1\\1&-1\end{pmatrix}$ & $\ket0\mapsto\ket+$（产生叠加） & $H^2=I,\ HXH=Z$\\
+$S$ & $\begin{pmatrix}1&0\\0&\ii\end{pmatrix}$ & 相位 $\pi/2$ & $S^2=Z$\\
+$T$ & $\begin{pmatrix}1&0\\0&e^{\ii\pi/4}\end{pmatrix}$ & 相位 $\pi/4$ & $T^2=S$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item $\{I,X,Y,Z\}$ 构成 $\C^{2\times2}$ 的一组基；
+\item 任意两个不同 Pauli 算子\textbf{反对易}：$\{P,Q\}=PQ+QP=0$（如 $XZ+ZX=0$）。
+\end{itemize}
+\smallcite{Model 1 笔记第 4.1 节；day16 课件第 16 页。}
+\end{frame}
+
+\begin{frame}{旋转门：$R_P(\theta)=e^{-\ii\theta P/2}$}
+对任意 $P\in\{X,Y,Z\}$ 与实数 $\theta$：
+\[
+R_P(\theta):=e^{-\ii\theta P/2}=\cos\tfrac{\theta}{2}\,I-\ii\sin\tfrac{\theta}{2}\,P,
+\qquad
+R_z(\theta)=\begin{pmatrix}e^{-\ii\theta/2}&0\\0&e^{\ii\theta/2}\end{pmatrix}.
+\]
+\begin{itemize}
+\item 对应 Bloch 球上绕 $P$ 轴旋转角度 $\theta$；
+\item 更一般：$H=n_xX+n_yY+n_zZ$ 的演化
+$e^{-\ii Ht}=\cos(\omega t)I-\ii\frac{\sin(\omega t)}{\omega}H$（$\omega=|\mathbf n|$）
+是绕 $\mathbf n$ 轴的旋转（上一节闭式公式）；
+\item \textbf{Euler 分解}：任何单比特酉门可写成至多三个旋转门的复合。
+\end{itemize}
+\begin{exbox}{与数值分析对照}
+$R_z(\theta)$ 就是单比特上的"对角相位旋转"；在频域谱方法中，
+逐模式乘 $\e^{\ii|k|^2t}$ 正是这种对角相位操作的 $N$-维推广。
+\end{exbox}
+\smallcite{Model 1 笔记定理 4.3 与注 4.4。}
+\end{frame}
+
+\begin{frame}{多比特门：CNOT、受控-$U$、SWAP 与 Toffoli}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.55\textwidth}
+\textbf{CNOT}（受控非）：
+\begin{center}
+\begin{quantikz}[row sep=0.3cm,column sep=0.42cm]
+\lstick{$\ket c$} & \ctrl{1} & \qw \\
+\lstick{$\ket b$} & \targ{} & \qw
+\end{quantikz}
+\end{center}
+\[
+\mathrm{CNOT}\ket{c,b}=\ket{c,\,c\oplus b}.
+\]
+\textbf{受控-$U$}：
+\begin{center}
+\begin{quantikz}[row sep=0.3cm,column sep=0.42cm]
+\lstick{$\ket c$} & \ctrl{1} & \qw \\
+\lstick{$\ket\psi$} & \gate{U} & \qw
+\end{quantikz}
+\end{center}
+\[
+CU=\ket0\bra0\otimes I+\ket1\bra1\otimes U.
+\]
+\column{0.45\textwidth}
+\textbf{SWAP}：$\mathrm{SWAP}\ket a\ket b=\ket b\ket a$；\textbf{Toffoli}（CCNOT）：
+\[
+\mathrm{Toffoli}\ket a\ket b\ket c=\ket a\ket b\ket{c\oplus(a\wedge b)}.
+\]
+\begin{center}
+\begin{quantikz}[row sep=0.22cm,column sep=0.3cm]
+\lstick{$\ket a$} & \ctrl{1} & \qw \\
+\lstick{$\ket b$} & \ctrl{1} & \qw \\
+\lstick{$\ket c$} & \targ{} & \qw
+\end{quantikz}
+\end{center}
+\begin{keybox}{相位回踢（phase kickback）的入口}
+若目标态是 $U$ 的本征态 $\ket\psi$（$U\ket\psi=e^{2\pi i\phi}\ket\psi$），
+受控-$U$ 会把本征相位"写进"控制比特：
+$\ket1\ket\psi\ \xrightarrow{CU}\ e^{2\pi i\phi}\ket1\ket\psi$。
+这是 QPE 的关键机制。
+\end{keybox}
+\end{columns}
+\smallcite{Model 1 笔记第 4.2 节；day16 课件第 18 页。}
+\end{frame}
+
+\begin{frame}{通用门集与 Solovay--Kitaev 定理}
+\begin{Def}[\textbf{通用门集}]
+门集 $\mathcal S$ 是通用的，若对任意 $n$ 比特酉算子 $U$ 与任意精度 $\eps>0$，
+存在 $\mathcal S$ 中的门序列使 $\|U-U_m\cdots U_1\|\le\eps$
+（算子范数）。注意通用性允许\textbf{近似}实现。
+\end{Def}
+\begin{Thm}[\textbf{Solovay--Kitaev}]
+若 $\mathcal S,\mathcal T$ 是两个对逆封闭的通用门集，则用 $\mathcal T$ 模拟
+$\mathcal S$ 中 $m$ 个门到精度 $\eps$ 只需 $O\big(m\,\poly\log(m/\eps)\big)$ 个门，
+且存在经典算法高效找到该电路。
+\end{Thm}
+\begin{itemize}
+\item $\{H,T,\mathrm{CNOT}\}$ 与 $\{H,\mathrm{Toffoli}\}$ 都是通用门集；
+\item 推论：\textbf{通用门集的选择对算法复杂度只造成 polylog 级别的差别}。
+\end{itemize}
+\smallcite{Model 1 笔记定理 4.5--4.6；Dawson \& Nielsen, arXiv:quant-ph/0505030.}
+\end{frame}
+
+\begin{frame}{Clifford 群与 Gottesman--Knill 定理}
+\begin{Def}[\textbf{Pauli 群与 Clifford 群}]
+$n$ 比特 Pauli 群 $\mathcal P_n$ 由 $i^kP_1\otimes\cdots\otimes P_n$ 组成（共 $4^{n+1}$ 个元素）。
+\textbf{Clifford 群} $\mathcal C_n$ 是共轭作用下保持 Pauli 群不变的酉算子集合：
+\[
+\mathcal C_n=\{C\in U(2^n):\ C P C^\dagger\in\mathcal P_n,\ \forall P\in\mathcal P_n\},
+\]
+可由 $\{H,S,\mathrm{CNOT}\}$ 生成。
+\end{Def}
+\begin{warnbox}[\textbf{Gottesman--Knill 定理}]
+仅含 Clifford 门、初态与测量都在计算基上的电路，可以在\textbf{经典计算机上高效模拟}。
+因此通用量子计算\textbf{必须引入非 Clifford 门}；容错量子计算常用的通用门集是
+\textbf{Clifford+T}。
+\end{warnbox}
+\smallcite{Model 1 笔记定义 4.7 与注 4.8；Gottesman 1998.}
+\end{frame}
+
+\begin{frame}{可逆计算、Oracle 与 Uncomputation}
+\begin{Prop}[\textbf{经典计算的量子化}]
+任何经典电路都可以高效地用量子电路模拟：把不可逆的经典门\textbf{可逆化}
+$(x,y)\mapsto(x,\ y\oplus f(x))$，即保存输入 $x$，再用酉算子实现该可逆映射。
+\end{Prop}
+\begin{Def}[\textbf{Oracle}]
+Oracle 是模拟布尔函数 $f:\{0,1\}^n\to\{0,1\}^m$ 的黑盒酉算子：
+$U_f\ket x\ket y=\ket x\ket{y\oplus f(x)}$；单比特输出时也可用
+\textbf{相位 oracle} $U_f\ket x=(-1)^{f(x)}\ket x$（相位反冲）。
+\end{Def}
+\begin{warnbox}[\textbf{Uncomputation 原则}]
+经典中可随意丢弃的中间结果，量子中\textbf{不能直接丢弃}：残留的垃圾寄存器与系统
+存在纠缠，会干扰后续计算。处理办法是对可逆电路再施加一遍\textbf{逆运算}（uncomputation），
+把工作寄存器恢复为 $\ket{0^m}$ 以便复用。
+\end{warnbox}
+\smallcite{Model 1 笔记命题 4.9、定义 4.10 与注 4.11。}
+\end{frame}
+
+\begin{frame}{稀疏矩阵：PDE 离散矩阵的量子入口}
+有限差分、有限元、谱方法的离散矩阵都是\textbf{稀疏或可稀疏化}的；
+稀疏性直接决定 block-encoding 与 oracle 构造的代价。
+\begin{Def}[\textbf{$s$-稀疏矩阵}]
+矩阵 $A\in\C^{M\times N}$ 是 $s$-稀疏的，若它的每行每列至多含 $s$ 个非零元。
+\end{Def}
+\begin{Lem}
+设 $A\in\C^{N\times N}$ 是 $s$-稀疏的，则 $\|A\|\le s\,\|A\|_{\max}$，
+其中 $\|A\|_{\max}:=\max_{i,j}|A_{ij}|$ 为最大范数。
+\end{Lem}
+\begin{itemize}
+\item 对角矩阵是 $1$-稀疏的；置换矩阵是 $1$-稀疏的；\textbf{三对角矩阵是 $3$-稀疏的}；
+\item 所有 Pauli 门 $P\in\mathcal P_n$ 都是 $1$-稀疏的；
+\item "每行每列至多 $s$ 个非零元"是必要条件：$A=\sum_{i=1}^N e_i e_1^\dagger$
+每行一个非零元但第一列有 $N$ 个，\textbf{不是} $1$-稀疏的。
+\end{itemize}
+\smallcite{Model 1 笔记第 5 节。}
+\end{frame}
+
+\begin{frame}{优化问题的 Hamiltonian 表示：MAX-CUT}
+经典组合优化可编码为量子 Hamiltonian，使其\textbf{基态}对应最优解
+（绝热量子计算、量子退火、QAOA 的基础）。
+\begin{exbox}[\textbf{MAX-CUT}]
+给定图 $G=(V,E)$，把顶点分成两个子集使跨子集的边数最大。Hamiltonian 为
+\[
+H=-\sum_{(i,j)\in E}\frac12\big(1-Z_iZ_j\big).
+\]
+每项 $-\frac12(1-Z_iZ_j)$ 在 $i,j$ 分属不同子集时 $=-1$，同属时 $=0$。
+最小化 $H$ $\Leftrightarrow$ 最大化被分割的边数。
+\end{exbox}
+\begin{itemize}
+\item k-SAT 类似：子句 Hamiltonian $H_{C_i}=\prod_j\frac{1+z_jZ_{p_j}}2$；
+$H$ 对角、半正定，基态能量 $0$ 对应满足全部子句的赋值；
+\item 3-SAT 是 NP-完全问题 —— 量子优化是对 NP 难题的一种（启发式）路线。
+\end{itemize}
+\smallcite{Model 1 笔记第 6 节。}
+\end{frame}
+
+% ============================================================================
+\section{测量与读出：PDE 视角}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 测量与读出：PDE 视角}\par\vspace{4mm}
+{\large Measurement and Readout}
+\end{frame}
+
+\begin{frame}{投影测量与期望值}
+\begin{Thm}[\textbf{Born 规则}]
+可观测量由厄米算子 $M$ 描述，谱分解 $M=\sum_m mP_m$（$m\in\R$ 为本征值，
+$P_m$ 为到本征空间的投影，满足 $\sum_mP_m=I$）。对纯态 $\ket\psi$ 测量 $M$：
+\begin{enumerate}
+\item 结果必定是某个本征值 $m$，概率 $p_m=\mel{\psi}{P_m}{\psi}$；
+\item 测量后系统坍缩到对应本征子空间：$\ket\psi\to\dfrac{P_m\ket\psi}{\sqrt{p_m}}$。
+\end{enumerate}
+\end{Thm}
+\begin{Cor}[\textbf{期望值}]
+$\langle M\rangle:=\sum_m m\,p_m=\mel{\psi}{M}{\psi}$。
+\end{Cor}
+\begin{exbox}{例：测量 $X$}
+$X=\ket+\bra+-\ket-\bra-$，对 $\ket\psi=\ket0=\tfrac1{\sqrt2}(\ket++\ket-)$：
+$p_+=p_-=\tfrac12$，$\langle X\rangle=0$。
+\end{exbox}
+\smallcite{Model 1 笔记第 7.1 节；day16 课件第 20 页。}
+\end{frame}
+
+\begin{frame}{一般测量、POVM 与 Naimark 延拓}
+\begin{Def}[\textbf{POVM}]
+令 $E_m:=M_m^\dagger M_m\succeq0$ 且 $\sum_mE_m=I$，则 $\{E_m\}$ 称为
+\textbf{正算子值测度}（POVM）；对密度算子 $\rho$，$p(m)=\Tr(E_m\rho)$。
+POVM 的元素不必是投影算子，也不必相互正交。
+\end{Def}
+\begin{Thm}[\textbf{Naimark 延拓}]
+任何 POVM $\{E_m\}$ 都可以通过在更大的 Hilbert 空间上的投影测量实现：
+存在辅助空间 $\mathcal H_B$、纯态 $\ket0_B$ 与投影测量 $\{P_m\}$，使
+\[
+\Tr(E_m\rho)=\Tr\big(P_m(\rho\otimes\ket0\bra0_B)\big).
+\]
+因此在量子算法设计中，\textbf{通常只需考虑投影测量}。
+\end{Thm}
+\begin{keybox}{两个基本原理}
+\begin{itemize}
+\item \textbf{测量延迟}：中间测量若只用于经典控制，可改写为量子控制并推迟到电路末端（需辅助比特保存信息）；
+\item \textbf{隐式测量}：电路末尾未测量的比特可假设已被测量 —— 对被测量比特的统计无影响。
+\end{itemize}
+\end{keybox}
+\smallcite{Model 1 笔记第 7.2--7.3 节。}
+\end{frame}
+
+\begin{frame}{Hadamard test：估计 $\mathrm{Re}\bra\psi U\ket\psi$}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.47\textwidth}
+\begin{center}
+\begin{quantikz}[row sep=0.30cm,column sep=0.42cm]
+\lstick{$\ket0$} & \gate{H} & \ctrl{1} & \gate{H} & \meter{} \\
+\lstick{$\ket\psi$} & \qw & \gate{U} & \qw & \qw
+\end{quantikz}
+\end{center}
+测得辅助 qubit 为 $0$ 的概率：
+\[
+P(0)=\frac12\big(1+\mathrm{Re}\bra\psi U\ket\psi\big).
+\]
+\column{0.51\textwidth}
+\begin{keybox}{推导}
+受控 $U$ 后状态为 $\tfrac1{\sqrt2}(\ket0\ket\psi+\ket1U\ket\psi)$；
+再作用 $H$，辅助为 $0$ 的分量是 $\tfrac12\ket0(I+U)\ket\psi$，其概率
+\[
+\frac14\|(I+U)\ket\psi\|^2=\frac12\big(1+\mathrm{Re}\bra\psi U\ket\psi\big).
+\]
+\end{keybox}
+\end{columns}
+\vspace{2mm}
+\begin{exbox}{虚部与一般内积}
+在最后一个 $H$ 前加 $S^\dagger=\mathrm{diag}(1,-\ii)$ 得
+$P(0)=\tfrac12(1+\mathrm{Im}\bra\psi U\ket\psi)$。若可制备 $\ket u=A\ket0$、$\ket v=B\ket0$，
+则 $\braket{u|v}=\bra0 A^\dagger B\ket0$：取 $U=A^\dagger B$ 即可分别估计实部与虚部。
+\end{exbox}
+\smallcite{Model 1 笔记第 7.4 节；day16 课件第 96--97 页。}
+\end{frame}
+
+\begin{frame}{SWAP test：估计 $|\braket{u|v}|^2$}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.50\textwidth}
+\begin{center}
+\begin{quantikz}[row sep=0.3cm,column sep=0.32cm]
+\lstick{$\ket0$} & \gate{H} & \ctrl{1} & \gate{H} & \meter{} \\
+\lstick{$\ket u$} & \qw & \swap{1} & \qw & \qw \\
+\lstick{$\ket v$} & \qw & \targX{} & \qw & \qw
+\end{quantikz}
+\end{center}
+\[
+P(0)=\frac12\big(1+|\braket{u|v}|^2\big)
+\]
+\[
+|\braket{u|v}|^2=2P(0)-1.
+\]
+\column{0.48\textwidth}
+\begin{keybox}{推导核心}
+辅助为 $0$ 的分支对应未归一化态 $\tfrac12(\ket u\ket v+\ket v\ket u)$，
+其范数平方 $\tfrac14(2+2|\braket{u|v}|^2)$。
+\end{keybox}
+\begin{warnbox}{限制}
+SWAP test 只能给出内积\textbf{模平方}，不能直接恢复复相位；
+需要复数内积时用相位估计类方法。
+\end{warnbox}
+\end{columns}
+\smallcite{Model 1 笔记第 7.4 节；day16 课件第 94--95 页。}
+\end{frame}
+
+\begin{frame}{内积估计在 PDE 算法中的用途}
+量子算法通常输出\textbf{归一化态} $\ket{u_h}=u_h/\|u_h\|_2$，而 PDE 问题真正关心的是
+\textbf{函数型输出或少量物理量}：
+\[
+\langle g_h,u_h\rangle,\qquad \langle u_h|O|u_h\rangle,\qquad \|u_h-v_h\|_2^2.
+\]
+\begin{keybox}{归一化内积与实际数值量}
+若 $\ket{g_h}=g_h/\|g_h\|_2$，$\ket{u_h}=u_h/\|u_h\|_2$，则
+\[
+g_h^*u_h=\|g_h\|_2\,\|u_h\|_2\,\braket{g_h|u_h}.
+\]
+量子线路估计的是\textbf{归一化内积}；实际 PDE 数值量还需补回
+\textbf{离散范数与网格权重}（如 $\|u\|_{L^2}^2\approx h\|u\|_2^2$）。
+\end{keybox}
+\begin{itemize}
+\item 估计数值解与测试函数的投影（伽辽金/后验误差估计的量子化）；
+\item 估计 $\bra\psi U\ket\psi$：提取谱信息或时间相关函数。
+\end{itemize}
+\smallcite{day16 课件第 98 页。}
+\end{frame}
+
+\begin{frame}{测量次数与采样误差}
+若测量某个 $\{0,1\}$ 随机变量，成功概率为 $p$，用 $M$ 次独立运行估计 $p$，
+标准差约 $\sqrt{p(1-p)/M}$。要求\textbf{加性}误差 $\eps$：
+\[
+\sqrt{\frac{p(1-p)}{M}}\le\eps
+\quad\Longrightarrow\quad
+M=O\Big(\frac1{\eps^2}\Big).
+\]
+\begin{warnbox}{加性 vs 乘性精度}
+\begin{itemize}
+\item 加性精度：$M=O(1/\eps^2)$，$p$ 接近 0 或 1 时采样很少；
+\item 乘性精度（相对误差 $\eps$）：$M\gtrsim\frac{1-p}{p\,\eps^2}$，$p\to0$ 时代价急剧增大
+—— 这是\textbf{振幅放大（amplitude amplification）}等技巧的出发点。
+\end{itemize}
+\end{warnbox}
+\begin{exbox}{Postselection：成功分支与概率损失}
+很多量子子程序产生 $\ket\Psi=\sqrt p\ket{\text{good}}\ket{\psi_{\text{out}}}+\sqrt{1-p}\ket{\perp}$。
+直接重复到成功的期望次数为 $O(1/p)$；振幅放大可改善到 $O(1/\sqrt p)$。
+若 $p$ 与条件数、归一化系数或时间指数相关，postselection 可能\textbf{吞掉理论加速}。
+\end{exbox}
+\smallcite{Model 1 笔记第 7.5 节；day16 课件第 29--30 页。}
+\end{frame}
+
+% ============================================================================
+\section{误差分析与复杂度框架}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 误差分析与复杂度框架}\par\vspace{4mm}
+{\large Error Analysis and Complexity Framework}
+\end{frame}
+
+\begin{frame}{PDE 量子算法的误差总账}
+\begin{center}
+\begin{tikzpicture}[node distance=7mm,every node/.style={font=\small,align=center}]
+\node[draw,rounded corners,fill=softblue,minimum width=2.3cm,minimum height=0.75cm] (disc) {离散化误差\\$\eps_{\text{disc}}$};
+\node[draw,rounded corners,fill=softgreen,right=of disc,minimum width=2.3cm,minimum height=0.75cm] (prep) {初态制备/输入误差\\$\eps_{\text{input}}$};
+\node[draw,rounded corners,fill=softyellow,right=of prep,minimum width=2.3cm,minimum height=0.75cm] (alg) {线路近似误差\\$\eps_{\text{alg}}$};
+\node[draw,rounded corners,fill=softred,right=of alg,minimum width=2.3cm,minimum height=0.75cm] (shot) {采样误差\\$\eps_{\text{meas}}$};
+\draw[-Latex,thick] (disc)--(prep); \draw[-Latex,thick] (prep)--(alg); \draw[-Latex,thick] (alg)--(shot);
+\end{tikzpicture}
+\end{center}
+\begin{keybox}{一个常见误差预算}
+\[
+\eps_{\text{total}}\ \le\ \eps_{\text{disc}}+\eps_{\text{alg}}+\eps_{\text{input}}+\eps_{\text{meas}}.
+\]
+\begin{itemize}
+\item 离散误差：$L\to A_h$（与经典数值分析完全相同）；
+\item 线路近似误差：QFT/QPE/HS、state prep/oracle 的实现误差；
+\item 统计误差：测量 shots 带来的采样误差。
+\end{itemize}
+\end{keybox}
+\smallcite{day16 课件第 31 页；Model 1 笔记第 9 节。}
+\end{frame}
+
+\begin{frame}{hybrid argument：误差线性增长}
+\begin{Prop}[\textbf{酉矩阵乘积的线性误差增长}]
+设 $\|U_i-\tilde U_i\|\le\eps$（$i=1,\dots,K$），则
+\[
+\big\|U_K\cdots U_1-\tilde U_K\cdots\tilde U_1\big\|\le K\eps.
+\]
+即每个局部酉门精确到 $\eps$，全局误差至多\textbf{线性增长}为 $K\eps$。
+\end{Prop}
+\textbf{证明思路}（望远镜级数）：把 $U_K\cdots U_1-\tilde U_K\cdots\tilde U_1$ 写成
+$\sum_{i=1}^{K}U_K\cdots U_{i+1}(U_i-\tilde U_i)\tilde U_{i-1}\cdots\tilde U_1$，
+对每项取算子范数（酉算子范数不变 $\|UA\|=\|A\|$）并用三角不等式即得。
+\begin{keybox}{关键推论：误差不随态空间维数爆炸}
+计算精度由\textbf{被复合的步骤数} $K$ 控制，而\textbf{不}由态空间维数
+$N=2^n$ 控制。量子算法恰恰在它被设计来发挥作用的区域（大 $n$）内依然可控
+—— 这是容错量子计算可行性的核心。
+\end{keybox}
+\smallcite{Model 1 笔记命题 9.3；day16 课件第 32 页。}
+\end{frame}
+
+\begin{frame}{经典浮点误差 vs 量子：误差由步骤数而非维数决定}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.52\textwidth}
+\textbf{经典确定性计算：浮点舍入}
+\begin{itemize}
+\item 机器精度 $\eps_{\text{mach}}$（双精度 $\approx 2.2\times10^{-16}$）：
+$fl(a\circ b)=(a\circ b)(1+\delta)$，$|\delta|\le\eps_{\text{mach}}$；
+\item 内积 $\sum_{i=1}^N u_iv_i$ 的累积误差
+$|\gamma_i|\le(1+\eps_{\text{mach}})^N-1\approx 2N\eps_{\text{mach}}$：\textbf{线性增长}于 $N$；
+\item 成对求和（pairwise）可降至 $O((\log N)\eps_{\text{mach}})$。
+\end{itemize}
+\column{0.48\textwidth}
+\textbf{概率/量子计算}
+\begin{itemize}
+\item $n$ 比特概率计算演化 $N=2^n$ 维概率向量，但由\textbf{局部更新规则}指定：
+代价与误差都不随 $N$ 指数增长；
+\item 量子算法是基本酉算子的乘积：门数 $K$ 且每门精确到 $\eps/K$，最终误差 $O(\eps)$，
+与 $N$ 无关；
+\item 张量网络方法同理：某些结构向量上用 $\poly(n)$ 次运算，误差只依赖 $\poly(n)$ 个步骤。
+\end{itemize}
+\end{columns}
+\begin{warnbox}{对数值研究者的启示}
+"误差累积由基本运算个数决定，而非环境维数本身" —— 这条经典随机算法的直觉
+\textbf{原样}搬到量子计算。
+\end{warnbox}
+\smallcite{Model 1 笔记第 9.3 节。}
+\end{frame}
+
+\begin{frame}{量子算法的一般结构与复杂度度量}
+\begin{Def}[\textbf{量子算法的一般结构}]
+\textbf{初态}：$\ket{0^n}$ 或制备程序 $U_x\ket{0^n}$ 的输入态；
+\textbf{酉电路}：通用门集中的单、双比特门按时间复合；
+\textbf{末端测量}：计算基上测量（部分）量子比特。
+寄存器分系统/辅助两类；工作寄存器经 uncomputation 复位复用。
+\end{Def}
+\begin{Def}[\textbf{三种复杂度}]
+\textbf{门复杂度 gate}：量子门总数；\textbf{查询复杂度 query}：对 oracle 的调用次数
+（Grover 下界 $\Omega(\sqrt N)$）；\textbf{电路深度 depth}：最长路径门数（近似真实运行时间）。
+\end{Def}
+\begin{warnbox}{注意}
+查询复杂度隐藏 oracle 实现代价：有些 oracle（如求逆矩阵对应的 oracle）实现极难，
+分析时应同时确认其它组件不会主导总代价。
+\end{warnbox}
+\smallcite{Model 1 笔记第 9.1--9.2 节；day16 课件第 28 页。}
+\end{frame}
+
+\begin{frame}{"高效"的定义与概率正确性}
+\begin{Def}[\textbf{高效算法}]
+设 $n$ 为输入规模（编码输入所需的 qubit 数）。若电路门数为 $O(\poly(n))$，
+则称算法是\textbf{高效}的。由于测量概率性，通常要求算法以足够高的概率
+（如 $p>2/3$）输出正确答案。
+\end{Def}
+\begin{itemize}
+\item 通过重复运行并取\textbf{多数投票}（\textbf{Chernoff 界}）可把错误概率压到任意小
+—— 只需 $\poly$ 次重复；
+\item 量子态只能保持有限时间（\textbf{相干时间 coherence time}）：
+电路深度应尽量小，即使这意味着需要重复运行更多次。
+\end{itemize}
+\begin{keybox}{PDE 中必须小心}
+若要输出\textbf{完整网格向量}，经典输出本身需要 $\Omega(N)$ 个数；
+量子优势通常针对\textbf{状态制备、采样或少量观测量}。
+\end{keybox}
+\smallcite{Model 1 笔记定义 9.2 与注 9.5；day16 课件第 33 页。}
+\end{frame}
+
+\begin{frame}{容错计算与阈值定理}
+\begin{Thm}[\textbf{阈值定理 threshold theorem}]
+若单个量子门的噪声低于某个常数阈值（约 $10^{-4}$ 量级，依赖错误模型与纠错码），
+则可通过量子纠错以任意期望精度、仅付出\textbf{多项式对数级别}的开销，
+高效执行任意大的量子计算。
+\end{Thm}
+\begin{itemize}
+\item 本系列讲义\textbf{始终假设容错协议已实现}（FTQC 模型：物理噪声已被压到逻辑层）；
+\item 于是只需关心两类误差：
+\begin{enumerate}
+\item \textbf{数学近似误差}：Trotter 分裂、函数多项式逼近带来的误差；
+\item \textbf{蒙特卡洛（采样）误差}：测量结果本质随机带来的误差。
+\end{enumerate}
+\item 后续各章对算法复杂度的评价都建立在这个框架之上。
+\end{itemize}
+\smallcite{Model 1 笔记定理 9.6 与注 9.7；day16 课件第 3 页（FTQC 模型）。}
+\end{frame}
+
+% ============================================================================
+\section{QFT 与 QPE：接入 PDE 谱方法}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} QFT 与 QPE：接入 PDE 谱方法}\par\vspace{4mm}
+{\large Quantum Fourier Transform and Quantum Phase Estimation}
+\end{frame}
+
+\begin{frame}{经典 DFT 与 QFT 的区别}
+经典 DFT 把长度 $N$ 的向量 $u$ 变为 $\hat u_k=\frac1{\sqrt N}\sum_{j=0}^{N-1}e^{2\pi\ii jk/N}u_j$。
+\textbf{QFT 是作用在振幅上的酉变换}：
+\[
+F_N\ket j=\frac1{\sqrt N}\sum_{k=0}^{N-1}e^{2\pi\ii jk/N}\ket k,
+\qquad \ket u=\sum_j u_j\ket j\ \Longrightarrow\ F_N\ket u=\sum_k\hat u_k\ket k.
+\]
+\begin{keybox}{量子视角}
+在只差正负号和 bit order 约定的意义下，QFT/IQFT 就是在振幅上执行 DFT/IDFT。
+\end{keybox}
+\begin{warnbox}{重要区别}
+QFT 得到的是 "Fourier 系数作为振幅" 的\textbf{量子态}，
+\textbf{不是}一次打印全部 $N$ 个系数。
+\end{warnbox}
+\smallcite{day16 课件第 36 页。}
+\end{frame}
+
+\begin{frame}{QFT 的定义与酉性}
+令 $\omega_N=e^{2\pi\ii/N}$，QFT 定义为
+\[
+F_N\ket j=\frac1{\sqrt N}\sum_{k=0}^{N-1}\omega_N^{jk}\ket k.
+\]
+\textbf{酉性证明}：第 $(m,n)$ 个矩阵元为 $\frac1N\sum_{k=0}^{N-1}\omega_N^{k(n-m)}$。
+$m=n$ 时为 $1$；$m\ne n$ 时是公比 $\omega_N^{n-m}\ne1$、且 $\omega_N^{N(n-m)}=1$ 的
+\textbf{几何级数}，故和为 $0$，即 $F_N^\dagger F_N=I$。
+\begin{keybox}{product form（二进制小数）}
+设 $N=2^n$、$j=(j_{n-1}\cdots j_0)_2$，$0.j_\ell\cdots j_0:=\frac{j_\ell}{2}+\cdots+\frac{j_0}{2^{\ell+1}}$，则
+\[
+F_N\ket{j_{n-1}\cdots j_0}=\frac1{2^{n/2}}\bigotimes_{\ell=0}^{n-1}
+\Big(\ket0+e^{2\pi\ii(0.j_\ell\cdots j_0)}\ket1\Big),
+\]
+输出 qubit 顺序通常反序，最后需加 SWAP。
+\end{keybox}
+\smallcite{Model 1 笔记 QFT 相关；day16 课件第 37--39 页。}
+\end{frame}
+
+\begin{frame}{QFT 线路：Hadamard、受控相位与 SWAP}
+\begin{center}
+\begin{quantikz}[row sep=0.18cm,column sep=0.28cm]
+\lstick{$x_3$} & \gate{H} & \ctrl{1} & \ctrl{2} & \ctrl{3} & \qw & \qw & \qw & \qw & \qw & \qw \\
+\lstick{$x_2$} & \qw & \gate{R_2} & \qw & \qw & \gate{H} & \ctrl{1} & \ctrl{2} & \qw & \qw & \qw \\
+\lstick{$x_1$} & \qw & \qw & \gate{R_3} & \qw & \qw & \gate{R_2} & \qw & \gate{H} & \ctrl{1} & \qw \\
+\lstick{$x_0$} & \qw & \qw & \qw & \gate{R_4} & \qw & \qw & \gate{R_3} & \qw & \gate{R_2} & \gate{H}
+\end{quantikz}
+\end{center}
+\begin{itemize}
+\item 精确 QFT 的（受控）相位门数为 $O(n^2)$，其中 $R_m=\mathrm{diag}(1,\,e^{2\pi\ii/2^m})$；
+\item 输出反序需 $\lfloor n/2\rfloor$ 个 SWAP（或按约定省略）。
+\end{itemize}
+\begin{exbox}{\textbf{近似 QFT}}
+受控相位角度 $\theta_m=2\pi/2^m$，$m$ 大时角度很小：只保留 $m\le m_0$ 的相位门
+（截断远距离小角度），误差 $\eps$ 下代价为 $O(n\log(n/\eps))$ 量级的受控相位门。
+\textbf{QFT 是 QPE 的核心子程序。}
+\end{exbox}
+\smallcite{day16 课件第 41--42 页。}
+\end{frame}
+
+\begin{frame}{周期网格与 Fourier 谱方法回顾：微分 $\leftrightarrow$ 乘法}
+一维周期区间 $\mathbb T=[0,2\pi)$，$x_j=jh$，$h=2\pi/N$，$N=2^n$。
+Fourier mode 满足 $e^{\ii k(x+2\pi)}=e^{\ii kx}$，
+$\partial_x e^{\ii kx}=\ii k\,e^{\ii kx}$，$\partial_{xx}e^{\ii kx}=-k^2e^{\ii kx}$。
+\begin{keybox}{Fourier symbol}
+算子 $L$ 满足 $Le^{\ii kx}=\lambda(k)e^{\ii kx}$ 时，$Lu$ 的 Fourier 系数
+$\widehat{Lu}_k=\lambda(k)\hat u_k$；例如 $\partial_x\leftrightarrow\ii k$、
+$\Delta=\partial_{xx}\leftrightarrow-k^2$。微分算子在 Fourier 基下变成\textbf{逐模乘法}。
+\end{keybox}
+\textbf{谱微分}三步（数值研究者熟悉）：
+$u\xrightarrow{F_N}\hat u\xrightarrow{\times\, \ii\kappa\ \text{或}\ -\kappa^2}\hat v\xrightarrow{F_N^\dagger}v$，
+即 $D_N=F_N^\dagger\,\mathrm{diag}(\ii\kappa)\,F_N$、$\Delta_N=F_N^\dagger\,\mathrm{diag}(-\kappa^2)\,F_N$。
+\begin{warnbox}{对量子算法的意义}
+Fourier 谱微分矩阵通常是\textbf{稠密}的，但在 Fourier 基下是\textbf{对角}的；
+算法不需要显式形成稠密矩阵 —— QFT 直接执行基变换。
+\end{warnbox}
+\smallcite{day16 课件第 53--58 页。}
+\end{frame}
+
+\begin{frame}{谱方法与量子算法接口：FFT vs QFT}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}p{4.3cm}p{4.3cm}p{4.3cm}@{}}
+\toprule
+步骤 & 经典 Fourier 谱方法 & 量子实现\\
+\midrule
+表示解 & 显式网格向量 $u$ & 归一化振幅态 $\ket u$\\
+换到频域 & FFT/DFT & QFT 或 IQFT\\
+作用算子 & 每个 mode 乘 symbol & 对每个 $\ket k$ 分支相干作用\\
+返回物理域 & IFFT/IDFT & 逆 QFT\\
+输出 & 全部 $N^d$ 个网格值 & 状态、样本或少量观测量\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item $d$ 维：网格 $[N]^d$，自由度 $N_{\text{dof}}=N^d=2^{dn}$，只需 $dn$ 个 system qubits；
+\item $d$ 维 QFT 即 $F_N^{\otimes d}$（每个空间方向分别做 QFT）；
+\item \textbf{关键对比}：FFT 成本 $O(dN^d\log N)$ vs QFT 门数 $O(dn^2)$；
+\item 量子化的必要条件：频域操作可酉实现，且初态制备与最终读出不隐藏 $\Omega(N^d)$ 成本。
+\end{itemize}
+\smallcite{day16 课件第 49--50、62--63 页。}
+\end{frame}
+
+\begin{frame}{周期 Schrödinger 方程：第一个完整的 PDE 量子算法}
+模型问题 $\ii\partial_t u=\Delta u$，$x\in\mathbb T^d$。由 $\Delta e^{\ii k\cdot x}=-|k|^2e^{\ii k\cdot x}$：
+\[
+\ii\frac{d}{dt}\hat u_k(t)=-|k|^2\hat u_k(t)
+\quad\Longrightarrow\quad
+\hat u_k(t)=e^{\ii|k|^2t}\hat u_k(0).
+\]
+\textbf{为什么适合量子计算}：$|e^{\ii|k|^2t}|=1$，每个 Fourier 系数只改变相位，
+Parseval 恒等式保证 $\|u(t)\|_{L^2}=\|u_0\|_{L^2}$。
+\begin{center}
+\begin{tikzpicture}[node distance=4mm, every node/.style={font=\scriptsize,align=center}]
+\node[draw,rounded corners,fill=softblue,minimum width=1.9cm,minimum height=0.7cm] (a) {$\ket{u_0}$};
+\node[draw,rounded corners,fill=softgreen,minimum width=2.1cm,minimum height=0.7cm,right=of a] (b) {$F_N^{\otimes d}$\\[1pt]{\tiny 进入 Fourier basis}};
+\node[draw,rounded corners,fill=softyellow,minimum width=2.4cm,minimum height=0.7cm,right=of b] (c) {$D_t$\\[1pt]{\tiny 逐模相位 $e^{\ii|k|^2t}$}};
+\node[draw,rounded corners,fill=softred,minimum width=2.2cm,minimum height=0.7cm,right=of c] (d) {$(F_N^\dagger)^{\otimes d}$\\[1pt]{\tiny 返回物理 basis}};
+\node[draw,rounded corners,fill=white,minimum width=1.9cm,minimum height=0.7cm,right=of d] (e) {$\ket{u_N(t)}$};
+\draw[-Latex,thick] (a)--(b); \draw[-Latex,thick] (b)--(c); \draw[-Latex,thick] (c)--(d); \draw[-Latex,thick] (d)--(e);
+\end{tikzpicture}
+\end{center}
+\begin{itemize}
+\item \textbf{正确性}：$F^{\otimes d}\ket{u_0}=\sum_k\hat u_k(0)\ket k
+\xrightarrow{D_t}\sum_k e^{\ii|k|^2t}\hat u_k(0)\ket k
+\xrightarrow{(F^\dagger)^{\otimes d}}\ket{u_N(t)}$；
+\item 与经典谱方法逐项对应：经典修改每个显式 Fourier 系数；
+量子算法在\textbf{叠加态的每个 $\ket k$ 分支上相干地}施加同一规则
+—— 这就是 \textbf{Fourier 谱方法的线路版本}，而非另一个不相关的求解器。
+\end{itemize}
+\smallcite{day16 课件第 64--69 页。}
+\end{frame}
+
+\begin{frame}{周期 Schrödinger 算法：复杂度与误差}
+\textbf{误差分解}（谱误差 + 线路误差 + 测量误差）：
+\begin{itemize}
+\item 谱误差：$u_0\in H^r(\mathbb T^d)$ 时 $\eps_{\text{spec}}\le CN^{-r}\|u_0\|_{H^r}$
+（酉演化\textbf{不放大}初值谱误差）；
+\item 线路误差：$\eps_{\text{state}}\le\eps_{\text{prep}}+2\eps_F+\eps_{\text{phase}}$
+（hybrid argument：每个方向的 QFT 误差 $\eps_F\le d\,\eps_{\text{QFT}}$）；
+\item 观测量：$\eps_{\text{obs}}\lesssim2(\eps_{\text{spec}}+\eps_{\text{prep}}+2\eps_F+\eps_{\text{phase}})+\eps_{\text{meas}}$，
+测量 $M=O(\log(2/\delta)/\eps_{\text{meas}}^2)$ 次。
+\end{itemize}
+\textbf{复杂度}（单次运行）：
+\[
+G_{\text{run}}=G_{\text{prep}}+O(dn^2)+\tilde O\big(d(n+b+\log d)^2\big),
+\qquad
+n=O\Big(\frac1r\log\frac1\eta\Big),\quad b=O\Big(\log\frac1{\eps_{\text{phase}}}\Big).
+\]
+\begin{keybox}{端到端 vs 经典}
+经典 FFT-based full-state 演化：$O(dN^d\log N)$ 次运算；
+量子单次运行可只依赖 $\poly(d,\log N,\log(1/\eta))$。
+\textbf{优势的前提}：结构化初态 + 少量观测量 + 可高效实现的频域相位。
+\end{keybox}
+\smallcite{day16 课件第 70--76 页。}
+\end{frame}
+
+\begin{frame}{QPE 问题设置：估计酉矩阵的本征相位}
+给定酉矩阵 $U$ 与本征态 $\ket\psi$：
+\[
+U\ket\psi=e^{2\pi\ii\phi}\ket\psi,\qquad \phi\in[0,1).
+\]
+\textbf{目标}：通过量子线路估计相位 $\phi$。
+\begin{center}
+\begin{tikzpicture}[node distance=8mm, every node/.style={font=\small,align=center}]
+\node[draw,rounded corners,fill=softyellow,minimum width=3.4cm,minimum height=0.8cm] (p) {phase register\\ $\ket0^{\otimes d}$（$M=2^d$）};
+\node[draw,rounded corners,fill=softblue,minimum width=3.4cm,minimum height=0.8cm,right=of p] (s) {system register\\ $\ket\psi$（$U$ 的本征态）};
+\draw[-Latex,thick] (p)--(s);
+\end{tikzpicture}
+\end{center}
+\begin{keybox}{为什么相位 $=$ 谱信息？}
+若 $U=e^{-\ii Ht_0}$ 且 $H\ket\psi=\lambda\ket\psi$，则
+\[
+U\ket\psi=e^{-\ii\lambda t_0}\ket\psi
+\quad\Longrightarrow\quad
+\phi\equiv-\frac{\lambda t_0}{2\pi}\pmod 1.
+\]
+\textbf{Hamiltonian 的特征值出现在酉演化的相位中} —— QPE 是谱方法/谱采样的量子工具。
+\end{keybox}
+\smallcite{day16 课件第 79--80、90 页。}
+\end{frame}
+
+\begin{frame}{QPE 线路：Hadamard $\to$ 受控幂 $\to$ 逆 QFT}
+\begin{center}
+\begin{quantikz}[row sep=0.24cm,column sep=0.30cm]
+\lstick{$\ket0$} & \gate{H} & \ctrl{3} & \qw & \qw & \qw & \gate{IQFT} & \meter{} & \qw \\
+\lstick{$\ket0$} & \gate{H} & \qw & \ctrl{2} & \qw & \qw & \gate{IQFT} & \meter{} & \qw \\
+\lstick{$\ket0$} & \gate{H} & \qw & \qw & \ctrl{1} & \qw & \gate{IQFT} & \meter{} & \qw \\
+\lstick{$\ket\psi$} & \qw & \gate{U^{4}} & \gate{U^{2}} & \gate{U} & \qw & \qw & \qw & \qw
+\end{quantikz}
+\end{center}
+\textbf{三步推导}：
+\begin{enumerate}
+\item \textbf{Hadamard 产生均匀叠加}：$\ket0^{\otimes d}\ket\psi\to
+\tfrac1{\sqrt M}\sum_{j=0}^{M-1}\ket j\ket\psi$；
+\item \textbf{相位回踢}：第 $r$ 比特控制 $U^{2^r}$，合并为
+$\ket j\ket\psi\mapsto e^{2\pi\ii j\phi}\ket j\ket\psi$：
+$\tfrac1{\sqrt M}\sum_{j=0}^{M-1}e^{2\pi\ii j\phi}\ket j\ket\psi$；
+\item \textbf{逆 QFT}：若 $\phi=k/M$ 恰在相位网格上，phase register 正是 $F_M\ket k$，
+施加 $F_M^\dagger$ 后\textbf{确定性地}得到 $\ket k$，读出 $k$，$\phi=k/M$。
+\end{enumerate}
+\smallcite{day16 课件第 80--84 页。}
+\end{frame}
+
+\begin{frame}{一般相位：测量结果集中在 $M\phi$ 附近}
+若 $\phi$ 不一定等于 $k/M$，逆 QFT 后
+\[
+F_M^\dagger\ket{\Phi(\phi)}=\sum_{m=0}^{M-1}\alpha_m\ket m,\qquad
+\alpha_m=\frac1M\sum_{j=0}^{M-1}e^{2\pi\ii j(\phi-m/M)},
+\]
+\[
+\Pr(m)=|\alpha_m|^2=\frac1{M^2}\cdot\frac{\sin^2(\pi M\Delta_m)}{\sin^2(\pi\Delta_m)},
+\qquad \Delta_m=\phi-\frac mM.
+\]
+\begin{keybox}{干涉解释}
+若 $m/M\approx\phi$，$\Delta_m\approx0$，各项方向接近、\textbf{相长干涉}，概率大；
+若 $m/M$ 远离 $\phi$，各项绕单位圆分散、相互抵消。
+所以 \textbf{$m$ 最可能出现在 $M\phi$ 附近}。
+\end{keybox}
+\begin{exbox}{例：$M=8$，$\phi=0.30$}
+$M\phi=2.4$：概率主要集中在 $m=2$（$\hat\phi=0.25$，$\Pr\approx0.578$）
+与 $m=3$（$\hat\phi=0.375$，$\Pr\approx0.259$）。
+\end{exbox}
+\smallcite{day16 课件第 85--87 页。}
+\end{frame}
+
+\begin{frame}{QPE 的精度、成功概率与复杂度}
+\begin{itemize}
+\item 相位网格 $0,\frac1M,\dots,\frac{M-1}{M}$，宽度 $2^{-d}$。
+要分辨 $\eps_\phi$：$d=O(\log(1/\eps_\phi))$ 个 phase qubits；
+\item 受控幂的成本：$U^{2^r}$ 由 $2^r$ 次基本 $U$ 实现，总代价
+$\sum_{r=0}^{d-1}2^r=2^d-1=O(1/\eps_\phi)$ 次 $U$ 的应用；
+\item 三个概念勿混：$d$（phase qubit 数）、$M=2^d$（相位网格点数）、
+$m$（一次测量得到的随机网格编号）。
+\end{itemize}
+\begin{keybox}{若输入不是本征态}
+若 $\ket\chi=\sum_\ell c_\ell\ket{\psi_\ell}$（$U\ket{\psi_\ell}=e^{2\pi\ii\phi_\ell}\ket{\psi_\ell}$），
+QPE 对每个本征分量\textbf{线性作用}：以约 $|c_\ell|^2$ 的概率得到 $\phi_\ell$ 附近的估计，
+同时 system register 投影到对应本征分量。
+\textbf{QPE 既是相位估计工具，也是谱采样工具。}
+\end{keybox}
+\smallcite{day16 课件第 88--89 页。}
+\end{frame}
+
+% ============================================================================
+\section{量子计算的基本约束}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 量子计算的基本约束}\par\vspace{4mm}
+{\large Fundamental Constraints: No-Cloning, No-Deletion, Entanglement}
+\end{frame}
+
+\begin{frame}{不可克隆定理（No-cloning theorem）}
+\begin{Thm}
+不存在酉算子 $U$ 能对\textbf{任意未知}量子态 $\ket\psi$ 完成复制：
+不存在固定辅助态 $\ket s$ 使 $U\ket\psi\ket s=\ket\psi\ket\psi$ 对所有 $\ket\psi$ 成立。
+\end{Thm}
+\textbf{证明}：取 $0<|\braket{\psi_1}{\psi_2}|<1$。若 $U$ 存在，两边取内积并用酉性保持内积：
+$\braket{\psi_1}{\psi_2}=\braket{\psi_1,\psi_1}{\psi_2,\psi_2}=\braket{\psi_1}{\psi_2}^2$，
+故 $\braket{\psi_1}{\psi_2}\in\{0,1\}$，矛盾。
+\begin{exbox}{两个例外}
+\textbf{已知态的制备}（$U_\psi$ 已知时可复制）与\textbf{计算基上的经典信息}
+（$\mathrm{CNOT}\ket x\ket0=\ket x\ket x$，$x\in\{0,1\}$）。
+酉算子可复制一组\textbf{相互正交}的态；一般叠加态不能。
+\end{exbox}
+\begin{warnbox}{对科学计算的启示}
+经典迭代法不断存储中间变量 $y\leftarrow x$，这在量子计算中\textbf{一般无法直接实现}；
+量子算法被迫采用与经典本质不同的结构（振幅/相位编码、uncomputation）。
+\end{warnbox}
+\smallcite{Model 1 笔记定理 8.1 与注 8.2；Wootters \& Zurek 1982.}
+\end{frame}
+
+\begin{frame}{不可删除定理与测量坍缩的不可逆性}
+\begin{Thm}[\textbf{不可删除定理}]
+不存在酉算子 $U$ 将任意未知量子态重置为 $\ket{0^n}$：
+$U\ket{0^n}\ket\psi=\ket{0^n}\ket{0^n}$ 对所有 $\ket\psi$ 成立。
+\textbf{证明}：若存在，取正交态 $\ket{\psi_1},\ket{\psi_2}$，由酉性
+$0=\braket{\psi_1|\psi_2}=\braket{0^n|0^n}^2=1$，矛盾。
+\end{Thm}
+\begin{keybox}{测量坍缩不可逆}
+测量是量子力学中唯一\textbf{非酉}、不可逆的操作：坍缩丢失叠加信息，无法通过酉演化撤销。
+对算法设计的约束：\textbf{①} 测量结果本质概率性，算法只能以足够高的概率给出正确答案，
+或多次运行估计期望值；\textbf{②} 尽量把测量\textbf{推迟到电路末端}，中间保持酉性；
+\textbf{③} 中间测量的经典控制等价于量子控制，但需辅助比特保存信息。
+\end{keybox}
+\begin{itemize}
+\item 不可克隆/不可删除都是量子力学\textbf{线性性}的直接推论；
+\item 更强的版本：给定任意未知态的两份拷贝，也不能删除一份而保留另一份。
+\end{itemize}
+\smallcite{Model 1 笔记定理 8.3 与第 8.3 节。}
+\end{frame}
+
+\begin{frame}{纠缠：超越乘积态的约束与资源}
+\begin{exbox}{Bell 态不是乘积态}
+设 $\ket{\Phi^+}=\ket a\otimes\ket b$，$\ket a=\alpha_0\ket0+\alpha_1\ket1$，
+$\ket b=\beta_0\ket0+\beta_1\ket1$。比较系数：
+$\alpha_0\beta_0=\alpha_1\beta_1=1/\sqrt2\ne0$ 且 $\alpha_0\beta_1=\alpha_1\beta_0=0$，
+要求 $\alpha_i,\beta_j$ 全部非零 —— 矛盾。
+\end{exbox}
+\begin{itemize}
+\item 复合系统态空间 $\C^{2^n}$ \textbf{远大于}乘积态构成的子集：
+绝大多数量子态都是纠缠态；
+\item 纠缠是\textbf{资源}：量子纠错、量子通信、相位估计等依赖纠缠；
+\item 纠缠也是\textbf{约束}：Bell 态的约化密度算子是最大混合态
+$\rho_A=I/2$ —— 子系统中不含任何可被局部观测到的信息。
+\end{itemize}
+\begin{keybox}{与经典"独立随机变量"的本质区别}
+张量积空间中的态不都是直积态：纠缠使得子系统之间存在经典相关无法刻画的结构。
+这正是量子计算区别于经典概率计算的核心。
+\end{keybox}
+\smallcite{Model 1 笔记第 8.4 节；day16 课件第 22 页。}
+\end{frame}
+
+% ============================================================================
+\section{现状、展望与后续模型}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 现状、展望与后续模型}\par\vspace{4mm}
+{\large Where This Leads: HHL, Block-Encoding, Schrödingerisation}
+\end{frame}
+
+\begin{frame}{量子优势现状：证据强度与对研究者的建议}
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}p{2.2cm}p{5.4cm}p{5.6cm}@{}}
+\toprule
+层级 & 加速证据 & 典型任务\\
+\midrule
+水平 I & 可证明 & Shor 分解、离散对数（密码学）\\
+水平 II & 经验上困难 & Hamiltonian 模拟、随机电路采样\\
+水平 III & 经验上困难，经典近似方法强大 & 基态能量、热态制备、开放系统\\
+水平 IV & 经典基线高效 & 经典 PDE、非结构化优化、经典 ML\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item 对\textbf{经典输入输出}任务（科学计算主体），端到端优势极难：需同时满足
+计算密集 + 量子高效 + I/O 不主导；
+\item 研究建议：讨论具体应用时，同时考察\textbf{量子输入成本、输出成本、运行成本
+与经典算法代价}四个方面；
+\item 现有结论基于已有文献，远非定论：该领域快速进展可能显著改变当前理解。
+\end{itemize}
+\smallcite{Model 1 笔记注 1.10 与第 9 节。}
+\end{frame}
+
+\begin{frame}{HHL 一瞥：线性方程组的量子算法}
+PDE 数值研究者最常问：线性方程组 $Ax=b$ 能加速吗？
+\textbf{HHL 算法}（Harrow--Hassidim--Lloyd, 2009）：
+\[
+\ket b\ \xrightarrow{\text{QPE}(e^{-\ii A t_0})}\ \sum_j\beta_j\ket{\lambda_j}\ket{\tilde\lambda_j}
+\ \xrightarrow{\text{受控旋转}}\ \ket x\propto\sum_j\frac{\beta_j}{\lambda_j}\ket{\lambda_j}.
+\]
+在 $A$ 稀疏（$s$-稀疏）、条件数 $\kappa$、精度 $\eps$ 下，原始复杂度
+\[
+O\big(\log N\cdot s^2\kappa^2/\eps\big)
+\]
+（现代 QSVT 版本可把 $\kappa$ 依赖改进到近线性 $\poly\log$）。
+\begin{warnbox}{HHL 的 fine print（重温第 1 节）}
+\begin{itemize}
+\item 输入：$\ket b$ 必须高效制备；输出：只能读少量观测量 $\bra x O\ket x$，
+完整恢复 $x$ 需态层析（指数代价）；
+\item 复杂度含条件数 $\kappa$：病态问题加速被 $\kappa$ 吞掉；
+\item oracle 访问矩阵元素本身有实现成本（查询复杂度 vs 门复杂度）。
+\end{itemize}
+\end{warnbox}
+\smallcite{A. Harrow, A. Hassidim, S. Lloyd, PRL 103, 150502 (2009); 复杂度式见 arXiv:1803.01486 综述。}
+\end{frame}
+
+\begin{frame}{后续模型接口：Model 2/3/4}
+本课的 QFT 只对角化周期 Laplacian；一般科学计算矩阵来自
+\textbf{非周期边界、变系数算子、非均匀网格/有限元、非厄米离散演化、高维耦合系统}。
+\begin{center}
+\begin{tikzpicture}[node distance=6mm, every node/.style={font=\small,align=center}]
+\node[draw,rounded corners,fill=softblue,minimum width=3.4cm,minimum height=0.85cm] (m2) {\textbf{Model 2}：核心算法构件\\ QFT / QPE 详解\\ 振幅放大 AA/OAA、Grover\\ Hamiltonian 模拟（Trotter/LCU）};
+\node[draw,rounded corners,fill=softgreen,minimum width=3.4cm,minimum height=0.85cm,right=of m2] (m3) {\textbf{Model 3}：现代框架\\ Block-encoding、qubitization\\ 量子奇异值变换 QSVT};
+\node[draw,rounded corners,fill=softyellow,minimum width=3.4cm,minimum height=0.85cm,right=of m3] (m4) {\textbf{Model 4}：薛定谔化\\ 一般线性 PDE $u_t=Au$\\ 耗散/非酉系统的酉化};
+\draw[-Latex,thick] (m2)--(m3); \draw[-Latex,thick] (m3)--(m4);
+\end{tikzpicture}
+\end{center}
+\begin{itemize}
+\item 本课对 \textbf{QFT/QPE 只做引言}（PDE 谱方法接口），详细推导见 \textbf{Model 2}；
+\item 本课的 \textbf{误差预算}（离散 + 线路 + 测量）与\textbf{复杂度度量}（输入/运行/输出）在后续模型原样沿用；
+\item 例：热方程 $\partial_t u=\Delta u$ 是\textbf{耗散}的，直接酉化不可行
+—— Model 4 的 Schrödingerisation 通过增加一个辅助维度把它变成 Schrödinger 型方程
+（Jin--Liu--Yu）。
+\end{itemize}
+\smallcite{S. Jin, N. Liu, Y. Yu, ``Quantum simulation of partial differential equations via Schrödingerisation,'' arXiv:2212.13969; day17--19 课件。}
+\end{frame}
+
+\begin{frame}{本课总结}
+\begin{enumerate}
+\item \textbf{量子优势}：用对数比值严格度量；按证据强度分四层；
+对经典 PDE 问题，强经典基线与 I/O 限制使其多落水平 IV —— 端到端优势需要
+"结构化输入 + 少量输出 + 高效酉实现"；
+\item \textbf{四大公设}：态空间（Hilbert）、酉演化（Schrödinger）、测量（Born）、
+张量积（指数维数）—— 量子力学的全部数学；
+\item \textbf{线路}：单比特门、CNOT/受控-$U$、通用门集（Clifford+T）、
+可逆计算与 uncomputation、oracle；
+\item \textbf{复杂度}：gate / query / depth；输入、运行、输出成本；
+误差由\textbf{步骤数}而非维数控制（hybrid argument）；
+\item \textbf{测量与读出}：Hadamard/SWAP test 估计内积与期望；
+量子输出是归一化态、样本或少量观测量；
+\item \textbf{PDE 接口}：QFT $\leftrightarrow$ FFT，谱方法 = QFT--相位--IQFT；
+QPE 把 Hamiltonian 谱信息变成可测量的相位 —— 通向第 2--4 天。
+\end{enumerate}
+\begin{keybox}{一句话}
+量子计算机是\textbf{加速器}而非通用替代品：
+它为特定任务提供显著加速，而科学计算的优势判断必须
+\textbf{端到端}地比较输入、运行、输出与经典基线的全部成本。
+\end{keybox}
+\end{frame}
+
+\begin{frame}{参考文献与阅读建议（1/2）}
+\scriptsize
+\begin{thebibliography}{9}
+\bibitem{notes} 牛晓铭, \emph{Model 1 量子计算数学基础}（QuantumComputationBasics 笔记），Github 项目 Quantum-Computation.
+\bibitem{day16} 湘潭大学暑期学校, \emph{偏微分方程的量子算法} 第 1 天课件：量子计算的基础（day16\_pde\_quantum\_foundations\_v3.pdf）; 另见 day17--19（block-encoding、Schrödingerisation、unitarization）.
+\bibitem{NC} M. A. Nielsen and I. L. Chuang, \emph{Quantum Computation and Quantum Information}, Cambridge Univ. Press, 2010.
+\bibitem{LinNotes} L. Lin, \emph{Lecture Notes on Quantum Algorithms for Scientific Computation}, 2022, \url{https://math.berkeley.edu/~linlin/qasc/qasc_notes.pdf}.
+\bibitem{LW} L. Lin and N. Wiebe, \emph{Quantum Algorithms for Scientific Computation}, preliminary notes, 2026.
+\bibitem{Li} X. Li, \emph{A Quantum Path to Partial Differential Equations}, 2026.
+\end{thebibliography}
+\vspace{1mm}
+{\tiny\color{graytext}课后建议：① 重写 QFT product form 推导；② 画出 2/3-qubit QFT 线路核对受控相位角度；
+③ 推导精确相位情形下 QPE 概率为 1 输出正确 $k$；④ 对一般相位从几何级数推导 $\Pr(m)$；
+⑤ 写出 $d$ 维周期 Schrödinger 方程的相位 $e^{\ii|k|^2t}$。}
+\end{frame}
+
+\begin{frame}{参考文献与阅读建议（2/2）}
+\scriptsize
+\begin{thebibliography}{9}
+\bibitem{Feynman} R. P. Feynman, ``Simulating physics with computers,'' \emph{Int. J. Theor. Phys.} 21, 467--488, 1982.
+\bibitem{Shor} P. W. Shor, ``Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer,'' \emph{SIAM J. Comput.} 26(5), 1484--1509, 1997.
+\bibitem{Grover} L. K. Grover, ``A fast quantum mechanical algorithm for database search,'' STOC 1996, arXiv:quant-ph/9605043.
+\bibitem{HHL} A. W. Harrow, A. Hassidim, S. Lloyd, ``Quantum algorithm for linear systems of equations,'' \emph{Phys. Rev. Lett.} 103, 150502, 2009.
+\bibitem{JLY} S. Jin, N. Liu, Y. Yu, ``Quantum simulation of partial differential equations via Schrödingerisation,'' arXiv:2212.13969, 2022.
+\bibitem{Aaronson} S. Aaronson, ``Read the fine print,'' \emph{Nature Physics} 11, 291--293, 2015.
+\end{thebibliography}
+\vspace{1mm}
+{\tiny\color{graytext}扩展阅读：QSVT（Low--Chuang, Quantum 2019）；量子线性系统综述（Duan et al., arXiv:1803.01486）；
+HHL 复杂度式 $O(\log N\cdot s^2\kappa^2/\eps)$ 及其讨论。}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,1193 @@
+% ============================================================================
+% Model 2: 核心量子算法构件（面向 PDE 数值计算研究生的 beamer 课件）
+% 编译方式: xelatex (两遍)
+%   基于笔记 Notes/Model2_CoreQuantumAlgorithmComponents 与暑期学校 day2 课件整理
+%   与 Model 1（量子计算基础）同一风格；QFT/QPE 在此详解（Model 1 中仅作引言）
+% ============================================================================
+\documentclass[aspectratio=169,10pt]{ctexbeamer}
+\usetheme{default}
+\usefonttheme{professionalfonts}
+\usepackage{amsmath,amssymb,mathtools,bm,braket}
+\usepackage{booktabs,array,multirow}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,decorations.pathreplacing,shapes.geometric,fit,backgrounds}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+\usepackage{quantikz}
+\usepackage[most]{tcolorbox}
+\usepackage{physics}
+\usepackage{hyperref}
+
+% --- 配色：与 Model 1 一致（参照 PDE quantum foundations 课件的深蓝风格）---
+\definecolor{navy}{RGB}{0,0,145}
+\definecolor{deepred}{RGB}{150,0,0}
+\definecolor{softblue}{RGB}{238,242,255}
+\definecolor{softred}{RGB}{255,238,238}
+\definecolor{softgreen}{RGB}{238,250,238}
+\definecolor{softyellow}{RGB}{255,248,225}
+\definecolor{darkgreen}{RGB}{30,105,50}
+\definecolor{graytext}{RGB}{70,70,70}
+
+\setbeamercolor{frametitle}{fg=white,bg=navy}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamercolor{title}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=navy}
+\setbeamercolor{block title}{fg=white,bg=navy}
+\setbeamercolor{block body}{fg=black,bg=softblue}
+\setbeamercolor{alerted text}{fg=deepred}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{navy}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{navy}$\triangleright$}
+\setbeamertemplate{enumerate item}{\color{navy}\insertenumlabel.}
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.9ex,dp=0.9ex,leftskip=1.0em]{frametitle}
+    \insertframetitle
+  \end{beamercolorbox}}
+\setbeamertemplate{footline}{%
+  \hfill\scriptsize\color{graytext}\insertframenumber{} / \inserttotalframenumber\hspace{1.5em}\vspace{0.7em}}
+
+% --- 紧凑化排版 ---
+\setbeamersize{text margin left=0.9em,text margin right=0.9em}
+\setbeamertemplate{itemize/enumerate body begin}{\small}
+\setbeamertemplate{itemize/enumerate subbody begin}{\footnotesize}
+\setlength{\abovedisplayskip}{4pt}
+\setlength{\belowdisplayskip}{4pt}
+\setlength{\abovedisplayshortskip}{3pt}
+\setlength{\belowdisplayshortskip}{3pt}
+
+\newtcolorbox{keybox}[1]{colback=softblue,colframe=navy,title={#1},fonttitle=\bfseries,boxrule=0.6pt,arc=1.5mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm}
+\newtcolorbox{warnbox}[1]{colback=softred,colframe=deepred,title={#1},fonttitle=\bfseries,boxrule=0.6pt,arc=1.5mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm}
+\newtcolorbox{exbox}[1]{colback=softyellow,colframe=darkgreen,title={#1},fonttitle=\bfseries,boxrule=0.6pt,arc=1.5mm,left=1.5mm,right=1.5mm,top=1mm,bottom=1mm}
+
+% 定理类环境（与 Model 1 一致）
+\newtheorem*{Def}{定义}
+\newtheorem*{Thm}{定理}
+\newtheorem*{Lem}{引理}
+\newtheorem*{Cor}{推论}
+\newtheorem*{Prop}{命题}
+
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\poly}{\operatorname{poly}}
+\newcommand{\ii}{\mathrm{i}}
+\newcommand{\e}{\mathrm{e}}
+\newcommand{\ketzero}{\ket{0}}
+\newcommand{\ketone}{\ket{1}}
+\newcommand{\ketplus}{\ket{+}}
+\newcommand{\ketminus}{\ket{-}}
+\newcommand{\smallcite}[1]{\par\vspace{1.2mm}{\scriptsize\color{graytext}#1}}
+
+\title{Core Quantum Algorithm Components\\[2mm] \large 核心量子算法构件：QFT、QPE、振幅放大与 Hamiltonian 模拟}
+\author{基于 Model 2 笔记与暑期学校 day2 课件整理}
+\date{\today}
+
+\begin{document}
+
+% ============================================================================
+% 封面与课程定位
+% ============================================================================
+\begin{frame}[plain]
+\vspace{0.9cm}
+{\LARGE\bfseries Core Quantum Algorithm Components}\par\vspace{3mm}
+{\large 核心量子算法构件：QFT、QPE、振幅放大与 Hamiltonian 模拟}\par\vspace{6mm}
+\begin{center}
+\begin{tikzpicture}[node distance=5mm, every node/.style={font=\small,align=center}]
+\node[draw,rounded corners,fill=softblue,minimum width=2.3cm,minimum height=0.8cm] (qft) {QFT\\量子傅里叶变换};
+\node[draw,rounded corners,fill=softgreen,minimum width=2.3cm,minimum height=0.8cm,right=of qft] (qpe) {QPE\\量子相位估计};
+\node[draw,rounded corners,fill=softyellow,minimum width=2.3cm,minimum height=0.8cm,right=of qpe] (aa) {AA / OAA\\振幅放大};
+\node[draw,rounded corners,fill=softred,minimum width=2.6cm,minimum height=0.8cm,right=of aa] (hs) {Hamiltonian 模拟\\Trotter / LCU};
+\draw[-Latex,thick] (qft)--(qpe) node[midway,above,font=\scriptsize]{核心};
+\draw[-Latex,thick] (aa)--(qpe) node[midway,above,font=\scriptsize]{放大};
+\draw[-Latex,thick] (hs)--(qpe) node[midway,above,font=\scriptsize]{酉实现};
+\end{tikzpicture}
+\end{center}
+\vfill
+{\small 本模块把 Model 1 的语言（量子态、酉线路、测量、复杂度）组装成
+\textbf{四大原语}，并展示它们如何嵌套出现代量子算法（Shor、HHL、量子模拟）的骨架。}
+\smallcite{素材：Model 2 笔记 \emph{CoreQuantumAlgorithmComponents}；湘潭大学暑期学校 day2 课件。}
+\end{frame}
+
+\begin{frame}{从 Model 1 到 Model 2：语言 $\to$ 构件}
+\begin{center}
+\begin{tikzpicture}[node distance=6mm, every node/.style={font=\small,align=center}]
+\node[draw,rounded corners,fill=softblue,minimum width=3.6cm,minimum height=1.1cm] (m1) {\textbf{Model 1}：语言\\ 量子态、酉门、电路、测量\\ 复杂度框架、误差预算};
+\node[draw,rounded corners,fill=softgreen,minimum width=3.6cm,minimum height=1.1cm,right=of m1] (m2) {\textbf{Model 2（本课）}：构件\\ QFT、QPE、振幅放大\\ Lie--Trotter / LCU 模拟};
+\node[draw,rounded corners,fill=softyellow,minimum width=3.6cm,minimum height=1.1cm,right=of m2] (m3) {\textbf{Model 3}：统一框架\\ Block-encoding、qubitization\\ QSVT};
+\draw[-Latex,thick] (m1)--(m2); \draw[-Latex,thick] (m2)--(m3);
+\end{tikzpicture}
+\end{center}
+\begin{keybox}{构件之间的嵌套关系}
+\begin{itemize}
+\item \textbf{QFT} 是 QPE 的核心组成部分；
+\item \textbf{QPE} 是 Shor 分解、HHL 线性方程组、本征值问题、\textbf{振幅估计}的共同基础；
+\item \textbf{振幅放大（AA）}在一切需要"放大成功概率"的场景中被反复调用；
+\item \textbf{Hamiltonian 模拟}则通常作为 QPE 中酉算子 $U=e^{-\ii Ht}$ 的实现方式被调用。
+\end{itemize}
+\end{keybox}
+\smallcite{Model 2 笔记第 1 节；按 Lin Lin 讲义的划分，上述四者（连同 Grover 搜索）构成最没有争议的量子原语集合。}
+\end{frame}
+
+\begin{frame}{本模块知识地图}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.5\textwidth}
+\begin{keybox}{第 2--3 节：QFT 与 QPE}
+\begin{itemize}
+\item QFT：定义、张量积形式、$O(n^2)$ 电路、与 DFT/FFT 对比；
+\item QPE：受控幂、逆 QFT、Fejér 核误差分析、$O(1/\eps)$ 精度；
+\item 应用：振幅估计、特征值变换（HHL 核心机制）。
+\end{itemize}
+\end{keybox}
+\begin{keybox}{第 4 节：振幅放大 AA/OAA}
+\begin{itemize}
+\item Grover 搜索：反射 $\times$ 反射 $=$ 旋转，$O(\sqrt N)$ 查询；
+\item 一般振幅放大：$O(1/\sqrt p)$；OAA：对未知输入态"非感知"放大。
+\end{itemize}
+\end{keybox}
+\column{0.5\textwidth}
+\begin{keybox}{第 5 节：Hamiltonian 模拟}
+\begin{itemize}
+\item Lie--Trotter 乘积公式：局部 $O(\tau^2)$、全局 $O(t^2/L)$；
+\item 交换子界、Strang/Suzuki 高阶分裂；
+\item 截断 Taylor / LCU：$O(\lambda t\,\poly\log)$ —— 通向 Model 3 的 qubitization/QSVT。
+\end{itemize}
+\end{keybox}
+\begin{warnbox}{PDE 数值研究者的"对照表"}
+\begin{itemize}
+\item QFT $\leftrightarrow$ FFT；Trotter $\leftrightarrow$ 算子分裂；
+\item QPE $\leftrightarrow$ 幂迭代/Krylov（但基于 oracle、$\poly\log N$）；
+\item AA $\leftrightarrow$ 重要采样/分支定界的"概率放大"。
+\end{itemize}
+\end{warnbox}
+\end{columns}
+\end{frame}
+
+% ============================================================================
+\section{量子傅里叶变换 (QFT)}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 量子傅里叶变换 (QFT)}\par\vspace{4mm}
+{\large Quantum Fourier Transform：详解}
+\end{frame}
+
+\begin{frame}{QFT 的定义与酉性}
+\begin{Def}[\textbf{量子傅里叶变换}]
+设 $N=2^n$。\textbf{QFT} 是 $\C^N$ 上的酉算子 $U_{\mathrm{FT}}$，作用在计算基态上为
+\[
+U_{\mathrm{FT}}\ket j=\frac1{\sqrt N}\sum_{k\in[N]}e^{2\pi\ii\,jk/N}\ket k,\qquad
+U_{\mathrm{FT}}^\dagger\ket j=\frac1{\sqrt N}\sum_{k\in[N]}e^{-2\pi\ii\,jk/N}\ket k.
+\]
+\end{Def}
+\begin{Prop}[\textbf{基本性质}]
+\begin{enumerate}
+\item $U_{\mathrm{FT}}$ 是酉算子（几何级数求和：$m\ne n$ 时
+$\frac1N\sum_k\omega_N^{k(n-m)}=0$，见 Model 1）；
+\item $U_{\mathrm{FT}}\ket{0^n}=\frac1{\sqrt N}\sum_k\ket k=H^{\otimes n}\ket{0^n}$：
+QFT 把全零态变为\textbf{均匀叠加态}；
+\item 与经典 FFT 的关键区别：QFT 只需 $O(n^2)=O(\log^2N)$ 个门
+（经典 FFT 需 $O(N\log N)$ 次运算），但 \textbf{输出是叠加态}，
+测量一次只能得到单个基态 —— 必须通过后续算法（如 QPE）利用它。
+\end{enumerate}
+\end{Prop}
+\smallcite{Model 2 笔记第 2.1 节。}
+\end{frame}
+
+\begin{frame}{Walsh--Hadamard 变换：QFT 的"无相位"特例}
+单比特 $H\ket x=\frac1{\sqrt2}(\ket0+(-1)^x\ket1)$，对 $n$ 比特逐位作用：
+\[
+H^{\otimes n}\ket{x_1\cdots x_n}
+=\frac1{\sqrt{2^n}}\sum_{y\in\{0,1\}^n}(-1)^{x\cdot y}\ket y,\qquad
+x\cdot y:=\sum_i x_i y_i\bmod2.
+\]
+\begin{itemize}
+\item 作用于 $\ket{0^n}$：相位恒为 $+1$，得\textbf{均匀叠加态}
+$\ket{\phi_0}:=\frac1{\sqrt{2^n}}\sum_y\ket y$；
+\item 作用于 $\ket{1^n}$：得带交替相位的叠加
+$\frac1{\sqrt{2^n}}\sum_y(-1)^{|y|}\ket y$。
+\end{itemize}
+\begin{keybox}{在三大算法中的角色}
+\begin{itemize}
+\item $\ket{\phi_0}$ 是 \textbf{Grover 搜索}的初态；
+\item $H^{\otimes t}\ket{0^t}$ 是 \textbf{QPE 相位寄存器}的制备方式；
+\item QFT 正是把 Hadamard 变换推广到含相位旋转 $\omega^{jk}$ 的变换。
+\end{itemize}
+\end{keybox}
+\smallcite{Model 2 笔记第 2.1 节注（Hadamard 变换）。}
+\end{frame}
+
+\begin{frame}{二进制分解与张量积形式}
+把 $j,k$ 写成二进制 $j=(j_{n-1}\cdots j_0)$、$k=(k_{n-1}\cdots k_0)$，二进制小数
+$0.j_m\cdots j_0:=\frac{j_m}{2}+\cdots+\frac{j_0}{2^{m+1}}$，则
+$\frac{jk}{N}=k_0(0.j_{n-1}\cdots j_0)+\cdots+k_{n-1}(0.j_0)$。
+\begin{Thm}[\textbf{张量积（product form）形式}]
+\[
+U_{\mathrm{FT}}\ket{j_{n-1}\cdots j_0}
+=\frac1{\sqrt{2^n}}\Big(\ket0+e^{2\pi\ii(0.j_0)}\ket1\Big)
+\Big(\ket0+e^{2\pi\ii(0.j_1j_0)}\ket1\Big)\cdots\Big(\ket0+e^{2\pi\ii(0.j_{n-1}\cdots j_0)}\ket1\Big).
+\]
+\end{Thm}
+\begin{keybox}{推导要点与位序}
+把 $jk/N$ 按 $k_{n-1},\dots,k_0$ 分离：第 $m$ 个指数因子只依赖对应的求和指标 $k_m$，
+故 $n$ 重求和可写成\textbf{张量积}；每个因子是单比特叠加 $\ket0+e^{2\pi\ii\varphi}\ket1$。
+注意\textbf{输出比特位序与输入相反}（电路末需 SWAP 恢复）：第一个因子
+（对应 $\ket{k_{n-1}}$）只依赖最低比特 $j_0$。
+\end{keybox}
+\smallcite{Model 2 笔记第 2.2 节。}
+\end{frame}
+
+\begin{frame}{电路实现：受控相位旋转}
+实现的关键是\textbf{受控相位旋转}：$R_z(\varphi)=\mathrm{diag}(1,e^{\ii\varphi})$，
+$R_m:=R_z(2\pi/2^m)$。
+\begin{exbox}{受控旋转的目标}
+把 $j_{n-1},\dots,j_0$ 的相位信息收集到辅助比特：
+$\ket0\ket j\to\frac1{\sqrt2}(\ket0+e^{2\pi\ii(0.j_{n-1}\cdots j_0)}\ket1)\ket j$，
+等价于 $H$ 与\textbf{以 $j_m$ 为控制比特的受控 $R_{m+1}$ 门}的依次作用
+（相位因子的逐位分解 $e^{2\pi\ii(0.j_{n-1}\cdots j_0)}=\prod_me^{2\pi\ii(0.\underbrace{0\cdots0}_m\,j_{n-1-m})}$）。
+\end{exbox}
+\begin{keybox}{3-qubit QFT 电路（输出位序反转，需 SWAP 恢复）}
+\begin{center}
+\begin{quantikz}[row sep=0.18cm,column sep=0.26cm]
+\lstick{$\ket{j_2}$} & \gate{H} & \ctrl{1} & \ctrl{2} & \qw & \qw & \qw \\
+\lstick{$\ket{j_1}$} & \qw & \gate{R_2} & \qw & \gate{H} & \ctrl{1} & \qw \\
+\lstick{$\ket{j_0}$} & \qw & \qw & \gate{R_3} & \qw & \gate{R_2} & \gate{H}
+\end{quantikz}
+\end{center}
+\end{keybox}
+\smallcite{Model 2 笔记第 2.3 节。}
+\end{frame}
+
+\begin{frame}{QFT 的复杂度：$O(n^2)$ 个门、$O(n)$ 深度}
+\begin{Thm}
+$n$ 比特 QFT 可以用 $O(n^2)$ 个单比特与受控门实现，电路深度 $O(n)$。
+逆变换 $U_{\mathrm{FT}}^\dagger$ 只需把受控旋转换成共轭 $R_m^\dagger$ 并反向执行。
+\end{Thm}
+\begin{keybox}{计数}
+比特 $j_m$（$m=0,\dots,n-1$）上需要 $1$ 个 $H$ 与 $m$ 个受控旋转 $R_2,\dots,R_{m+1}$，
+共 $\sum_{m=0}^{n-1}(m+1)=\frac{n(n+1)}2$ 个基本门；恢复位序再加
+$\lfloor n/2\rfloor$ 个 SWAP，总计 $O(n^2)$。同列的门作用在不同比特上可\textbf{并行}，
+最长路径只经过 $O(n)$ 个门，深度 $O(n)$。
+\end{keybox}
+\begin{exbox}{与 Model 1 的衔接}
+Model 1 中已把 QFT 用于"QFT--相位--IQFT"的周期 Schrödinger 谱方法；
+本课补上其完整推导，并作为 QPE 的核心子程序。
+\end{exbox}
+\smallcite{Model 2 笔记定理 2.1。}
+\end{frame}
+
+\begin{frame}{与经典 DFT/FFT 的对比}
+经典 DFT 把 $\{a_j\}$ 映射为 $\hat a_k=\sum_{j=0}^{N-1}e^{-2\pi\ii jk/N}a_j$；
+FFT（Cooley--Tukey 分治）把复杂度从 $O(N^2)$ 降到 $O(N\log N)$。
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}p{3.2cm}p{3.2cm}p{3.2cm}p{3.6cm}@{}}
+\toprule
+方法 & 输入 & 复杂度 & 输出\\
+\midrule
+DFT（直接求和） & 经典向量 $\{a_j\}$ & $O(N^2)$ & 经典向量（可直接读出）\\
+FFT（分治） & 经典向量 $\{a_j\}$ & $O(N\log N)$ & 经典向量（可直接读出）\\
+QFT（量子线路） & 量子态 $\ket\psi=\sum_j a_j\ket j$ & $O(\log^2 N)$ 个门 & 量子叠加态\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{warnbox}{为什么 QFT 不能直接替代 FFT}
+QFT 作用在\textbf{振幅}上，输出是叠加态：读出全部 $N$ 个系数需要 $\Omega(N)$ 次测量。
+QFT 的优势不在于"更快计算经典傅里叶变换"，而在于作为\textbf{子程序}嵌入更大算法：
+变换作用在纠缠的振幅上，中间结果无需读出，只有最终观测才消耗测量。
+\end{warnbox}
+\smallcite{Model 2 笔记第 2.4 节（表 2.1）。}
+\end{frame}
+
+\begin{frame}{QFT 在 Shor 算法中的角色："无需读出"的极致}
+\begin{keybox}{周期 $\to$ 相位 $\to$ 一次测量}
+Shor 的整数分解算法是"QFT 无需读出"性质的极致体现：
+\begin{enumerate}
+\item 模幂运算把周期 $r$ 的信息编码在\textbf{相位估计的振幅}中；
+\item 逆 QFT 把相位模式转成二进制数；
+\item \textbf{一次测量}即可（高概率）读出与 $r$ 相关的相位 ——
+经典计算中同样的周期搜索需要做 $\Omega(N)$ 次乘幂。
+\end{enumerate}
+\end{keybox}
+\begin{exbox}{与经典谱方法的角色类似但相反}
+经典谱方法用 FFT 在 $O(N\log N)$ 内完成正逆变换，\textbf{读出谱系数}后显式组装解；
+量子对应物（QFT 或其对角化 block-encoding）把变换"藏"在\textbf{线路内部}，
+避免读出的指数代价 —— 代价是只能访问叠加态上的结果。
+\end{exbox}
+\smallcite{Model 2 笔记第 2.4 节注；P. Shor, SIAM J. Comput. 26(5), 1997.}
+\end{frame}
+
+% ============================================================================
+\section{量子相位估计 (QPE)}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 量子相位估计 (QPE)}\par\vspace{4mm}
+{\large Quantum Phase Estimation：详解}
+\end{frame}
+
+\begin{frame}{QPE 问题设定}
+\begin{Def}[\textbf{相位估计问题}]
+设 $U$ 是酉算子，$\ket\psi$ 是其特征向量：
+\[
+U\ket\psi=e^{2\pi\ii\theta}\ket\psi,\qquad \theta\in[0,1).
+\]
+给定 oracle 访问 $U$（及其幂），目标是估计 $\theta$ 到一定精度。
+\end{Def}
+\begin{keybox}{为什么重要}
+相位估计是最重要的量子原语之一：\textbf{Shor 分解}、\textbf{HHL}、本征值问题、
+\textbf{振幅估计}都以它为子程序。若 $U=e^{-\ii Ht}$，则 $\theta=-\lambda t/(2\pi)$：
+\textbf{Hamiltonian 特征值出现在酉演化的相位中}（Model 1）。
+\end{keybox}
+\begin{warnbox}{从 Hadamard 检验出发（Model 1 回顾）}
+$p(1)=\frac12(1-\cos2\pi\theta)$，加性精度 $\eps$ 需 $O(1/\eps^2)$ 次重复；
+QPE 把精度提高到 $O(1/\eps)$ —— 平方级改进。
+\end{warnbox}
+\smallcite{Model 2 笔记第 3.1 节。}
+\end{frame}
+
+\begin{frame}{与经典本征值/相位估计的对比}
+经典计算估计厄米矩阵本征值常用\textbf{幂迭代}、QR 或 \textbf{Krylov 子空间}方法
+（Lanczos）：迭代次数对\textbf{谱间隙}的依赖为 $O(1/\Delta)$ 或 $O(1/\sqrt\Delta)$，
+每步需 $O(N^2)$--$O(N^3)$ 次矩阵运算，并\textbf{显式存储} $N\times N$ 矩阵。
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.5\textwidth}
+\begin{keybox}{QPE 与之的三点本质区别}
+\begin{enumerate}
+\item 通过\textbf{黑盒 oracle} 访问 $U^{2^j}$，无需显式构造矩阵
+（代价是 $O(1/\eps)$ 次查询，$\eps$ 为相位精度）；
+\item 对 $N=2^n$ 的依赖是 $\poly(n)=\poly(\log N)$，
+经典方法至少线性于 $N$；
+\item 可同时作用于本征态的\textbf{叠加}，一次运行即可按概率
+$|c_j|^2$ 读出全部本征相位。
+\end{enumerate}
+\end{keybox}
+\column{0.48\textwidth}
+\begin{warnbox}{根本原因}
+这些差异是 HHL、Shor 等算法能够工作的根本原因：它们把"求解"建立在
+\textbf{oracle 查询}之上，而不是对显式矩阵做数值线性代数。
+\end{warnbox}
+\end{columns}
+\smallcite{Model 2 笔记第 3.1 节注。}
+\end{frame}
+
+\begin{frame}{受控 $U^{2^j}$ 与二进制分解}
+考虑"大"受控酉算子 $\mathcal U:=\sum_{j\in[2^d]}\ket j\bra j\otimes U^j$，
+看似需要实现全部 $2^d$ 个不同的 $U^j$。由二进制展开 $j=\sum_i j_i2^i$ 得
+$U^j=\prod_i U^{j_i2^i}$，于是
+\[
+\mathcal U=\sideset{}{'}\prod_{i=0}^{d-1}\Big(\ket0\bra0\otimes I+\ket1\bra1\otimes U^{2^i}\Big),
+\]
+即只需 \textbf{$d$ 个受控 $U^{2^i}$ 门}。
+\begin{keybox}{快速前推（fast-forwarding）}
+若 $U$ 可以被快速前推（实现 $U^j$ 的代价与 $j$ 无关，例如 $U=R_z(\varphi)$），
+该分解比直接实现 $\mathcal U$ \textbf{指数级节省}资源。
+\end{keybox}
+\begin{exbox}{实现要点}
+第 $r$ 个比特 $j_r$ 控制 $U^{2^r}$；当 $U=e^{-\ii Ht}$ 时，
+$U^{2^r}=e^{-\ii H(2^r t)}$ 由 Hamiltonian 模拟（本课第 5 节）实现。
+\end{exbox}
+\smallcite{Model 2 笔记第 3.2 节。}
+\end{frame}
+
+\begin{frame}{QFT 基 QPE 电路}
+设 $t$ 为\textbf{相位寄存器}比特数，$T=2^t$：
+\begin{center}
+\begin{quantikz}[row sep=0.22cm,column sep=0.28cm]
+\lstick{$\ket0$} & \gate{H} & \ctrl{4} & \qw & \qw & \qw & \qw & \gate{IQFT} & \meter{} & \qw \\
+\lstick{$\ket0$} & \gate{H} & \qw & \ctrl{3} & \qw & \qw & \qw & \gate{IQFT} & \meter{} & \qw \\
+\lstick{$\ket0$} & \gate{H} & \qw & \qw & \ctrl{2} & \qw & \qw & \gate{IQFT} & \meter{} & \qw \\
+\lstick{$\ket0$} & \gate{H} & \qw & \qw & \qw & \ctrl{1} & \qw & \gate{IQFT} & \meter{} & \qw \\
+\lstick{$\ket\psi$} & \qw & \gate{U^{8}} & \gate{U^{4}} & \gate{U^{2}} & \gate{U} & \qw & \qw & \qw & \qw
+\end{quantikz}
+\end{center}
+\textbf{三步推导}：
+\begin{enumerate}
+\item $H^{\otimes t}$：$\ket{0^t}\ket\psi\to\frac1{\sqrt T}\sum_{j\in[T]}\ket j\ket\psi$；
+\item $\mathcal U$（受控幂）：$\frac1{\sqrt T}\sum_j e^{2\pi\ii j\theta}\ket j\ket\psi$
+（相位回踢，Model 1）；
+\item 逆 QFT：$U_{\mathrm{FT}}^\dagger\frac1{\sqrt T}\sum_j e^{2\pi\ii j\theta}\ket j
+=\sum_k\alpha_k\ket k$，其中 $\alpha_k=\frac1T\sum_j e^{2\pi\ii j(\theta-k/T)}$。
+\end{enumerate}
+\smallcite{Model 2 笔记第 3.3 节。}
+\end{frame}
+
+\begin{frame}{精确相位的确定性}
+由几何级数：
+\[
+\alpha_k=\frac1T\frac{1-e^{2\pi\ii T(\theta-k/T)}}{1-e^{2\pi\ii(\theta-k/T)}},
+\qquad
+\Pr(k)=|\alpha_k|^2=\frac1{T^2}\frac{\sin^2(\pi T(\theta-k/T))}{\sin^2(\pi(\theta-k/T))}.
+\]
+\begin{Thm}[\textbf{精确相位}]
+若 $\theta=k_0/T$ 恰有 $t$ 位二进制表示（$\theta=(0.\theta_{t-1}\cdots\theta_0)$），
+则 $\alpha_k=\delta_{k,k_0}$，测量相位寄存器\textbf{确定性地}得到 $k_0$。
+\end{Thm}
+\begin{exbox}{$t=1$ 特例 $=$ Hadamard 检验}
+当 $t=1$ 时 $U_{\mathrm{FT}}=H$，上述电路退化为 Hadamard 检验。
+即 \textbf{Hadamard 检验正是 QPE 在 1 比特相位寄存器下的特例}；
+一般情形由下述误差分析处理。
+\end{exbox}
+\smallcite{Model 2 笔记第 3.3 节（定理 3.1 与例 3.2）。}
+\end{frame}
+
+\begin{frame}{误差分析：Fejér 核与窄峰}
+记周期距离 $\norm{x}_1:=\min\{x\bmod1,\ 1-(x\bmod1)\}$。由 $|1-e^{\ii\varphi}|\ge2|\varphi|/\pi$：
+$|\alpha_k|\le\frac1{2T\,\norm{\theta_0-k/T}_1}$。测量概率有闭式（\textbf{Fejér 核}）：
+\[
+\Pr(k)=F_T\!\Big(\theta-\frac{k}{T}\Big):=\frac1{T^2}\frac{\sin^2(\pi Tx)}{\sin^2(\pi x)},\qquad F_T(0)=1.
+\]
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.62\textwidth,height=3.0cm,xlabel={$k$},ylabel={$\Pr(k)$},
+  domain=0:63,samples=400,axis lines=middle,xtick={0,22,44,63},ymin=0,ymax=1.05,
+  enlarge x limits=false,font=\scriptsize]
+\addplot[blue,thick]{ (abs(sin(deg(3.14159*(22.4-x))))/(64*abs(sin(deg(3.14159*(22.4-x)/64)))) )^2 };
+\addplot[red,densely dashed] coordinates {(22.4,0) (22.4,1.05)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\begin{keybox}{几何直观}
+$\Pr(k)$ 在 $k_0\approx T\theta_0$ 附近形成宽度 $\sim1/T$ 的窄峰、峰外迅速衰减
+—— "以 $1/\eps$ 的模拟时间换取 $1/\eps$ 的相位精度"。
+\end{keybox}
+\smallcite{Model 2 笔记第 3.4 节（$\theta_0=0.35$，$T=64$）。}
+\end{frame}
+
+\begin{frame}{QPE 的精度与成功概率}
+\begin{Thm}[\textbf{QPE 精度定理}]
+设精度参数 $\eps=2^{-d}$。
+\begin{enumerate}
+\item \textbf{常数成功概率}：取 $t=d+O(1)$（如 $t=d+2$），$T=2^t=O(1/\eps)$，
+测量结果 $k_0$ 以\textbf{常数}概率（$\ge3/4$）满足
+$\norm{\theta_0-k_0/T}_1\le\eps$；
+\item \textbf{高成功概率}：取 $t=d+\lceil\log_2(\eps^{-1})\rceil$，$T=O(\eps^{-2})$，
+则 $P\big(\norm{\theta_0-k_0/T}_1\le\eps\big)\ge1-\eps$。
+\end{enumerate}
+两种情形下查询复杂度 $O(T)$：常数概率下 $O(T)=O(1/\eps)$，
+比 Hadamard 检验的 $O(1/\eps^2)$ 是\textbf{平方级改进}。
+\end{Thm}
+\begin{keybox}{失败概率的界（证明要点）}
+$P\big(\norm{\theta_0-k_0/T}_1\ge\eps\big)
+\le\frac1{2T\eps}+\frac1{2(T\eps)^2}$。取 $t=d+2$：$T\eps=4$，
+失败概率 $\le1/8+1/32<1/4$；取 $t=d+\lceil\log_2\eps^{-1}\rceil$：$T\eps\ge\eps^{-1}$，
+失败概率 $\le\eps$。
+\end{keybox}
+\smallcite{Model 2 笔记定理 3.3；与 Nielsen--Chuang 的 $t=n+\lceil\log_2(2+1/2\delta)\rceil$ 一致。}
+\end{frame}
+
+\begin{frame}{两个假设的放松与实用处理}
+\begin{keybox}{量子中位数法}
+为避免因 $\log_2(1/\eps)$ 个额外比特增加电路深度，可把 QPE 运行
+$\log(1/\eps)$ 次并取相位的中位数（\textbf{量子中位数法}），
+以 $\log(1/\eps)$ 次重复代替额外的比特数与模拟时间。
+\end{keybox}
+\begin{keybox}{近似实现 $U$ 的误差分离}
+若只能用 $\tilde U$ 近似 $U$（$\|\tilde U-U\|\le\eps$），由酉矩阵扰动理论，
+单位圆上本征值扰动至多 $\eps$，相应\textbf{相角}扰动至多 $\eps/4$
+（$|e^{2\pi\ii\Delta}-1|=2|\sin(\pi\Delta)|\ge4|\Delta|$，$|\Delta|\le1/2$）。
+故\textbf{实现误差可作为相角误差的加性项单独计入}。
+实际中 $U=e^{-\ii Ht}$ 由 Hamiltonian 模拟近似实现，其模拟误差正是这一项。
+\end{keybox}
+\begin{Prop}[\textbf{一般初态（特征态叠加）}]
+设 $U\ket{k'}=e^{2\pi\ii\lambda_{k'}}\ket{k'}$，初态 $\ket\psi=\sum_{k'}c_{k'}\ket{k'}$，
+则测量得到 $k$ 的概率为 $P(k)=\sum_{k'}|c_{k'}|^2\,F_T\big(\lambda_{k'}-k/T\big)$，
+交叉项为零 —— 这正是\textbf{基态能量估计与 HHL}中"初态为本征态叠加"情形的分析基础。
+\end{Prop}
+\smallcite{Model 2 笔记第 3.4 节注。}
+\end{frame}
+
+\begin{frame}{应用 1：振幅估计（Amplitude estimation）}
+Grover 算子 $G$ 在二维不变子空间上表现为旋转角 $\theta$ 的旋转，
+其两个特征态为 $\ket\pm=\frac1{\sqrt2}(\ket{\mathrm{good}}\pm\ii\ket{\mathrm{bad}})$，
+特征值 $e^{\pm\ii\theta}$（验证见第 4 节）。
+\begin{Prop}[\textbf{振幅估计}]
+用 QPE 估计 $\theta$ 到加性精度 $\eps$，即可得 $p_0=\sin^2(\theta/2)$ 的估计，
+总复杂度 $O(1/\eps)$；而直接\textbf{蒙特卡洛}采样需要 $O(1/\eps^2)$ 次。
+若 $p_0$ 很小需乘性精度，复杂度为 $O(p_0^{-1/2}\eps^{-1})$，
+相对采样的 $O(p_0^{-1}\eps^{-2})$ 仍是平方级改进。
+\end{Prop}
+\begin{keybox}{为什么一次运行就够}
+初态 $\ket{\phi_0}=\sqrt{p_0}\ket{\mathrm{good}}+\sqrt{1-p_0}\ket{\mathrm{bad}}$
+满足 $|\braket{\pm}{\phi_0}|^2=1/2$（两个分支各半），
+因此对 $G$ 做 QPE，一次运行即（以概率 $1/2$）测出 $\theta$ 到精度 $\eps$。
+\end{keybox}
+\smallcite{Model 2 笔记第 3.5 节；Brassard--H{\o}yer--Mosca--Tapp, 2002.}
+\end{frame}
+
+\begin{frame}{应用 2：特征值变换与矩阵函数（HHL 核心机制）}
+QPE 的核心价值不止于"读出相位"，还在于作为\textbf{相干的本征值读出原语}：
+设 $H$ 厄米、$|f(x)|\le1$，$U=e^{2\pi\ii H}$ 由 Hamiltonian 模拟实现；对
+$\ket b=\sum_j\beta_j\ket{v_j}$（$H\ket{v_j}=\lambda_j\ket{v_j}$），目标是制备
+$\ket\psi\propto f(H)\ket b=\sum_j\beta_j f(\lambda_j)\ket{v_j}$。
+\begin{keybox}{三步实现：QPE $+$ 受控旋转 $+$ 逆 QPE}
+\begin{enumerate}
+\item \textbf{QPE}：本征值被\textbf{相干地}编码到相位寄存器
+（$U_{\mathrm{QPE}}\ket{0^d}\ket b=\sum_j\beta_j\ket{\tilde\lambda_j}\ket{v_j}$）；
+\item \textbf{受控旋转}：$U_{\mathrm{CR}}\ket0\ket{\tilde\lambda_j}
+=(\sqrt{1-f(\tilde\lambda_j)^2}\ket0+f(\tilde\lambda_j)\ket1)\ket{\tilde\lambda_j}$，
+使信号比特的 $\ket1$ 振幅携带 $f(\lambda_j)$；
+\item \textbf{逆 QPE（uncomputation）}：复位相位寄存器；测量信号比特：
+结果为 $1$ 时系统态恰为 $f(H)\ket b$。
+\end{enumerate}
+\end{keybox}
+\begin{warnbox}{HHL 的衔接}
+这就是 \textbf{HHL} 的核心机制（受控旋转把本征值信息转化为振幅），也解释了
+HHL 只在信号比特测得 $1$ 时成功。相比 Model 3 的 QSVT，该路线依赖
+"本征值精确二进制表示"的理想化假设。
+\end{warnbox}
+\smallcite{Model 2 笔记第 3.6 节；Harrow--Hassidim--Lloyd, PRL 103, 2009.}
+\end{frame}
+
+% ============================================================================
+\section{振幅放大 (AA) 与非感知振幅放大 (OAA)}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 振幅放大 (AA) 与 OAA}\par\vspace{4mm}
+{\large Amplitude Amplification and Oblivious Amplitude Amplification}
+\end{frame}
+
+\begin{frame}{Grover 搜索：振幅放大的原型}
+\begin{Def}[\textbf{无结构搜索}]
+给定布尔函数 $f:\{0,1\}^n\to\{0,1\}$ 与 promise：存在唯一\textbf{标记态} $x_0$
+使 $f(x_0)=1$，找出 $x_0$。经典最坏情形需要 $N-1=2^n-1$ 次查询；
+量子可做到 $O(\sqrt N)$ —— \textbf{二次加速}。
+\end{Def}
+\begin{keybox}{相位 oracle $=$ 反射}
+取 $\ket y=\ket-$，由\textbf{相位反冲}（Model 1）：
+$U_f\ket x\ket- = (-1)^{f(x)}\ket x\ket-$，即
+\[
+U_f\ket x=(-1)^{f(x)}\ket x
+\qquad\Longleftrightarrow\qquad
+R_{x_0}=I-2\ket{x_0}\bra{x_0}
+\]
+是关于 $\ket{x_0}$ 的\textbf{反射算子}。第二个反射关于均匀叠加态：
+$R_0=2\ket{\phi_0}\bra{\phi_0}-I=H^{\otimes n}\big(2\ket{0^n}\bra{0^n}-I\big)H^{\otimes n}$，
+可由 $n$ 比特受控 $X$ 与辅助比特 $\ket-$ 实现。
+\end{keybox}
+\smallcite{Model 2 笔记第 4.1 节。}
+\end{frame}
+
+\begin{frame}{Grover 算法流程}
+\begin{exbox}{算法（live\_notes 算法 11.1）}
+\begin{enumerate}
+\item \textbf{初始化}：$\ket{\psi}\leftarrow H^{\otimes(n+1)}\ket{0^n}\ket1
+=\ket{\phi_0}\ket-$，其中 $\ket{\phi_0}=\frac1{\sqrt N}\sum_x\ket x$；
+\item \textbf{标记（oracle）}：施加 $U_f$，由相位反冲对 $\ket{x_0}$ 附加 $-1$ 相位
+（等价于反射 $R_{x_0}$）；
+\item \textbf{扩散（diffusion）}：施加 $D=2\ket{\phi_0}\bra{\phi_0}-I$（关于 $\ket{\phi_0}$ 的反射）；
+\item \textbf{迭代}：令 $\theta=2\arcsin(1/\sqrt N)$，重复步骤 2--3 共
+$k=\lfloor\pi/(2\theta)\rfloor$ 次；
+\item \textbf{测量与验证}：计算基测量得 $x$，用 $f(x)$ 检验；失败则重复。
+\end{enumerate}
+\end{exbox}
+\begin{keybox}{核心直觉}
+两个反射的乘积 = 二维子空间内的\textbf{旋转}：状态在
+$\mathrm{span}\{\ket{x_0},\ket{x_0^\perp}\}$ 内每次旋转角度 $\theta$，
+从与 $\ket{x_0}$ 夹角 $\theta/2$ 处逐步逼近 $\ket{x_0}$。
+\end{keybox}
+\smallcite{Model 2 笔记第 4.1 节例。}
+\end{frame}
+
+\begin{frame}{Grover 迭代定理：两个反射 $=$ 旋转}
+\begin{Thm}[\textbf{Grover 迭代}] \label{thm:grover}
+记 $\theta=2\arcsin(1/\sqrt N)$，分解
+$\ket{\phi_0}=\sin(\theta/2)\ket{x_0}+\cos(\theta/2)\ket{x_0^\perp}$。
+\textbf{Grover 算子} $G=R_0R_{x_0}$ 在二维不变子空间内是旋转角 $\theta$ 的旋转：
+$[G]=\begin{pmatrix}\cos\theta&\sin\theta\\-\sin\theta&\cos\theta\end{pmatrix}$
+（基 $\{\ket{x_0},\ket{x_0^\perp}\}$），且
+\[
+G^k\ket{\phi_0}=\sin\!\big((2k+1)\theta/2\big)\ket{x_0}+\cos\!\big((2k+1)\theta/2\big)\ket{x_0^\perp}.
+\]
+\end{Thm}
+\begin{keybox}{证明要点（在基 $B$ 中逐块计算）}
+由倍角公式：$[R_0]_B=\begin{pmatrix}-\cos\theta&\sin\theta\\\sin\theta&\cos\theta\end{pmatrix}$、
+$[R_{x_0}]_B=\mathrm{diag}(-1,1)$，相乘得 $[G]_B=e^{+\ii\theta Y}$。
+直接作用于初态：角度从 $\theta/2$ 增为 $3\theta/2$，迭代 $k$ 次后为 $(2k+1)\theta/2$。
+\end{keybox}
+\smallcite{Model 2 笔记定理 4.1 与证明。}
+\end{frame}
+
+\begin{frame}{Grover 迭代的几何图像}
+\begin{center}
+\begin{tikzpicture}[scale=2.3]
+\draw[->,thick] (-0.08,0) -- (1.28,0) node[right] {$\ket{x_0^\perp}$};
+\draw[->,thick] (0,-0.08) -- (0,1.28) node[above] {$\ket{x_0}$};
+\draw[->,very thick,blue] (0,0) -- ({cos(15)},{sin(15)}) node[above right] {$\ket{\phi_0}$};
+\draw[->,very thick,red] (0,0) -- ({cos(45)},{sin(45)}) node[above] {$G\ket{\phi_0}$};
+\draw[->,very thick,green!50!black] (0,0) -- ({cos(75)},{sin(75)}) node[right] {$G^2\ket{\phi_0}$};
+\draw[thick,blue] ({0.5*cos(15)},{0.5*sin(15)}) arc (15:45:0.5);
+\draw[thick,red] ({0.66*cos(45)},{0.66*sin(45)}) arc (45:75:0.66);
+\node[blue] at ({0.6*cos(30)},{0.6*sin(30)}) {$\theta$};
+\node[red] at ({0.78*cos(60)},{0.78*sin(60)}) {$\theta$};
+\node at (0.85,0.08) {$\theta/2$};
+\end{tikzpicture}
+\end{center}
+\begin{itemize}
+\item 初态 $\ket{\phi_0}$ 与 $\ket{x_0^\perp}$ 的夹角为 $\theta/2$；
+每次迭代把状态旋转角度 $\theta$；
+\item 迭代 $k$ 次后夹角 $(2k+1)\theta/2$，成功振幅
+$\sin((2k+1)\theta/2)$ 单调趋向 $1$（在 $\approx\pi/2$ 处达到最大）。
+\end{itemize}
+\smallcite{Model 2 笔记图 4.1（取 $\theta/2=15^\circ$ 示意）。}
+\end{frame}
+
+\begin{frame}{查询复杂度与最优性}
+\begin{Cor}
+取 $k=O(1/\theta)=O(\sqrt N)$ 次迭代即可使 $\ket{x_0}$ 的振幅达到 $\Omega(1)$；
+测量失败概率不超过 $4/N$，输出可经典验证，重复即可。查询复杂度
+$O(\sqrt N)$ 相对经典 $O(N)$ 是\textbf{二次加速}；若存在 $M$ 个标记态，
+复杂度为 $O(\sqrt{N/M})$。
+\end{Cor}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.5\textwidth}
+\begin{keybox}{经典下界：至少 $N-1$ 次查询}
+反设 $N-2$ 次查询即可：存在两个\textbf{未被查询}的候选值 $x,x'$，
+两种假设下观察到的证据完全相同 —— 任何以概率 $>1/2$ 正确识别的估计子
+必然偏向二者之一，矛盾。
+\end{keybox}
+\column{0.5\textwidth}
+\begin{warnbox}{量子下界：$\Omega(\sqrt N)$（混合论证）}
+标记为 $x$ 时 $t$ 次查询后的状态 $\ket{\psi_t^x}$ 与恒等 oracle 演化 $\ket{\psi_t}$
+的距离满足 $\sqrt{D_t}\le2t$（$D_t:=\sum_x\|\ket{\psi_t^x}-\ket{\psi_t}\|^2$）；
+结合成功条件得 $T\ge\Omega(\sqrt N)$。这就是"经典每查询线性更新概率、
+量子以旋转更新振幅（$\sqrt p$）"的定量来源（BBBV 混合论证）。
+\end{warnbox}
+\end{columns}
+\smallcite{Model 2 笔记推论 4.1 与证明；Bennett--Bernstein--Brassard--Vazirani, SIAM J. Comput. 1997.}
+\end{frame}
+
+\begin{frame}{一般振幅放大：好空间与两个反射}
+Grover 搜索只是振幅放大在"标记态 $=$ 单个计算基态"时的特例。
+\begin{Thm}[\textbf{振幅放大}]
+设 $\Pi_{\mathrm{good}}$ 是"好空间"上的投影，初态
+$\ket{\phi_0}=U_0\ket{0^n}=\sqrt p\ket{\mathrm{good}}+\sqrt{1-p}\ket{\mathrm{bad}}$，
+$p=\sin^2(\theta/2)$。若可访问反射 $R_{\mathrm{good}}=I-2\Pi_{\mathrm{good}}$ 与
+$R_0=2\ket{\phi_0}\bra{\phi_0}-I$，定义 $G=R_0R_{\mathrm{good}}$，则
+\[
+\big|\bra{\mathrm{good}}G^k\ket{\phi_0}\big|=\sin\!\big((2k+1)\theta/2\big),
+\]
+故 $k=O(1/\theta)=O(1/\sqrt p)$ 次迭代后成功概率达到 $\Omega(1)$。
+\end{Thm}
+\begin{keybox}{证明思路（基 $\{\ket{\phi_0},\ket{\phi_0^\perp}\}$）}
+反射作用为 $R_{\mathrm{good}}\ket{\mathrm{good}}=-\ket{\mathrm{good}}$、
+$R_0\ket{\phi_0}=\ket{\phi_0}$、$R_0\ket{\phi_0^\perp}=-\ket{\phi_0^\perp}$；
+由 $\ket{\mathrm{good}}=\sin(\theta/2)\ket{\phi_0}+\cos(\theta/2)\ket{\phi_0^\perp}$ 直接计算得
+$[G]=\begin{pmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{pmatrix}$
+（基 $\{\ket{\phi_0},\ket{\phi_0^\perp}\}$），于是
+$\bra{\mathrm{good}}G^k\ket{\phi_0}=\sin(\theta/2)\cos(k\theta)+\cos(\theta/2)\sin(k\theta)
+=\sin((2k+1)\theta/2)$。
+\end{keybox}
+\smallcite{Model 2 笔记定理 4.2 与证明。}
+\end{frame}
+
+\begin{frame}{为什么是二次加速：$O(1/\sqrt p)$ 的由来}
+初始成功概率 $p=\sin^2(\theta/2)$，即初始成功\textbf{振幅} $\approx\sqrt p$。
+\begin{enumerate}
+\item \textbf{旋转角与初始振幅同阶}：$\theta=2\arcsin\sqrt p\approx2\sqrt p$；
+\item \textbf{振幅线性增长}：$a_k=\sin((2k+1)\theta/2)\approx k\theta$（未越界时）；
+\item \textbf{概率二次增长}：$P_k=a_k^2\approx k^2\theta^2=O(k^2p)$，
+故把成功概率提升到常数只需 $k=O(1/\theta)=O(1/\sqrt p)$ 次迭代。
+\end{enumerate}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.52\textwidth}
+\begin{keybox}{经典对照}
+成功概率为 $p$ 的伯努利试验，概率按\textbf{线性}速率增长（$P\sim kp$），
+期望重复 $O(1/p)$ 次。
+\end{keybox}
+\column{0.46\textwidth}
+\begin{warnbox}{根源}
+量子以\textbf{振幅} $\sqrt p$（而非概率 $p$）为基本量：概率是振幅的平方，
+振幅每步增加 $O(\sqrt p)$ 就使概率每步增加 $O(p)$ ——
+用振幅的线性增长换取概率的二次增长。
+\end{warnbox}
+\end{columns}
+\smallcite{Model 2 笔记第 4.2 节注。}
+\end{frame}
+
+\begin{frame}{$W$ 的本征结构、未知 $p$ 与信号比特场景}
+\begin{keybox}{$W$ 的本征结构 $\to$ 振幅估计入口}
+$W$ 在二维不变子空间内的特征向量为
+$\ket\pm=\frac1{\sqrt2}(\ket{\phi_0}\pm\ii\ket{\phi_0'})$，
+$W\ket\pm=e^{\mp\ii\theta}\ket\pm$。
+成功概率 $p$ 被编码进 $W$ 的本征相位 $e^{\pm\ii\theta}$ ——
+用 QPE（本课第 3 节）即可对 $p$ 做平方级加速估计。
+\end{keybox}
+\begin{keybox}{$p$ 未知时的策略}
+无法精确选取迭代次数时：均匀随机选取 $m\in[1,2^r-1]$，执行 $G^m$ 后用
+$R_{\mathrm{good}}$ 验证；当 $2^r\gtrsim\pi/\theta$ 时，迭代角度在单位圆上"随机采样"，
+$\cos^2$ 平均为 $1/2$，成功概率为常数，期望 $O(1/\sqrt p)$ 次。
+（Model 3 的 fixed-point AA 可把成功概率逼近 $1$。）
+\end{keybox}
+\begin{exbox}{信号比特场景（block-encoding 的雏形）}
+若 $U_0\ket{0^m}\ket{0^n}=\sqrt p\ket{0^m}\ket\phi+\sqrt{1-p}\ket{\phi^\perp}$，
+"好"态由辅助比特全 $0$ 标志，反射简化为
+$R_{\mathrm{good}}=(I-2\ket{0^m}\bra{0^m})\otimes I$，
+后选择测量辅助比特即得成功概率 $p$。这类"可验证成功"的结构在 block-encoding 中反复出现。
+\end{exbox}
+\smallcite{Model 2 笔记第 4.2 节注。}
+\end{frame}
+
+\begin{frame}{OAA：基本设定与二维不变子空间}
+\begin{Def}[\textbf{非感知振幅放大（OAA）的设定}]
+设数据寄存器输入态为 $\ket\psi$，辅助寄存器初始化为 $\ket{0^a}$。酉算子 $W$ 满足
+\[
+W\ket{0^a}\ket\psi=\sin\theta\,\ket{0^a}\ket{\psi_{\mathrm{good}}}
++\cos\theta\,\ket{\Phi^\perp_\psi},\qquad \braket{0^a}{\Phi^\perp_\psi}=0,
+\]
+成功概率 $p=\sin^2\theta$。\textbf{OAA 的目标}：通过若干次酉操作把成功分量振幅增大，
+而不需要知道输入态 $\ket\psi$ 的具体形式。
+\end{Def}
+\begin{keybox}{成功子空间的投影与反射}
+\[
+P=\ket{0^a}\bra{0^a}\otimes I,\qquad R=2P-I.
+\]
+由于 $P$ 在数据寄存器上仅作用单位算子 $I$，反射与具体数据态 $\ket\psi$ 无关
+—— 这正是 ``oblivious'' 的含义。记 $\ket G=\ket{0^a}\ket{\psi_{\mathrm{good}}}$、
+$\ket B=\ket{\Phi^\perp_\psi}$，动力学被限制在二维子空间
+$\mathcal K=\mathrm{span}\{\ket G,\ket B\}$ 中。
+\end{keybox}
+\smallcite{Model 2 笔记第 4.3 节。}
+\end{frame}
+
+\begin{frame}{OAA 迭代算子：两个反射 $=$ 旋转}
+\begin{Def}[\textbf{OAA 迭代算子}]
+通过 $W$ 构造第二个反射 $WRW^\dagger$，定义 $Q:=-WRW^\dagger R$
+（不同文献可能取 $R'=I-2P$，只差整体相位或旋转方向）。
+\end{Def}
+\begin{Thm}[\textbf{旋转动力学}]
+$Q$ 在二维子空间 $\mathcal K=\mathrm{span}\{\ket G,\ket B\}$ 中等价于一次旋转，
+每施加一次旋转角度 $2\theta$：
+$Q^kW\ket{\Psi}=\sin\big((2k+1)\theta\big)\ket G+\cos\big((2k+1)\theta\big)\ket B$，
+成功概率 $p_k=\sin^2\big((2k+1)\theta\big)$。
+\end{Thm}
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.48\textwidth}
+\begin{keybox}{复杂度}
+$p=\sin^2\theta\ll1$ 时 $\theta\approx\sqrt p$；令 $(2k+1)\theta\approx\pi/2$ 得
+$k\approx\frac{\pi}{4\theta}=O(1/\sqrt p)$，对比直接重复的 $O(1/p)$ 是\textbf{平方加速}。
+\end{keybox}
+\column{0.5\textwidth}
+\begin{warnbox}{与普通 AA 的区别}
+普通 AA 可能需要关于初态 $\ket{0^a}\ket\psi$ 的反射（$\ket\psi$ 未知时难以实现）；
+OAA 只利用辅助寄存器定义成功子空间，\textbf{对任意未知输入态使用同一套电路}
+（\emph{amplify without knowing the input state}）。
+\end{warnbox}
+\end{columns}
+\smallcite{Model 2 笔记第 4.3 节。}
+\end{frame}
+
+\begin{frame}{OAA 的数学本质与 block-encoding 的联系}
+\begin{keybox}{数学本质：reflection $+$ reflection $=$ rotation}
+OAA 迭代算子 $Q=-(WR_PW^\dagger)R_P$ 是两个反射的乘积：
+$\boxed{\text{reflection}+\text{reflection}=\text{rotation}}$。
+OAA 不是直接修改测量概率，而是通过\textbf{量子干涉}不断旋转量子态靠近成功子空间。
+\end{keybox}
+\begin{warnbox}{block-encoding 中的动机}
+若 $V$ 是矩阵 $A$ 的 $(\alpha,m,0)$-block-encoding，成功（落到 $\ket{0^m}$ 分支）概率
+仅为 $\|A\ket\psi\|^2/\alpha^2$。普通振幅放大需关于初态 $V\ket{0^m}\ket\psi$ 的反射，
+多次使用时"回退"代价巨大；且成功/失败携带关于 $\ket\psi$ 的信息，阻碍链式使用。
+OAA 只关于\textbf{好空间}与"包含初态的子空间"反射，绕开这两个问题。
+\end{warnbox}
+\begin{exbox}{OAA 走算子（Model 3 qubitization 的前奏）}
+记 $\Pi_{\mathrm{good}}$ 为好空间投影、$Z_{\mathrm{good}}:=I-2\Pi_{\mathrm{good}}$：
+$W:=-V\,(Z_{\mathrm{good}}\otimes I)\,V^\dagger\,(Z_{\mathrm{good}}\otimes I)$。
+\end{exbox}
+\smallcite{Model 2 笔记第 4.3 节。}
+\end{frame}
+
+\begin{frame}{OAA 定理：把 $1/\alpha$ 的成功概率恢复到常数}
+\begin{Thm}[\textbf{非感知振幅放大}]
+设 $V$ 是酉 $U$ 的 $(\alpha,m,0)$-block-encoding，即
+$(\Pi_{\mathrm{good}}\otimes I)V(\Pi_{\mathrm{good}}\otimes I)=U/\alpha$。
+定义 $W:=-V(Z_{\mathrm{good}}\otimes I)V^\dagger(Z_{\mathrm{good}}\otimes I)$，
+则对任意满足 $\Pi_{\mathrm{good}}\ket{\mathrm{good}}=\ket{\mathrm{good}}$ 的态，
+\[
+(\Pi_{\mathrm{good}}\otimes I)\,W^k\,V\,\ket{\mathrm{good}}\otimes I
+=U\,\sin\!\big((2k+1)\arcsin(1/\alpha)\big),
+\]
+代价为 $2k+1$ 次 $V$ 与 $2k$ 次 $Z_{\mathrm{good}}$。
+定义 $\sin\theta=1/\alpha$（$\alpha\ge1$），则 $W$ 在"好空间"内是旋转角 $2\theta$ 的旋转，
+迭代 $k=O(\alpha)$ 次即可把成功概率提升到常数。
+\end{Thm}
+\begin{keybox}{关键性质}
+反射 $V(Z_{\mathrm{good}}\otimes I)V^\dagger$ 只依赖好空间与 $V$，
+\textbf{不依赖具体输入态} —— 这正是"非感知"的含义。它是 Hamiltonian 模拟中
+LCU/block-encoding 方案把\textbf{指数级衰减}的成功概率恢复到\textbf{常数}的基础，
+也是 Model 3 \textbf{qubitization} 的前奏（$W$ 正是 qubitization 的迭代算子）。
+\end{keybox}
+\smallcite{Model 2 笔记定理 4.3 与注。}
+\end{frame}
+
+\begin{frame}{振幅放大的应用}
+\begin{keybox}{多阶段中间测量}
+设 $L$ 步算法、第 $i$ 步成功概率 $p_i$（条件于之前各步），累计
+$p=p_1\cdots p_L$，直接重复需 $O(1/p)$ 次。由测量延迟原理（Model 1），
+用辅助比特把中间测量推迟为相干过程，即可构造反射算子并应用振幅放大，
+把重复次数降到 $O(1/\sqrt p)$。更进一步，\textbf{压缩装置}（compression gadget）
+用一个 $\lceil\log_2(L+1)\rceil$ 比特的计数器寄存器记录成功次数，
+把辅助比特数从 $L-1$ 降到 $O(\log L)$。
+\end{keybox}
+\begin{keybox}{与 NP 问题的联系}
+振幅放大可自然应用于\textbf{任意 NP 问题}：对"是"实例，解的验证 witness
+可作为"好空间"的标志，暴力搜索的 $O(1/p)$ 次尝试被降为 $O(1/\sqrt p)$ 次 ——
+这是"量子相对暴力经典方法的二次加速"的一般形式，
+也解释了量子算法对组合优化（如 3-SAT）的兴趣来源。
+\end{keybox}
+\smallcite{Model 2 笔记第 4.4 节。}
+\end{frame}
+
+% ============================================================================
+\section{Lie--Trotter 与哈密顿量模拟}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} Lie--Trotter 与 Hamiltonian 模拟}\par\vspace{4mm}
+{\large Hamiltonian Simulation: Lie--Trotter, Suzuki, LCU}
+\end{frame}
+
+\begin{frame}{问题设定：Feynman 的原始动机}
+\begin{Def}[\textbf{Hamiltonian 模拟}]
+给定厄米矩阵 $H$（Hamiltonian）与初态 $\ket{\psi(0)}$，目标是制备
+$\ket{\psi(t)}=e^{-\ii Ht}\ket{\psi(0)}$，即 Schrödinger 方程
+$\ii\partial_t\ket{\psi(t)}=H\ket{\psi(t)}$ 的解。
+\end{Def}
+\begin{keybox}{为什么重要}
+\begin{itemize}
+\item Hamiltonian 模拟是 \textbf{Feynman 1982} 提出量子计算机设想的直接动机；
+\item 它是 QPE 及其应用（基态能量估计、HHL）中 $U=e^{-\ii Ht}$ 的实现途径；
+\item $e^{-\ii Ht}$ 是酉算子：无需存储态的完整历史，只需 $t$ 时刻的状态。
+\end{itemize}
+\end{keybox}
+\begin{exbox}{与 PDE 数值研究的对照}
+时间步进 $\e^{-\ii H\tau}$ 就是"精确的隐式时间步"（Model 1）；
+Lie--Trotter 分裂正是数值分析中\textbf{算子分裂}的量子实现。
+\end{exbox}
+\smallcite{Model 2 笔记第 5.1 节。}
+\end{frame}
+
+\begin{frame}{Lie 乘积公式与一阶 Trotter}
+当 $H=H_1+H_2$ 且 $[H_1,H_2]\ne0$ 时 $e^{-\ii tH}\ne e^{-\ii tH_1}e^{-\ii tH_2}$，
+但\textbf{Lie 乘积公式}给出
+\[
+e^{-\ii tH}=\lim_{L\to\infty}\Big(e^{-\ii(t/L)H_1}e^{-\ii(t/L)H_2}\Big)^{L}.
+\]
+\begin{Thm}[\textbf{一阶 Trotter 公式}]
+记步长 $\tau=t/L$。\textbf{局部误差}
+$\|e^{-\ii\tau H}-e^{-\ii\tau H_1}e^{-\ii\tau H_2}\|=O(\tau^2)$；
+\textbf{全局误差}（$L$ 步线性累积，Model 1 的 hybrid argument）
+$\|e^{-\ii tH}-(e^{-\ii\tau H_1}e^{-\ii\tau H_2})^L\|=O(L\tau^2)=O(t^2/L)$，
+因此达到精度 $\eps$ 需要 $L=O(t^2/\eps)$ 步，每步调用
+$e^{-\ii\tau H_1}$、$e^{-\ii\tau H_2}$ 各一次。
+\end{Thm}
+\begin{center}
+\begin{tikzpicture}[scale=0.7]
+\draw[->,thick] (-0.3,0) -- (11.6,0);
+\foreach \i in {0,...,5}{
+  \draw[fill=blue!15] (\i*1.85,0.05) rectangle (\i*1.85+0.75,0.45);
+  \draw[fill=red!15] (\i*1.85+0.95,0.05) rectangle (\i*1.85+1.7,0.45);}
+\node at (0.37,0.8) {\scriptsize $e^{-\ii\tau H_1}$};
+\node at (1.32,0.8) {\scriptsize $e^{-\ii\tau H_2}$};
+\draw[<->] (0,-0.12) -- (1.85,-0.12) node[midway,below] {\scriptsize $\tau=t/L$};
+\draw[<->] (0,-0.5) -- (11.1,-0.5) node[midway,below] {\scriptsize $t=L\tau$};
+\end{tikzpicture}
+\end{center}
+\smallcite{Model 2 笔记定理 5.1 与图 5.1。}
+\end{frame}
+
+\begin{frame}{局部误差的推导（Taylor 积分余项）}
+记 $\widetilde U(\tau)=e^{-\ii\tau H_1}e^{-\ii\tau H_2}$。精确演化 $U(\tau)=e^{-\ii\tau H}$
+与 $\widetilde U$ 满足 $U(0)=\widetilde U(0)=I$、$U'(0)=\widetilde U'(0)=-\ii H$，
+而 $\widetilde U''(0)=-(H_1^2+2H_1H_2+H_2^2)$，故
+\[
+U(\tau)=I-\ii\tau H-\int_0^\tau e^{-\ii sH}H^2(\tau-s)\,ds,
+\]
+\[
+\widetilde U(\tau)=I-\ii\tau H-\int_0^\tau e^{-\ii sH_1}(H_1^2+2H_1H_2+H_2^2)e^{-\ii sH_2}(\tau-s)\,ds.
+\]
+\begin{keybox}{误差界}
+相减并取范数（各 $e^{-\ii\cdot}$ 因子范数为 $1$，$\|H\|\le\|H_1\|+\|H_2\|$，
+$\int_0^\tau(\tau-s)ds=\tau^2/2$）：
+$\|U(\tau)-\widetilde U(\tau)\|\le\tau^2(\|H_1\|+\|H_2\|)^2=O(\tau^2)$，
+即局部误差 $O(\tau^2)$ 且常数显式为 $(\|H_1\|+\|H_2\|)^2$。
+\end{keybox}
+\smallcite{Model 2 笔记定理 5.1 的证明。}
+\end{frame}
+
+\begin{frame}{交换子型误差界}
+上面的 $O(\tau^2)$ 界中，更好的常数是\textbf{交换子范数} $\|[H_1,H_2]\|$。
+\begin{Thm}[\textbf{交换子型误差界}]
+对一阶 Trotter，
+$\|e^{-\ii\tau H}-e^{-\ii\tau H_1}e^{-\ii\tau H_2}\|
+\le\frac{\tau^2}{2}\|[H_1,H_2]\|\le(\tau\alpha)^2$，
+$\alpha=\max\{\|H_1\|,\|H_2\|\}$。达到精度 $\eps$ 所需全局步数
+$L=O\big(t^2\|[H_1,H_2]\|/\eps\big)$。
+\end{Thm}
+\begin{keybox}{证明要点（Duhamel 原理，Model 1）}
+由 $\ii\partial_\tau\widetilde U=H\widetilde U+[e^{-\ii\tau H_1},H_2]e^{-\ii\tau H_2}$ 与
+Duhamel 公式，$\widetilde U(\tau)-e^{-\ii\tau H}
+=-\ii\int_0^\tau e^{-\ii H(\tau-s)}[e^{-\ii sH_1},H_2]e^{-\ii sH_2}\,ds$。
+令 $G(s)=[e^{-\ii sH_1},H_2]e^{\ii sH_1}$，则 $G(0)=0$ 且
+$\ii\partial_sG=e^{-\ii sH_1}[H_1,H_2]e^{\ii sH_1}$，
+故 $\|[e^{-\ii sH_1},H_2]\|=\|G(s)\|\le s\|[H_1,H_2]\|$，积分即得 $\frac{\tau^2}2\|[H_1,H_2]\|$。
+\end{keybox}
+\smallcite{Model 2 笔记定理 5.2 与证明。}
+\end{frame}
+
+\begin{frame}{例：横向场 Ising 模型（交换子界更紧）}
+一维\textbf{横向场 Ising 模型}（TFIM）：
+$H=-J\sum_{i=1}^{n-1}Z_iZ_{i+1}-g\sum_{i=1}^{n}X_i=:H_1+H_2$。
+$H_1$、$H_2$ 内部各自两两对易，故 $e^{-\ii\tau H_1}$、$e^{-\ii\tau H_2}$ 可精确实现。
+\begin{columns}[T,totalwidth=\textwidth]
+\column{0.5\textwidth}
+\begin{warnbox}{算子范数界：$L=O(n^2t^2/\eps)$}
+$\|H_1\|=O(n)$、$\|H_2\|=O(n)$，$\alpha^2=O(n^2)$。
+\end{warnbox}
+\column{0.5\textwidth}
+\begin{keybox}{交换子界：$L=O(nt^2/\eps)$}
+$[Z_iZ_{i+1},X_k]\ne0$ 仅当 $k=i$ 或 $k=i+1$，
+故 $\|[H_1,H_2]\|=O(n)$。
+\end{keybox}
+\end{columns}
+\begin{warnbox}{教训}
+误差界应尽量用\textbf{交换子范数}而不是算子范数：交换子界能捕捉
+"不相交项不贡献误差"的结构。对特定初态 $\ket{\psi_0}$，误差可按
+$\frac{t^2}{2}\max_{0\le s\le t}\|[H_1,H_2]\ket{\psi(s)}\|$ 估计，往往小得多。
+\end{warnbox}
+\smallcite{Model 2 笔记第 5.3 节例。}
+\end{frame}
+
+\begin{frame}{二阶 Trotter 与高阶 Suzuki 公式}
+\begin{Thm}[\textbf{二阶 Trotter（对称分裂，Strang 分裂）}]
+$\|e^{-\ii\tau H}-e^{-\ii\tau H_1/2}e^{-\ii\tau H_2}e^{-\ii\tau H_1/2}\|=O(\tau^3)$，
+达到精度 $\eps$ 需 $L=O(t^{3/2}\eps^{-1/2})$ 步，每步 $3$ 次局部演化。
+\end{Thm}
+\begin{Thm}[\textbf{Trotter--Suzuki 递推（组合方法）}]
+若 $U_p$ 是 $p$ 阶公式（局部误差 $O(\tau^{p+1})$）且系数满足 $\sum_js_j=1$、
+$\sum_js_j^{p+1}=0$，则组合 $U_p(s_m\tau)\cdots U_p(s_1\tau)$ 至少是 $p+1$ 阶。
+$2k$ 阶公式由递推
+$U_{2k}(\tau)=U_{2k-2}(s_k\tau)^2\,U_{2k-2}((1-4s_k)\tau)\,U_{2k-2}(s_k\tau)^2$
+（$s_k=\frac1{4-4^{1/(2k-1)}}$）构造，每个 $U_{2k}$ 调用 $5$ 次 $U_{2k-2}$。
+一般地，$p$ 阶公式达到精度 $\eps$ 需要 $L=O\big(t^{1+1/p}\eps^{-1/p}\big)$ 步；
+$p\to\infty$ 时 $L=O(t^{1+o(1)}\eps^{-o(1)})$。
+\end{Thm}
+\begin{warnbox}{阶数与代价的权衡}
+高阶公式改进对 $t,\eps$ 的依赖，但每步指数个数随阶数指数增长（$5^{k-1}$），
+实践中 2 至 6 阶往往最优（系数 $s_k$ 的构造是数值分析组合方法的直接移植）。
+\end{warnbox}
+\smallcite{Model 2 笔记定理 5.3--5.4；Yoshida 1990; Suzuki 1991.}
+\end{frame}
+
+\begin{frame}{与经典算子分裂/谱方法的对比}
+Trotter--Suzuki 公式并非量子特有：它们是数值分析中\textbf{算子分裂}与
+\textbf{组合方法}的量子实现。
+\begin{itemize}
+\item 一阶 Lie--Trotter 与二阶 \textbf{Strang 分裂}（1968）是经典求解对流扩散型
+PDE 的标准工具；高阶组合方法及其系数由 \textbf{Yoshida}（1990）与
+\textbf{Suzuki}（1991）在量子计算之前就建立；
+\item 二者区别只在载体：
+\begin{enumerate}
+\item \textbf{经典分裂}：矩阵作用在网格向量上，每步 $O(N)$ 次浮点运算；
+谱方法先用 FFT 对角化微分算子，每步 $O(N\log N)$ 次运算，再显式读出谱系数；
+\item \textbf{量子版本}：酉演化作用在 $n=\log N$ 个 qubit 上，门数
+$O(\poly(n))$；当初始态是叠加态且只需提取低维观测值时，
+在高维（$d\gtrsim5$）下可获得对网格数的\textbf{指数加速}。
+\end{enumerate}
+\end{itemize}
+\begin{keybox}{同构关系}
+谱方法用 FFT 把微分算子对角化，与量子 qubitization 把 $H$ 变为旋转矩阵的思路同构
+—— 区别在于经典需要\textbf{显式}对角化矩阵，量子只需要 block-encoding 的
+\textbf{隐式}对角化。
+\end{keybox}
+\smallcite{Model 2 笔记第 5.4 节注。}
+\end{frame}
+
+\begin{frame}{局部演化的实现：对易情形与 Pauli 项电路}
+\begin{exbox}{交换哈密顿量的精确模拟}
+若 $H=\sum_jH_j$ 且各 $H_j$ 两两对易，则 $e^{-\ii Ht}=\prod_je^{-\ii H_jt}$ 精确成立，
+无需分裂误差（如 TFIM 的 $H_1=\sum_iZ_iZ_{i+1}$ 内部对易）。
+\end{exbox}
+\begin{exbox}{两比特 Pauli 项 $ZZ$ 的电路}
+由 $Xe^{-\ii tZ}X=e^{\ii tZ}$：
+\begin{center}
+\begin{quantikz}[row sep=0.28cm,column sep=0.42cm]
+\lstick{$\ket x$} & \ctrl{1} & \qw & \ctrl{1} & \qw \\
+\lstick{$\ket y$} & \targ{} & \gate{R_z(2t)} & \targ{} & \qw
+\end{quantikz}
+\end{center}
+即 $e^{-\ii t\,Z\otimes Z}=\mathrm{CNOT}\cdot\big(I\otimes R_z(2t)\big)\cdot\mathrm{CNOT}$。
+一般 $k$ 比特 Pauli 项：先用 CNOT 链计算奇偶性，施加单个 $R_z$ 后再用 CNOT 链还原
+（共 $2(k-1)$ 个 CNOT 与 $1$ 个 $R_z$）；含 $X,Y$ 的项先用 Clifford 共轭
+（$X=HZH$ 等）对角化。
+\end{exbox}
+\smallcite{Model 2 笔记第 5.5 节。}
+\end{frame}
+
+\begin{frame}{从 Trotter 到 LCU：截断 Taylor 级数方法的动机}
+\begin{itemize}
+\item 乘积公式对 $H$ 的要求：少量项之和，且每项指数 $e^{-\ii\tau H_j}$ 可精确实现；
+误差对精度的依赖是 $O(\eps^{-1/p})$（\textbf{多项式}）；
+\item 由\textbf{无快速前推（no-fast-forwarding）}下界，黑盒模拟 $e^{-\ii Ht}$
+至少需要 $\Omega(t)$ 次查询，而乘积公式的上界关于 $t$ 是超线性的
+$O(t^{1+1/p})$；
+\item 一个达到（几乎）最优复杂度的方案：把 $e^{-\ii Ht}$ 做 \textbf{Taylor 级数展开}，
+把截断结果表示为\textbf{线性酉组合（LCU）}，再用\textbf{非感知振幅放大（OAA）}
+把后选择成功概率恢复到常数 —— 这就是\textbf{截断 Taylor 级数方法}
+（Berry--Childs--Cleve--Kothari--Somma, 2015）。
+\end{itemize}
+\begin{Def}[\textbf{哈密顿量的 LCU 分解}]
+\[
+H=\sum_{l=1}^{L}\alpha_lU_l,\qquad \alpha_l>0,\ U_l\ \text{酉},
+\qquad \lambda:=\sum_l\alpha_l\ \text{（1-范数）}.
+\]
+对 Pauli 分解取 $\alpha_l=|c_l|$、$U_l=\mathrm{sign}(c_l)P_l$；$\|H\|\le\lambda$。
+\end{Def}
+\smallcite{Model 2 笔记第 5.6 节；Berry et al., PRL 114, 090502 (2015).}
+\end{frame}
+
+\begin{frame}{截断 Taylor 级数与 LCU 引理}
+\begin{Def}[\textbf{截断 Taylor 级数}]
+把总时间 $t$ 分为 $r$ 段，每段 $\tau=t/r$。对单段 Taylor 截断到 $K$ 阶：
+$e^{-\ii H\tau}\approx\widetilde U_K(\tau):=\sum_{k=0}^{K}\frac{(-\ii H\tau)^k}{k!}
+=\sum_{k=0}^{K}\sum_{l_1,\dots,l_k}\frac{(-\ii\tau)^k}{k!}\alpha_{l_1}\cdots\alpha_{l_k}\,U_{l_1}\cdots U_{l_k}$。
+去掉模 $1$ 相位 $(-\ii)^k$ 后是酉算子 $\{U_{l_1}\cdots U_{l_k}\}$ 的 LCU，
+其 1-范数（归一化常数）$s:=\sum_{k=0}^K\frac{(\lambda\tau)^k}{k!}\le e^{\lambda\tau}$。
+\end{Def}
+\begin{Lem}[\textbf{LCU 引理}]
+设 $M=\sum_jw_jV_j$（$w_j\ge0$，$V_j$ 酉），$s=\sum_jw_j$。构造
+\textbf{PREPARE} $V:\ket{0^a}\mapsto\sum_j\sqrt{w_j/s}\ket j$ 与
+\textbf{SELECT} $\mathrm{SEL}=\sum_j\ket j\bra j\otimes V_j$，则
+\[
+(V^\dagger\otimes I)\,\mathrm{SEL}\,(V\otimes I)\ket{0^a}\ket\psi
+=\ket{0^a}\otimes\frac1sM\ket\psi\ +\ \ket{0^a}^{\perp}\otimes(\cdots),
+\]
+测量辅助得到 $\ket{0^a}$ 的概率为 $\|M\ket\psi\|^2/s^2$，
+成功时系统态恰为 $M\ket\psi/\|M\ket\psi\|$。
+\end{Lem}
+\smallcite{Model 2 笔记第 5.6 节（定义与引理）。}
+\end{frame}
+
+\begin{frame}{LCU 引理证明与截断误差}
+\begin{keybox}{LCU 引理证明（三步逐项追踪）}
+$\ket{0^a}\ket\psi\xrightarrow{V\otimes I}\sum_j\sqrt{\frac{w_j}{s}}\ket j\ket\psi
+\xrightarrow{\mathrm{SEL}}\sum_j\sqrt{\frac{w_j}{s}}\ket jV_j\ket\psi
+\xrightarrow{V^\dagger\otimes I}\sum_j\sqrt{\frac{w_j}{s}}(V^\dagger\ket j)V_j\ket\psi$。
+由 $V^\dagger\ket j$ 在 $\ket{0^a}$ 上的分量 $\braket{0^a}{V^\dagger j}
+=\braket{V0^a}{j}=\sqrt{w_j/s}$，提取 $\ket{0^a}$ 分量即得 $\ket{0^a}\otimes\frac1sM\ket\psi$。
+\end{keybox}
+\begin{keybox}{截断误差与截断阶}
+由 $\|H\|\le\lambda$ 与 Taylor 余项、Stirling 下界（$\lambda\tau\le1$）：
+\[
+\Big\|e^{-\ii H\tau}-\widetilde U_K(\tau)\Big\|\le\sum_{k>K}\frac{(\lambda\tau)^k}{k!}
+\le e\Big(\frac{e}{K+1}\Big)^{K+1},
+\]
+故使尾项 $\le\delta$ 只需 $K=\Theta\big(\log(1/\delta)/\log\log(1/\delta)\big)$：
+截断阶仅\textbf{对数}（而非幂次）依赖于精度。
+\end{keybox}
+\smallcite{Model 2 笔记第 5.6 节（引理证明与注）。}
+\end{frame}
+
+\begin{frame}{截断 Taylor 级数方法的复杂度}
+\begin{Thm}[\textbf{复杂度}]
+设 $\lambda=\sum_l\alpha_l$。取 $r=\lceil\lambda t\rceil$ 段（$\lambda\tau\le1$），
+每段截断阶 $K=\Theta\big(\log(\lambda t/\eps)/\log\log(\lambda t/\eps)\big)$
+使单段截断误差 $\le\eps/r$。每段：PREPARE/SELECT 施加至多 $K$ 个 $U_l$，
+LCU 成功概率 $\approx1/s^2=\Omega(1)$（$s\le e^{\lambda\tau}\le e$，近酉），
+用 OAA 把后选择概率提升到常数，故每段代价 $O(K)$；$r$ 段合计
+\[
+\boxed{\text{总查询复杂度}\ O\!\Big(\lambda t\cdot\frac{\log(\lambda t/\eps)}{\log\log(\lambda t/\eps)}\Big)}.
+\]
+\end{Thm}
+\begin{warnbox}{最优性与展望}
+关于 $t$ \textbf{线性}、关于 $1/\eps$ \textbf{多重对数}，除 $\log\log$ 因子外已达
+无快速前推下界 $\Omega(t)$（对比乘积公式 $O(t^{1+1/p}\eps^{-1/p})$ 显著更优）。
+其"LCU（block-encoding）$+$ OAA 绕过后选择"的结构正是 Model 3 \textbf{qubitization}
+（$O(\lambda t+\frac{\log(1/\eps)}{\log\log(1/\eps)})$）与 \textbf{QSVT} 的雏形。
+\end{warnbox}
+\smallcite{Model 2 笔记定理 5.5 与注；Berry et al., PRL 114, 2015; Low--Chuang, Quantum 3, 2019.}
+\end{frame}
+
+% ============================================================================
+\section{总结与展望}
+\begin{frame}[plain]
+\centering\vspace{2.0cm}
+{\Huge\bfseries\color{navy} 总结与展望}\par\vspace{4mm}
+{\large Summary and Outlook}
+\end{frame}
+
+\begin{frame}{四大原语如何嵌套：现代量子算法的骨架}
+\begin{center}
+\begin{tikzpicture}[node distance=8mm, every node/.style={font=\small,align=center}]
+\node[draw,rounded corners,fill=softblue,minimum width=2.6cm,minimum height=0.9cm] (qft) {QFT\\$O(n^2)$ 门};
+\node[draw,rounded corners,fill=softgreen,minimum width=2.6cm,minimum height=0.9cm,right=of qft] (qpe) {QPE\\$O(1/\eps)$ 查询};
+\node[draw,rounded corners,fill=softyellow,minimum width=2.6cm,minimum height=0.9cm,right=of qpe] (aa) {AA/OAA\\$O(1/\sqrt p)$};
+\node[draw,rounded corners,fill=softred,minimum width=2.8cm,minimum height=0.9cm,right=of aa] (hs) {Hamiltonian 模拟\\$O(\lambda t\,\poly\log)$};
+\draw[-Latex,thick] (qft)--(qpe);
+\draw[-Latex,thick] (aa)--(qpe);
+\draw[-Latex,thick] (hs)--(qpe);
+\end{tikzpicture}
+\end{center}
+\begin{itemize}
+\item \textbf{Shor 分解} $=$ QFT $+$ QPE $+$ 周期发现（一次测量读出相位）；
+\item \textbf{HHL 线性方程组} $=$ Hamiltonian 模拟（$U=e^{-\ii Ht}$）$+$ QPE
+$+$ 受控旋转 $+$ 逆 QPE（特征值变换）；
+\item \textbf{振幅估计} $=$ AA（$G$ 的本征相位编码 $p$）$+$ QPE；
+\item \textbf{量子模拟} $=$ Trotter/LCU（$+$ OAA 恢复成功概率）$+$ QPE 提取谱信息。
+\end{itemize}
+\begin{keybox}{通向 Model 3}
+block-encoding、qubitization、QSVT 将统一并推广这些构件：
+qubitization 把 $W$ 变成"好空间"内的旋转（本课 OAA 走算子已见雏形），
+QSVT 把特征值变换推广到任意多项式/矩阵函数 —— 无需"本征值精确二进制"假设。
+\end{keybox}
+\end{frame}
+
+\begin{frame}{本课总结}
+\begin{enumerate}
+\item \textbf{QFT}：$\C^N$ 上的酉变换，$O(n^2)$ 个门、$O(n)$ 深度；
+张量积形式揭示"受控旋转"结构；输出是叠加态，须嵌入算法使用（Shor 的极致体现）；
+\item \textbf{QPE}：$H^{\otimes t}\to$ 受控幂 $\to$ 逆 QFT；Fejér 核给出窄峰分布；
+$t=d+O(1)$ 时以常数概率达精度 $2^{-d}$，$O(1/\eps)$ 查询 vs Hadamard 检验 $O(1/\eps^2)$；
+应用：振幅估计、特征值变换（HHL 核心）；
+\item \textbf{振幅放大}：两个反射 $=$ 旋转；Grover $O(\sqrt N)$ 查询且最优
+（经典 $N-1$，量子 $\Omega(\sqrt N)$ 混合论证）；一般 AA $O(1/\sqrt p)$；
+\textbf{OAA} 对未知输入态非感知放大，是 LCU/block-encoding 恢复成功概率的基础；
+\item \textbf{Hamiltonian 模拟}：一阶 Trotter $L=O(t^2\|\cdot\|/\eps)$、
+交换子界更紧、Strang/Suzuki 高阶公式；截断 Taylor/LCU 达
+$O(\lambda t\,\poly\log)$，逼近无快速前推下界。
+\end{enumerate}
+\begin{keybox}{对 PDE 数值研究者}
+量子算法 = \textbf{oracle 查询 + 相干叠加}，而非显式矩阵运算：
+复杂度以 $\poly(\log N)$ 而非 $N$ 计，输出是态/样本/少量观测量。
+Trotter 与谱方法、QPE 与 Krylov 的对照，正是理解量子优势边界的钥匙。
+\end{keybox}
+\end{frame}
+
+\begin{frame}{参考文献与阅读建议（1/2）}
+\scriptsize
+\begin{thebibliography}{9}
+\bibitem{notes2} 牛晓铭, \emph{Model 2 核心量子算法构件}（CoreQuantumAlgorithmComponents 笔记），Github 项目 Quantum-Computation.
+\bibitem{day16} 湘潭大学暑期学校, \emph{偏微分方程的量子算法} 第 1 天课件：量子计算的基础（day16）；另见 day17--19.
+\bibitem{NC} M. A. Nielsen and I. L. Chuang, \emph{Quantum Computation and Quantum Information}, Cambridge Univ. Press, 2010（QPE 误差分析 §5.2，Grover §6.1）.
+\bibitem{LinNotes} L. Lin, \emph{Lecture Notes on Quantum Algorithms for Scientific Computation}, 2022, \url{https://math.berkeley.edu/~linlin/qasc/qasc_notes.pdf}.
+\bibitem{Shor} P. W. Shor, ``Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer,'' \emph{SIAM J. Comput.} 26(5), 1484--1509, 1997.
+\bibitem{HHL} A. W. Harrow, A. Hassidim, S. Lloyd, ``Quantum algorithm for linear systems of equations,'' \emph{Phys. Rev. Lett.} 103, 150502, 2009.
+\end{thebibliography}
+\vspace{1mm}
+{\tiny\color{graytext}课后建议：① 手推 QFT 张量积形式与 3-qubit 电路；② 用几何级数推导 QPE 的 $\Pr(k)$ 并画出 Fejér 核；
+③ 验证 Grover 的 $[G]$ 旋转矩阵（含 $\ket{\phi_0},\ket{\phi_0'}$ 基约定）；④ 推导一阶 Trotter 的交换子界；⑤ 用 LCU 引理证明截断 Taylor 的复杂度。}
+\end{frame}
+
+\begin{frame}{参考文献与阅读建议（2/2）}
+\scriptsize
+\begin{thebibliography}{9}
+\bibitem{Grover} L. K. Grover, ``A fast quantum mechanical algorithm for database search,'' STOC 1996, arXiv:quant-ph/9605043.
+\bibitem{BBBV} C. H. Bennett, E. Bernstein, G. Brassard, U. Vazirani, ``Strengths and weaknesses of quantum computing,'' \emph{SIAM J. Comput.} 26(5), 1510--1523, 1997.
+\bibitem{BHMT} G. Brassard, P. H{\o}yer, M. Mosca, A. Tapp, ``Quantum Amplitude Amplification and Estimation,'' Contemporary Mathematics 305, 2002.
+\bibitem{BCCKS} D. W. Berry, A. M. Childs, R. Cleve, R. Kothari, R. D. Somma, ``Simulating Hamiltonian dynamics with a truncated Taylor series,'' \emph{Phys. Rev. Lett.} 114, 090502, 2015.
+\bibitem{LC} G. H. Low and I. L. Chuang, ``Hamiltonian simulation by qubitization,'' \emph{Quantum} 3, 163, 2019（Model 3 接口）.
+\bibitem{YS} H. Yoshida, Phys. Lett. A 150, 262 (1990); M. Suzuki, J. Math. Phys. 32, 400 (1991).
+\end{thebibliography}
+\vspace{1mm}
+{\tiny\color{graytext}扩展阅读：Kitaev 1995（QPE 原始思想）；Cleve--Ekert--Macchiavello--Mosca 1998（QFT/QPE 统一视图）；
+Low--Chuang 2017（QSP/QSVT）；Day17 课件（block-encoding、QSVT 的 PDE 视角）。}
+\end{frame}
+
+\end{document}

@@ -13,6 +13,11 @@
 *.synctex
 *.synctex(busy)
 
+# Beamer artifacts
+*.nav
+*.snm
+*.vrb
+
 # Python
 __pycache__/
 *.py[cod]

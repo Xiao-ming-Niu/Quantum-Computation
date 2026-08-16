@@ -550,6 +550,41 @@ $U(t) = \mathcal{T}\exp\big(-i\int_0^t H(s)\,ds\big)$, 不能写成 $e^{-iHt}$.
     前者需要额外维度, 后者要求 $H_{\mathrm{eff}}$ 可分裂为"易模拟主项 + 小扰动".
 \end{Note}
 
+\begin{Note}[补充: 热半群(实指数)的 QSVT —— 与振荡传播子的对比]
+    上面的综述针对酉演化 $e^{-iHt}$; 对抛物型问题需要的是\textbf{实指数}
+    $E_T = e^{-TL}$($L = L^\dagger \succeq 0$, 如热方程离散后的 $L_h$). 设 $L/\alpha$ 有
+    Hermitian block-encoding、$\mathrm{spec}(L/\alpha)\subseteq[0,1]$, 记 $\tau := T\alpha$,
+    则目标是标量函数 $x \mapsto e^{-\tau x}$, $x \in [0,1]$(Xiantao Li 讲义 §4.3).
+    QSVT 实现它有一个\textbf{关键细节}: QSP/QSVT 的容许多项式必须在\textbf{整个} $[-1,1]$ 上有界,
+    而 $e^{-\tau x}$ 在 $[-1,0]$ 上增长到 $e^\tau$, 不能直接逼近. 标准补救是\textbf{仿射移位}:
+    令 $B := I - L/\alpha$($\mathrm{spec}(B)\subseteq[0,1]$; 仿射变换 $x\mapsto 1-x$ 对
+    block-encoding 是免费的, 不改变渐近查询数), 则
+    $e^{-TL} = e^{-\tau(I-B)} = f(B)$ 对应的标量函数
+    \begin{equation}
+        f(x) = e^{-\tau(1-x)}, \qquad e^{-2\tau} \le f(x) \le 1 \quad (x \in [-1,1]),
+    \end{equation}
+    与 QSVT 的全局有界性相容. 相应多项式次数与查询数为
+    \begin{equation}
+        m = O\Big(\sqrt{\max\{\tau,\ \log(1/\varepsilon)\}\cdot\log(1/\varepsilon)}\Big),
+        \qquad
+        Q = \widetilde O\Big(\sqrt{T\alpha\,\log(1/\varepsilon)} + \log(1/\varepsilon)\Big),
+    \end{equation}
+    对二阶差分 $\alpha = \Theta(h^{-2})$ 得 $Q = \widetilde O\big(\frac{\sqrt T}{h}\sqrt{\log(1/\varepsilon)}\big)$.
+
+    \textbf{平方根标度的来源}: Chebyshev 多项式 $T_m$ 的极值在区间端点\textbf{二次聚集}, 宽度
+    $\Theta(1/m^2)$ 的端点结构只需度 $m \sim \sqrt{1/\text{宽度}}$; 热滤波器 $e^{-\tau x}$ 是
+    $x=0$ 处宽度 $\sim 1/\tau$ 的\textbf{边界层}(从 1 掉到 $\varepsilon$ 的谱窗口长
+    $\log(1/\varepsilon)/\tau$, 之后平坦), 故 $m \sim \sqrt{\tau}$. 而振荡滤波器 $e^{-itx}$
+    在区间内处处以尺度 $1/t$ 振荡, 多项式必须整体分辨, 度数与 $t$ 成正比 —— 这是抛物问题与
+    哈密顿量模拟在时间-精度标度上的本质区别(哈密顿量模拟下界 $\Omega(t)$ 不适用于热半群).
+
+    \textbf{实现算符 vs 制备归一化解}: 上述 $Q$ 是实现热算符 $E_T$ 的查询数. 若目标是制备
+    \textbf{归一化}终态 $E_T\ket{y_0}/\norm{E_T\ket{y_0}}$, 后选择成功概率
+    $p_T = \norm{E_T\ket{y_0}}^2$, 需额外因子 $g_T = p_T^{-1/2} = \norm{y_h(0)}/\norm{y_h(T)}$;
+    Dirichlet 边界下最小本征值 $\lambda_{1,h} = \Theta(1)$, 长时间演化可使 $g_T$ 随 $T$ 指数增长 ——
+    实现热算符与产生归一化热态是两回事(后者与 4.4 节恢复概率的分析类似).
+\end{Note}
+
 \subsection{对比与选择}
 
 \begin{center}
@@ -907,6 +942,60 @@ $I_T = (p_* + \lambda_+ T,\ p^* - \lambda_- T)$(红色竖线段), 其上 $w(T,p)
     与原解一致的分量上 —— 这正是 $e^{-p}$ 权重的作用.
 \end{Note}
 
+\subsection{有限差分算子的 block-encoding: 移位算子 LCU}
+
+五步流程的第 3 步要求把离散后的 $H_{\mathrm{eff}}$ 表示为"移位算子与对角算子之和"并构造
+block-encoding. 这里以周期性网格上的标准差分算子为例, 给出\textbf{显式构造}
+(Xiantao Li 讲义 §1.13; Camps--Lin--Van Beeumen--Yang 的带型循环矩阵构造).
+设 $N = 2^n$, 定义\textbf{循环移位(circular shift)} $S\ket{j} = \ket{j+1 \pmod N}$,
+$S^\dagger\ket{j} = \ket{j-1 \pmod N}$($S$ 的电路是模 $N$ 加一, $S^\dagger$ 是模 $N$ 减一;
+不要与单比特相位门 $S$ 混淆). 一个差分算子即"若干个 $I$ 与 $\pm S^{\pm 1}$ 的线性组合",
+故其 block-encoding 是 §3.3 LCU 的直接应用.
+
+\textbf{向前差分.} 周期性向前差分 $(D_+ u)_j = (u_{j+1}-u_j)/h$ 满足 $D_+ = (S^\dagger - I)/h$,
+即 $-D_+ = (I-S^\dagger)/h$. 取单比特选择寄存器,
+$\mathrm{SELECT}_D = \ket{0}\bra{0}\otimes I + \ket{1}\bra{1}\otimes(-S^\dagger)$,
+$\mathrm{PREP}_D = H$($\ket{0}\mapsto(\ket{0}+\ket{1})/\sqrt2$), 则
+\begin{equation}
+    U_D = (H\otimes I)\,\mathrm{SELECT}_D\,(H\otimes I),
+    \qquad
+    (\bra{0}\otimes I)U_D(\ket{0}\otimes I) = \frac{I-S^\dagger}{2} = \frac{h(-D_+)}{2},
+\end{equation}
+即 $U_D$ 是 $-D_+$ 的精确 $(2/h, 1, 0)$-block-encoding.
+
+\textbf{一维三点 Laplacian.} 周期性正 Laplacian($(L_h u)_j = (2u_j-u_{j-1}-u_{j+1})/h^2$)满足
+\begin{equation}
+    L_h = \frac{2I - S - S^\dagger}{h^2},
+\end{equation}
+是带型循环矩阵($a_0 = 2/h^2$, $a_{\pm} = -1/h^2$). 取两比特选择寄存器,
+\begin{equation}
+    \mathrm{SELECT}_L = \ket{0}\bra{0}\otimes I + \ket{1}\bra{1}\otimes(-S)
+        + \ket{2}\bra{2}\otimes(-S^\dagger) + \ket{3}\bra{3}\otimes I,
+\end{equation}
+并取 PREP 满足 $P_L\ket{0} = \frac{\sqrt2}{2}\ket{0} + \frac12\ket{1} + \frac12\ket{2}$
+($\ket{3}$ 振幅为零 —— 两个单位项合并进一个槽), 则
+\begin{equation}
+    U_L = (P_L^\dagger\otimes I)\,\mathrm{SELECT}_L\,(P_L\otimes I),
+    \qquad
+    (\bra{0}\otimes I)U_L(\ket{0}\otimes I) = \frac{2I-S-S^\dagger}{4} = \frac{h^2 L_h}{4},
+\end{equation}
+即 $U_L$ 是 $L_h$ 的精确 $(4/h^2, 2, 0)$-block-encoding. 这正给出本模块热方程例子中
+三对角 $L_h$ 的 block-encoding: 该例的 $L_h$ 是非周期修正后的形式(见下面的边界注).
+
+\textbf{高维推广.} 二维五点 Laplacian(等距 $h$)为
+\begin{equation}
+    L_h^{(2D)} = \frac{4I - S_x - S_x^\dagger - S_y - S_y^\dagger}{h^2},
+    \qquad S_x = S\otimes I,\ \ S_y = I\otimes S,
+\end{equation}
+即 5 个不同酉项(把 $4I$ 视为 4 个单位项后共 8 个槽位)、权重和 $8/h^2$, 仍是同一 LCU 结构.
+
+\begin{Note}[边界条件]
+    周期性移位假设了循环边界. 对 Dirichlet/Neumann 等非周期边界, 需把"跨边界"的移位项修正掉:
+    在结构化稀疏路线中, 通过边界受控旋转或对带型循环电路做非周期修正, 把 wrap-around 项清零
+    (Camps--Lin--Van Beeumen--Yang). 本模块热方程例子中的 $L_h$ 正是三对角非周期矩阵,
+    即该修正后的形式.
+\end{Note}
+
 \subsection{例子: 对流方程与迎风格式}
 
 \begin{Eg}[一维对流方程]
@@ -1138,6 +1227,29 @@ $I_T = (p_* + \lambda_+ T,\ p^* - \lambda_- T)$(红色竖线段), 其上 $w(T,p)
     需按预算统一分配. 详见 Jin--Liu--Ma 的病态问题分析与参考文献.
 \end{Note}
 
+\begin{Note}[非线性 PDE 的展望: Carleman 线性化]
+    本模块只处理\textbf{线性}发展方程. 对非线性问题(如半离散 Burgers 方程
+    $u_t + uu_x = \nu u_{xx}$: 线性部分耗散、对流项二次), 一个系统化的路线是
+    \textbf{Carleman 线性化}(Xiantao Li 讲义 §5.3). 对多项式非线性系统
+    \begin{equation}
+        \dot u = f_0(t) + F_1(t)u + F_2(t)(u\otimes u),
+    \end{equation}
+    定义 Carleman 变量 $z_k := u^{\otimes k}$($k \ge 1$, $z_0 = 1$). 对 $z_k$ 求导,
+    强迫项降低张量阶、线性项保持张量阶、二次项升高张量阶, 于是整个族满足
+    \textbf{分块三对角}的线性系统
+    \begin{equation}
+        \dot z_k = A_{k,k-1}(t)\, z_{k-1} + A_{k,k}(t)\, z_k + A_{k,k+1}(t)\, z_{k+1},
+        \qquad
+        A_{k,k}(t) = \sum_{j=1}^{k} I^{\otimes(j-1)}\otimes F_1(t)\otimes I^{\otimes(k-j)},
+    \end{equation}
+    非线性问题被\textbf{精确}嵌入一个无穷维线性 ODE(代价是无穷多变量);
+    截断充当\textbf{闭合(closure)}, 对耗散型系统截断误差可控(收敛率与线性化谱半径有关).
+    截断后的线性系统即可套用本模块的 QSVT/薛定谔化构件. 其它路线包括
+    \textbf{Koopman--von Neumann 表述}(把密度的平方根看成线性演化对象)与问题相关的
+    特化线性化. 需要强调的是: 此类方法的复杂度高度依赖具体非线性结构, 尚无统一最优理论 ——
+    非线性量子算法仍以问题特化为主.
+\end{Note}
+
 \section{酉化方法族: 薛定谔化、LCHS、Transmutation 与 Dilation}
 
 薛定谔化不是处理非酉动力学唯一的方法. 从"把非酉\textbf{传播子(propagator)}放进更大酉结构"的抽象视角看,
@@ -1229,7 +1341,11 @@ $I_T = (p_* + \lambda_+ T,\ p^* - \lambda_- T)$(红色竖线段), 其上 $w(T,p)
         \emph{Simulating Hamiltonian dynamics with a truncated Taylor series},
         Physical Review Letters 114, 090502 (2015);
         \item G. H. Low, I. L. Chuang, \emph{Hamiltonian simulation by qubitization},
-        Quantum 3, 163 (2019).
+        Quantum 3, 163 (2019);
+        \item Xiantao Li, \emph{A quantum path to partial differential equations}
+        (PDE 量子算法系统讲义: 差分算子的移位 block-encoding §1.13、热半群 QSVT 的
+        平方根标度 §4.3、双曲系统的薛定谔化/LCHS/moment-matching dilation §3.6、
+        Carleman 线性化 §5.3), arXiv:2607.09639 (2026).
     \end{enumerate}
 \end{Note}
 

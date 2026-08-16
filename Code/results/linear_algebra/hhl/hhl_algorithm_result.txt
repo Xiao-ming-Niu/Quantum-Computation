@@ -1,0 +1,130 @@
+
+=========================
+HHL Algorithm Algorithm Result
+=========================
+Status: success
+
+Input parameters:
+  - Matrix: [[1. +0.j 0. +0.j]
+ [0. +0.j 0.5+0.j]]
+  - Right-hand side: [0.70710678+0.j 0.70710678+0.j]
+  - Phase bits: 11
+
+Runtime logs:
+  - Stage 1: Matrix preprocessing and adaptive parameter analysis
+  -   System dimension (N): 2 (1 System Qubits)
+  -   Auto evolution time (t): 0.999512
+  -   Phase grid starting point (k_start): 1013
+  -   Phase decoding mode: unsigned
+  - Stage 2: Building HHL quantum circuit
+  -   State preparation module mounted: Initialize |b>
+  -   QPE module mounted: Extract eigenphases
+  -   Controlled reciprocal rotation module mounted: Nonlinear mapping 1/lambda
+  -   Inverse QPE (iQPE) module mounted: System disentanglement
+  - Stage 3: Executing quantum simulation
+  -   Low-level simulation time: 0.4459 seconds
+  - Stage 4: Classical post-processing (post-selection to extract solution)
+  -   Post-selection success probability P(anc=1, phase=|0>): 0.602868
+  -   Error between quantum approximation and classical exact solution (L2 Norm): 1.359820e-02
+  - Stage 5: Exporting quantum circuit diagram
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_circuit.svg
+  -   Result saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_result.txt
+  - Stage 1: Matrix preprocessing and adaptive parameter analysis
+  -   System dimension (N): 2 (1 System Qubits)
+  -   Auto evolution time (t): 0.992188
+  -   Phase grid starting point (k_start): 53
+  -   Phase decoding mode: unsigned
+  - Stage 2: Building HHL quantum circuit
+  -   State preparation module mounted: Initialize |b>
+  -   QPE module mounted: Extract eigenphases
+  -   Controlled reciprocal rotation module mounted: Nonlinear mapping 1/lambda
+  -   Inverse QPE (iQPE) module mounted: System disentanglement
+  - Stage 3: Executing quantum simulation
+  -   Low-level simulation time: 0.0190 seconds
+  - Stage 4: Classical post-processing (post-selection to extract solution)
+  -   Post-selection success probability P(anc=1, phase=|0>): 0.427862
+  -   Error between quantum approximation and classical exact solution (L2 Norm): 1.537784e-02
+  - Stage 5: Exporting quantum circuit diagram
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_circuit.svg
+  -   Result saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_result.txt
+  - Stage 1: Matrix preprocessing and adaptive parameter analysis
+  -   System dimension (N): 2 (1 System Qubits)
+  -   Auto evolution time (t): 0.996094
+  -   Phase grid starting point (k_start): 117
+  -   Phase decoding mode: unsigned
+  - Stage 2: Building HHL quantum circuit
+  -   State preparation module mounted: Initialize |b>
+  -   QPE module mounted: Extract eigenphases
+  -   Controlled reciprocal rotation module mounted: Nonlinear mapping 1/lambda
+  -   Inverse QPE (iQPE) module mounted: System disentanglement
+  - Stage 3: Executing quantum simulation
+  -   Low-level simulation time: 0.0267 seconds
+  - Stage 4: Classical post-processing (post-selection to extract solution)
+  -   Post-selection success probability P(anc=1, phase=|0>): 0.517308
+  -   Error between quantum approximation and classical exact solution (L2 Norm): 1.517825e-02
+  - Stage 5: Exporting quantum circuit diagram
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_circuit.svg
+  -   Result saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_result.txt
+  - Stage 1: Matrix preprocessing and adaptive parameter analysis
+  -   System dimension (N): 2 (1 System Qubits)
+  -   Auto evolution time (t): 0.998047
+  -   Phase grid starting point (k_start): 245
+  -   Phase decoding mode: unsigned
+  - Stage 2: Building HHL quantum circuit
+  -   State preparation module mounted: Initialize |b>
+  -   QPE module mounted: Extract eigenphases
+  -   Controlled reciprocal rotation module mounted: Nonlinear mapping 1/lambda
+  -   Inverse QPE (iQPE) module mounted: System disentanglement
+  - Stage 3: Executing quantum simulation
+  -   Low-level simulation time: 0.0723 seconds
+  - Stage 4: Classical post-processing (post-selection to extract solution)
+  -   Post-selection success probability P(anc=1, phase=|0>): 0.565286
+  -   Error between quantum approximation and classical exact solution (L2 Norm): 1.453217e-02
+  - Stage 5: Exporting quantum circuit diagram
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_circuit.svg
+  -   Result saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_result.txt
+  - Stage 1: Matrix preprocessing and adaptive parameter analysis
+  -   System dimension (N): 2 (1 System Qubits)
+  -   Auto evolution time (t): 0.999023
+  -   Phase grid starting point (k_start): 501
+  -   Phase decoding mode: unsigned
+  - Stage 2: Building HHL quantum circuit
+  -   State preparation module mounted: Initialize |b>
+  -   QPE module mounted: Extract eigenphases
+  -   Controlled reciprocal rotation module mounted: Nonlinear mapping 1/lambda
+  -   Inverse QPE (iQPE) module mounted: System disentanglement
+  - Stage 3: Executing quantum simulation
+  -   Low-level simulation time: 0.1739 seconds
+  - Stage 4: Classical post-processing (post-selection to extract solution)
+  -   Post-selection success probability P(anc=1, phase=|0>): 0.590167
+  -   Error between quantum approximation and classical exact solution (L2 Norm): 1.397973e-02
+  - Stage 5: Exporting quantum circuit diagram
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_circuit.svg
+  -   Result saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_result.txt
+  - Stage 1: Matrix preprocessing and adaptive parameter analysis
+  -   System dimension (N): 2 (1 System Qubits)
+  -   Auto evolution time (t): 0.999512
+  -   Phase grid starting point (k_start): 1013
+  -   Phase decoding mode: unsigned
+  - Stage 2: Building HHL quantum circuit
+  -   State preparation module mounted: Initialize |b>
+  -   QPE module mounted: Extract eigenphases
+  -   Controlled reciprocal rotation module mounted: Nonlinear mapping 1/lambda
+  -   Inverse QPE (iQPE) module mounted: System disentanglement
+  - Stage 3: Executing quantum simulation
+  -   Low-level simulation time: 0.4385 seconds
+  - Stage 4: Classical post-processing (post-selection to extract solution)
+  -   Post-selection success probability P(anc=1, phase=|0>): 0.602868
+  -   Error between quantum approximation and classical exact solution (L2 Norm): 1.359820e-02
+  - Stage 5: Exporting quantum circuit diagram
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\hhl/hhl_algorithm_circuit.svg
+
+Output information:
+  - Estimated solution (quantum): [0.70710678-1.40336928e-16j 1.40061536-5.75212906e-16j]
+  - Exact solution (classical): [0.70710678+0.j 1.41421356+0.j]
+  - L2 error: 0.013598200208513989
+  - Post-selection probability: 0.6028683132979413
+  - Computation time (s): 0.43849611282348633
+
+Summary:
+  Execution successful. L2 error: 1.359820e-02, Post-selection probability: 0.602868
