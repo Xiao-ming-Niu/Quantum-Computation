@@ -524,6 +524,38 @@ $\ket{+} = \frac{1}{\sqrt{2}}(\ket{0}+\ket{1})$, $\ket{-} = \frac{1}{\sqrt{2}}(\
     消耗了 1 个自由度, 结合全局相位不变性, 将 4 个自由度压缩至 2 个.
 \end{Note}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=2.2]
+    % 球面轮廓与赤道椭圆(x-y 平面投影)
+    \draw (0,0) circle (1);
+    \draw[gray!45] (0,0) ellipse (1 and 0.32);
+    % 坐标轴: Z 竖直, X 水平, Y 沿赤道椭圆短轴方向(进入纸面)
+    \draw[->,thick] (-1.45,0) -- (1.45,0) node[right] {\small $X$};
+    \draw[->,thick] (0,-1.45) -- (0,1.45) node[above] {\small $Z$};
+    \draw[->,thick,blue!60!black] (0,0) -- (-0.82,-0.58) node[below left] {\small $Y$};
+    % 基态标记
+    \fill (0,1) circle (1.1pt) node[above=1pt] {\small $\ket{0}$};
+    \fill (0,-1) circle (1.1pt) node[below=1pt] {\small $\ket{1}$};
+    \fill (1,0) circle (1.1pt) node[right=1pt] {\small $\ket{+}$};
+    \fill (-1,0) circle (1.1pt) node[left=1pt] {\small $\ket{-}$};
+    % Bloch 向量 a(取 $\theta \approx 33^\circ$, $\varphi \approx 15^\circ$ 示意)与投影
+    \draw[->,very thick,red] (0,0) -- (0.492,0.766) node[above right] {\small $\mathbf{a}$};
+    \draw[->,dotted] (0,0) -- (0.492,0.132);
+    % 角度: \theta 在 Z-与 a 之间, \varphi 在 X 与投影之间
+    \draw (0,0.40) arc (90:57.3:0.40);
+    \node at (0.20,0.43) {\small $\theta$};
+    \draw (0.30,0) arc (0:15:0.30);
+    \node at (0.325,0.05) {\small $\varphi$};
+\end{tikzpicture}
+\caption{Bloch 球: 纯态 $\ket{\psi}$(忽略全局相位)与单位球面上的点
+$\mathbf{a} = (\sin\theta\cos\varphi,\ \sin\theta\sin\varphi,\ \cos\theta)$ 一一对应;
+$\ket{0}$, $\ket{1}$ 位于 $Z$ 轴两极, $\ket{\pm}$ 位于 $X$ 轴, $Y$ 轴沿赤道椭圆短轴方向(进入纸面).
+绕单位向量 $\mathbf{n}$ 轴的旋转对应演化算子 $e^{-i(\mathbf{n}\cdot\boldsymbol{\sigma})t}$
+(见第 \ref{sec:matrixfunc} 节的泡利向量旋转公式式 \eqref{eq:pauli_rot}).}
+\label{fig:bloch}
+\end{figure}
+
 \subsection{多量子比特与张量积}
 
 \begin{Thm}

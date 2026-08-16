@@ -230,6 +230,15 @@ LCU 可以概括为三步:
 \end{equation}
 PREPARE 把线性组合的系数编码到辅助寄存器振幅中, SELECT 在不同辅助分支上执行不同的酉算子,
 PREPARE$^\dagger$ 使不同量子路径重新发生干涉, 在成功分支中产生所需的线性组合.
+电路结构为:
+\begin{equation*}
+\Qcircuit @C=1em @R=.9em {
+    \lstick{\ket{0^a}} & \gate{O_{prep}} & \multigate{1}{O_{sel}} & \gate{O_{prep}^\dagger} & \meter & \rstick{0^a?} \qw \\
+    \lstick{\ket{\psi}} & \qw & \ghost{O_{sel}} & \qw & \qw & \rstick{\frac{A\ket{\psi}}{\alpha}\ \text{(成功分支)}} \qw
+}
+\end{equation*}
+测量辅助寄存器得到 $\ket{0^a}$ 时, 数据寄存器处于 $A\ket{\psi}/\norm{A\ket{\psi}}$
+(概率 $p = \norm{A\ket{\psi}}^2/\alpha^2$); 失败则丢弃重试, 或用 Module2 的振幅放大提升成功概率.
 
 \subsection{LCU 与 Hamiltonian 模拟}
 
@@ -575,8 +584,8 @@ $\ket{v_j}$, $\ket{u_j}$ 分别为右、左奇异向量. 由于 block-encoding �
     x_j = \frac{\sigma_j}{\alpha} \in [0, 1].
 \end{equation}
 在后续 qubitization/QSVT 的分析中, 每个奇异值 $x_j$ 对应一个二维不变子空间, 其中
-block-encoding 的作用转化为依赖于 $x_j$ 的二维旋转(定义角度 $\theta_j$ 使
-$\cos\theta_j = \sigma_j/\alpha$, 或按约定取 $\sin\theta_j = \sigma_j/\alpha$):
+block-encoding 的作用转化为依赖于 $x_j$ 的二维旋转. 本讲义统一约定角度 $\theta_j$ 使
+$\cos\theta_j = \sigma_j/\alpha$(与 5.5 节 Hermitian 情形的 $\cos\theta_i = \lambda_i$ 一致):
 \begin{equation}
     \text{singular value } \frac{\sigma_j}{\alpha}
     \quad\longleftrightarrow\quad
@@ -730,10 +739,14 @@ $O(x)$ 称为\textbf{qubitization 迭代算子(qubitization iteration operator)}
 其中 $\ket{\Phi_i}$ 是与所有 $\ket{0^a}\ket{\cdot}$ 正交的归一化态. 第一项系数为 $\lambda_i$,
 因为 $\big(\bra{0^a}\otimes I_n\big)U_A\big(\ket{0^a}\otimes I_n\big) = A$ 给出
 $\bra{0^a}\bra{v_i}U_A\ket{0^a}\ket{v_i} = \bra{v_i}A\ket{v_i} = \lambda_i$;
-第二项系数由 $\norm{U_A\ket{0^a}\ket{v_i}} = 1$ 确定. 又因为 $U_A$ 厄米,
-$\bra{0^a}\bra{v_i}U_A\ket{\Phi_i} = \big(\bra{\Phi_i}U_A\ket{0^a}\ket{v_i}\big)^* = \sqrt{1-\lambda_i^2} \ne 0$,
-故 $\ket{\Phi_i}$ 也被 $U_A$ 送到同一子空间 $H_i := \mathrm{span}\{\ket{0^a}\ket{v_i}, \ket{\Phi_i}\}$ ——
-$H_i$ 是 $U_A$ 的\textbf{二维不变子空间}. 整个高维问题因此被分块对角化为 $N$ 个互不相干的
+第二项系数由 $\norm{U_A\ket{0^a}\ket{v_i}} = 1$ 确定. 又因为 $U_A$ 厄米且 $U_A^2 = I$,
+由 $U_A^2\ket{0^a}\ket{v_i} = \ket{0^a}\ket{v_i}$ 解出
+\begin{equation}
+    U_A\ket{\Phi_i} = \sqrt{1-\lambda_i^2}\,\ket{0^a}\ket{v_i} - \lambda_i\ket{\Phi_i} \in H_i,
+\end{equation}
+其中 $H_i := \mathrm{span}\{\ket{0^a}\ket{v_i}, \ket{\Phi_i}\}$(也可直接看到
+$\bra{0^a}\bra{v_i}U_A\ket{\Phi_i} = \big(\bra{\Phi_i}U_A\ket{0^a}\ket{v_i}\big)^* = \sqrt{1-\lambda_i^2} \ne 0$).
+故 $H_i$ 是 $U_A$ 的\textbf{二维不变子空间}(详细列块见下一步). 整个高维问题因此被分块对角化为 $N$ 个互不相干的
 $2\times2$ 块, 每个块对应一个特征值(这正是 "qubitization" 名称的来源: 每个特征方向被
 "量子化"成一个二维系统).
 
@@ -805,6 +818,16 @@ $(1,1)$ 元为 $\cos(k\theta_i) = T_k(\lambda_i)$:
     对应 $T_{2k}$; 奇数情形在末尾多乘一次 $U_A Z$ 即旋转 $(2k+1)\theta_i$.
 \end{Proof}
 
+\noindent 电路只需交替施加 $U_A$, $U_A^\dagger$ 与 $Z$(一次 walk 含两个来回):
+\begin{equation*}
+\Qcircuit @C=1em @R=.9em {
+    \lstick{\ket{0^a}} & \multigate{1}{U_A} & \gate{Z} & \multigate{1}{U_A^\dagger} & \gate{Z} & \multigate{1}{U_A} & \gate{Z} & \multigate{1}{U_A^\dagger} & \gate{Z} & \qw \\
+    \lstick{\ket{\psi}} & \ghost{U_A} & \qw & \ghost{U_A^\dagger} & \qw & \ghost{U_A} & \qw & \ghost{U_A^\dagger} & \qw & \qw
+}
+\end{equation*}
+其中 $Z = 2\Pi - I$ 是辅助比特为 $\ket{0^a}$ 时的相位翻转; Hermitian 情形 $U_A^\dagger = U_A$,
+电路退化为 $U_A$ 与 $Z$ 交替.
+
 \begin{Note}
     qubitization 的名字即来源于此: 每个本征(奇异)向量被"量子化"到一个二维不变子空间,
     大矩阵 $U_A$ 被部分分块对角化为 $N$ 个 $2\times2$ 块(也可以从 Jordan 引理或
@@ -845,7 +868,7 @@ $\cos(n\theta)$ 能否直接表示为 $x$ 的多项式 —— 答案正是第一
 \begin{equation}
     T_n(x) := \cos(n\arccos x), \qquad T_n(\cos\theta) = \cos(n\theta).
 \end{equation}
-于是 $[O(x)^n]_{11} = T_n(x)$, 投影回成功子空间后, $n$ 次 walk 的有效作用对应 $T_n(H/\alpha)$:
+于是 $[O(x)^n]_{00} = T_n(x)$, 投影回成功子空间后, $n$ 次 walk 的有效作用对应 $T_n(H/\alpha)$:
 \begin{equation}
     \big(\bra{0^a}\otimes I\big) O^n \big(\ket{0^a}\otimes I\big) = T_n(H/\alpha)
     \quad\Longleftrightarrow\quad
@@ -979,19 +1002,19 @@ Trotter 把时间区间划分为小时间步
 
 Qubitization 自然产生 $T_n(H/\alpha)$, 但这并不意味着简单执行 $O, O^2, \dots, O^d$
 就自动实现了多项式 $P_d(H/\alpha) = \sum_n c_n T_n(H/\alpha)$ —— 不同项需要以正确的系数
-$c_n$ 进行\textbf{相干组合(coherent combination)}. 一种方法是再次使用 LCU, 但这往往需要
-额外辅助寄存器与振幅放大. \textbf{量子信号处理(quantum signal processing, QSP)}提供了更直接
-强大的方法:
-在迭代算子 $O$ 之间插入一系列可调相位,
-\begin{equation}
-    U_{\vec\phi}(x) = e^{i\phi_0 Z} O(x)\, e^{i\phi_1 Z} O(x) \cdots O(x)\, e^{i\phi_d Z},
-\end{equation}
-通过适当选择相位序列 $\vec\phi = (\phi_0, \dots, \phi_d)$ 使某个矩阵元实现目标多项式 $P(x)$.
-因此\textbf{Qubitization + Chebyshev 结构本身还不是 QSP, 而是 QSP 的数学基础}. QSP 所回答的问题是:
-给定目标多项式 $P(x)$, 如何把它编译成一组 quantum phases? 可实现的 $P$ 需满足: 次数 $\le d$、
-与序列长度匹配的奇偶性、在 $[-1,1]$ 上有界($|P(x)| \le 1$)、以及由酉性产生的实/虚部相容条件.
+$c_n$ 进行\textbf{相干组合(coherent combination)}, 而各个 $O^k$ 之间无法直接以任意复系数叠加.
+一种朴素做法是再次使用 LCU(§3)去组合这些 $T_n$, 但这往往需要额外辅助寄存器与振幅放大.
+\textbf{量子信号处理(quantum signal processing, QSP)}提供了更直接的方法: 在迭代算子 $O(x)$
+之间插入一系列与信号 $x$ 无关的可调相位 $e^{i\phi_k Z}$, 使各阶 $T_n$ 通过\textbf{量子干涉}
+以受控系数在同一个酉电路中相干叠加, 而不是在事后组合 $O^k$. 因此
+\textbf{Qubitization + Chebyshev 结构本身还不是 QSP, 而是 QSP 的数学基础}:
+qubitization 把谱变量 $x = \lambda/\alpha$ 变成二维旋转($x = \cos\theta$, §5.5),
+Chebyshev 多项式说明旋转的幂 $O^k$ 给出 $T_k(x)$($\cos(k\theta) = T_k(x)$),
+而 QSP 再用相位把单一的 Chebyshev 模式推广为任意可编程多项式 $P(x)$.
+QSP 所回答的问题是: 给定目标多项式 $P(x)$, 如何把它编译成一组 quantum phases?
 实际中分成两个子问题: \textbf{approximation problem}(找满足 QSP 条件的 $P(x) \approx f(x)$)与
-\textbf{phase synthesis problem}(计算对应相位序列).
+\textbf{phase synthesis problem}(把 $P$ 编译成相位序列 $\vec\phi$);
+可实现的 $P$ 需满足的次数、奇偶性与有界性条件, 将在下一节的表示定理中精确刻画.
 
 \subsection{从 QSP 到 QSVT}
 
@@ -1048,11 +1071,18 @@ signal unitary 之间插入一系列可调的单比特相位旋转 $\phi_0, \phi
 它是关于 $x$ 轴的反射. 乘以 $Z = \mathrm{diag}(1,-1)$ 后得到旋转
 $O(x) = U_A(x)Z$,\textbf{signal unitary}. QSP 考虑如下的\textbf{相位调制序列}:
 \begin{equation}
-    U_\Phi(x) := e^{i\phi_0 Z}\, O(x)\, e^{i\phi_1 Z}\, O(x) \cdots e^{i\phi_{d-1} Z}\, O(x)\, e^{i\phi_d Z},
+    U_{\vec\phi}(x) := e^{i\phi_0 Z}\, O(x)\, e^{i\phi_1 Z}\, O(x) \cdots e^{i\phi_{d-1} Z}\, O(x)\, e^{i\phi_d Z},
 \end{equation}
-其中 $\Phi = (\phi_0, \dots, \phi_d) \in \mathbb{R}^{d+1}$ 是\textbf{相位因子(phase factors)};
+其中 $\vec\phi = (\phi_0, \dots, \phi_d) \in \mathbb{R}^{d+1}$ 是\textbf{相位因子(phase factors)};
 序列共调用 $d$ 次 $O(x)$, 相位旋转 $S(\phi_k) := e^{i\phi_k Z} = \mathrm{diag}(e^{i\phi_k}, e^{-i\phi_k})$
-本身不依赖于信号 $x$.
+本身不依赖于信号 $x$. 电路即单比特信号线路上相位旋转与 signal unitary 交替($d = 3$ 示意):
+\begin{equation*}
+\Qcircuit @C=1em @R=.9em {
+    \lstick{\ket{\psi}} & \gate{S(\phi_0)} & \gate{O(x)} & \gate{S(\phi_1)} & \gate{O(x)} & \gate{S(\phi_2)} & \gate{O(x)} & \gate{S(\phi_3)} & \rstick{\ket{\psi'}} \qw
+}
+\end{equation*}
+其中 $\bra{0}U_{\vec\phi}(x)\ket{0} = P(x)$ 就是我们要的多项式; 注意 $\phi_k$ 是经典可调参数,
+编译一次后以单比特相位门的形式固定进电路.
 
 \begin{Note}[signal unitary 的约定]
     文献中常见的 signal unitary 约定是
@@ -1065,7 +1095,7 @@ $O(x) = U_A(x)Z$,\textbf{signal unitary}. QSP 考虑如下的\textbf{相位调�
     不同约定会改变某些 $i$、符号与乘法顺序, 但 QSP 的核心多项式结构不变.
     例如在 $W$ 约定下, 表示定理取形
     \begin{equation}
-        U_\Phi(x) = \begin{pmatrix} P(x) & i\sqrt{1-x^2}\,Q(x) \\
+        U_{\vec\phi}(x) = \begin{pmatrix} P(x) & i\sqrt{1-x^2}\,Q(x) \\
             i\sqrt{1-x^2}\,\overline{Q(x)} & \overline{P(x)} \end{pmatrix},
     \end{equation}
     其中 $i$ 来自 $W(x)$ 非对角元的虚数元素; 与实约定相比, 它等价于把 $i$ 吸收进复多项式
@@ -1073,9 +1103,9 @@ $O(x) = U_A(x)Z$,\textbf{signal unitary}. QSP 考虑如下的\textbf{相位调�
 \end{Note}
 
 \begin{Thm}[QSP 表示定理]
-    对任意 $\Phi \in \mathbb{R}^{d+1}$, 存在多项式 $P, Q \in \mathbb{C}[x]$ 使得
+    对任意 $\vec\phi \in \mathbb{R}^{d+1}$, 存在多项式 $P, Q \in \mathbb{C}[x]$ 使得
     \begin{equation}
-        U_\Phi(x) = \begin{pmatrix}
+        U_{\vec\phi}(x) = \begin{pmatrix}
             P(x) & -Q(x)\sqrt{1-x^2} \\
             \overline{Q(x)}\,\sqrt{1-x^2} & \overline{P(x)}
         \end{pmatrix},
@@ -1083,15 +1113,29 @@ $O(x) = U_A(x)Z$,\textbf{signal unitary}. QSP 考虑如下的\textbf{相位调�
     且满足: (1) $\deg P \le d$, $\deg Q \le d-1$;
     (2) $P$ 的奇偶性为 $d \bmod 2$, $Q$ 的奇偶性为 $(d-1) \bmod 2$;
     (3) $|P(x)|^2 + (1-x^2)|Q(x)|^2 = 1$, $x \in [-1,1]$.
-    反之, 任何满足这三条条件的 $P, Q$ 都可以由某个相位序列 $\Phi$ 表示.
+    反之, 任何满足这三条条件的 $P, Q$ 都可以由某个相位序列 $\vec\phi$ 表示.
 \end{Thm}
 
 \begin{Proof}[表示的正方向(归纳)]
-    $d = 0$ 时 $U_\Phi = e^{i\phi_0 Z}$ 给出 $P = e^{i\phi_0}$, $Q = 0$. 设
-    $U_{(\phi_0,\dots,\phi_{d-1})}$ 形如上式, 再右乘 $O(x)e^{i\phi_d Z}$ 并左乘 $e^{i\phi_0 Z}$,
-    逐项展开可知新 $P$ 形如 $e^{i\phi_0}(xP - (1-x^2)Q)$, 度数至多比原来增 1,
-    且奇偶性与 $d$ 相反 —— 归纳完成. 条件 (3) 是酉性的直接推论
-    (矩阵的行范数平方和为 1).
+    记 $U_{\vec\phi}^{(d)} := S(\phi_0)\,O(x)\,S(\phi_1)\,O(x)\cdots O(x)\,S(\phi_d)$($d$ 次 $O$).
+    $d = 0$ 时 $U = S(\phi_0)$ 给出 $P = e^{i\phi_0}$, $Q = 0$. 归纳步: 设
+    $U_{\vec\phi}^{(d-1)} = S(\phi_1)\,O(x)\,S(\phi_2)\cdots O(x)\,S(\phi_d)$(相位
+    $\phi_1,\dots,\phi_d$, $d-1$ 次 $O$)的标准形式为 $(P', Q')$, 则
+    $U_{\vec\phi}^{(d)} = S(\phi_0)\,O(x)\,U_{\vec\phi}^{(d-1)}$. 记 $s = \sqrt{1-x^2}$,
+    直接计算:
+    \begin{equation}
+        S(\phi_0)\,O(x)\begin{pmatrix} P' & -sQ' \\ s\overline{Q'} & \overline{P'} \end{pmatrix}
+        = \begin{pmatrix}
+            e^{i\phi_0}\big(xP' - (1-x^2)\overline{Q'}\big) & -s\,e^{i\phi_0}\big(xQ' + \overline{P'}\big) \\
+            s\,e^{-i\phi_0}\big(x\overline{Q'} + P'\big) & e^{-i\phi_0}\big(x\overline{P'} - (1-x^2)Q'\big)
+        \end{pmatrix},
+    \end{equation}
+    故新 $P = e^{i\phi_0}\big(xP' - (1-x^2)\overline{Q'}\big)$,
+    新 $Q = e^{i\phi_0}\big(xQ' + \overline{P'}\big)$.
+    由 $\deg P' \le d-1$, $\deg Q' \le d-2$ 得 $\deg P \le d$, $\deg Q \le d-1$;
+    $P'$ 的奇偶性为 $(d-1)\bmod 2$, $Q'$ 的奇偶性为 $(d-2)\bmod 2$, 代入上式即得
+    $P$ 的奇偶性为 $d\bmod 2$, $Q$ 的奇偶性为 $(d-1)\bmod 2$ —— 归纳完成.
+    条件 (3) 是酉性 $U^\dagger U = I$ 的直接推论(第一行的两个元素模方和为 $1$).
 \end{Proof}
 
 \begin{Note}[为什么最后一定是多项式]
@@ -1109,14 +1153,27 @@ $O(x) = U_A(x)Z$,\textbf{signal unitary}. QSP 考虑如下的\textbf{相位调�
         \deg P \le d, \qquad \deg Q \le d-1,
     \end{equation}
     多项式次数与量子查询复杂度直接对应, 这是寻找低阶逼近重要的原因. 由酉性
-    $U_\Phi(x)^\dagger U_\Phi(x) = I$ 得
+    $U_{\vec\phi}(x)^\dagger U_{\vec\phi}(x) = I$ 得
     \begin{equation}
         |P(x)|^2 + (1-x^2)|Q(x)|^2 = 1,
         \qquad |P(x)| \le 1 \quad (x \in [-1,1]),
+        \label{eq:qsp_unitary}
     \end{equation}
     它来自量子力学最基本的要求: 最终电路必须保持概率归一化. 因此 QSP 不能直接实现
     无界多项式: 若目标函数超过 $1$, 需先归一化 $\widetilde f(x) = f(x)/\beta$ 使
     $|\widetilde f(x)| \le 1$.
+
+    \textbf{端点约束(重要).} 在式 \eqref{eq:qsp_unitary} 中令 $x = \pm 1$,
+    $1-x^2 = 0$, 立得
+    \begin{equation}
+        |P(\pm 1)| = 1,
+    \end{equation}
+    即 QSP 可实现的任何多项式在端点 $x = \pm 1$ 处模长恒为 $1$, 且与次数 $d$ 无关.
+    因此对\textbf{实值}目标函数 $f$ 做 QSP 逼近时, 若 $f(\pm 1) \neq \pm 1$, 端点处的
+    最小可能误差为 $\min\big\{|1-f(\pm1)|,\ |1+f(\pm1)|\big\}$, 无法通过增大次数消除.
+    例如逼近 $f(x) = \cos(tx)$ 时 $\cos(\pm t) = \cos t \neq \pm 1$(除非 $t = \pi$),
+    端点误差至少为 $|1 - \cos t|$; 实践中应选择满足 $|f(\pm 1)| = 1$ 的目标
+    (如 $\cos(\pi x)$, 或复数目标 $e^{-itx}$ 的实部), 或把端点误差计入逼近预算.
 \end{Note}
 
 \begin{Note}[Polynomial completion]
@@ -1133,8 +1190,14 @@ $O(x) = U_A(x)Z$,\textbf{signal unitary}. QSP 考虑如下的\textbf{相位调�
 \begin{Note}[实多项式版本的充分条件]
     在实际应用中最常用的是\textbf{实多项式}版本: 若 $P_{\mathrm{Re}} \in \mathbb{R}[x]$ 满足
     (1) 奇偶性为 $d \bmod 2$; (2) $|P_{\mathrm{Re}}(x)| \le 1$($x \in [-1,1]$),
-    则存在相位序列 $\Phi$ 使 $U_\Phi$ 的 $(1,1)$ 元素恰为 $P_{\mathrm{Re}}(x)$.
+    则存在相位序列 $\vec\phi$ 使 $U_{\vec\phi}$ 的 $(1,1)$ 元素恰为 $P_{\mathrm{Re}}(x)$.
     相比复数版本, 条件 (2) 只需对任意多项式做归一化缩放即可满足.
+    补多项式 $Q$ 的存在性由如下事实保证: 端点约束 $|P_{\mathrm{Re}}(\pm1)|=1$ 使
+    $1 - P_{\mathrm{Re}}(x)^2$ 在 $x=\pm1$ 处为零、从而可被 $(1-x^2)$ 整除, 且
+    $1-P_{\mathrm{Re}}(x)^2\ge0$($x\in[-1,1]$); 由 \textbf{Fej\'er--Riesz 型分解}
+    (把 $R(\cos\theta) := \frac{1-P_{\mathrm{Re}}(\cos\theta)^2}{1-\cos^2\theta}$ 视为单位圆上的
+    非负三角多项式)存在满足次数与奇偶性条件的复多项式 $Q$ 使
+    $|Q(x)|^2 = R(x)$, 即 $|P_{\mathrm{Re}}|^2 + (1-x^2)|Q|^2 = 1$ —— polynomial completion 自动完成.
     相位因子的数值求解已有成熟的软件包(如 QSPPACK).
 \end{Note}
 
@@ -1174,40 +1237,70 @@ $O(x) = U_A(x)Z$,\textbf{signal unitary}. QSP 考虑如下的\textbf{相位调�
     \end{equation}
     确实是二次多项式, 且只含 $x^0$, $x^2$ 项, 符合 $d = 2$ 的偶奇偶性;
     改变 $\phi_1$ 即改变 $x^2$ 与常数项的相对系数 —— 直观展示了
-    phase parameters $\to$ polynomial coefficients.
+    phase parameters $\to$ polynomial coefficients. 这也可以看作表示定理归纳
+    (左乘 $S(\phi_0)O(x)$ 的递推, 见上面证明)在 $d=2$ 时的显式验证:
+    取 $U^{(1)} = S(\phi_1)O(x)S(\phi_2)$ 的 $P' = e^{i(\phi_1+\phi_2)}x$,
+    $Q' = e^{i(\phi_1-\phi_2)}$ 代入 $P = e^{i\phi_0}\big(xP' - (1-x^2)\overline{Q'}\big)$
+    即得上式.
 \end{Eg}
 
 \subsection{量子本征值变换 (QET)}
 
-把标量 $x$ 换成矩阵 $A$, 即可把 QSP"提升"为矩阵版本 —— 这正是 qubitization 的意义:
-每个本征方向上的二维旋转是同步进行的, 相位调制序列作用在辅助比特上, 与矩阵方向无关.
-由谱分解 $A = \sum_j \lambda_j \ket{\lambda_j}\bra{\lambda_j}$, 每个本征方向同时执行
-同一个标量变换 $x_j \mapsto P(x_j)$, 因此
+把标量 $x$ 换成厄米矩阵 $A$, 即可把 QSP"提升"为矩阵版本 —— 这正是 qubitization 的意义.
+回顾 5.5 节的结论: 对 Hermitian block-encoding $U_A$, 每个本征态 $\ket{\lambda_j}$ 对应一个
+二维不变子空间, $U_A$ 在其中是反射、$U_A Z$ 是旋转角 $\theta_j$($\cos\theta_j = \lambda_j/\alpha$)
+的旋转. 因此只要把标量 QSP 序列中的 signal unitary $O(x)$ 替换为 $U_A Z$, 同一个相位序列
+$S(\phi_0), \dots, S(\phi_d)$ 就会在所有本征方向的二维子空间中\textbf{同步}产生同一个标量变换
+$x_j \mapsto P(x_j)$ —— 相位调制作用在辅助比特上, 与矩阵方向无关. 由谱分解
+$A = \sum_j \lambda_j \ket{\lambda_j}\bra{\lambda_j}$, 这等价于对每个本征值同时施加 $P$:
 \begin{equation}
-    P(H/\alpha) = \sum_j P(\lambda_j/\alpha)\,\ket{\lambda_j}\bra{\lambda_j},
+    P(A/\alpha) = \sum_j P(\lambda_j/\alpha)\,\ket{\lambda_j}\bra{\lambda_j},
 \end{equation}
-这是从标量多项式变换进入矩阵多项式变换的关键一步.
+这是从标量多项式变换进入矩阵多项式变换的关键一步. 注意其中的 $P$ 必须满足 QSP 表示定理的
+次数、奇偶性与有界性条件; 下面的 QET 定理给出这一提升的严格表述.
 
 \begin{Thm}[QET: Hermitian block-encoding]
-    设 $U_A \in \mathrm{HBE}_{1,a}(A)$. 对任意相位序列 $\Phi \in \mathbb{R}^{d+1}$,
+    设 $U_A \in \mathrm{HBE}_{1,a}(A)$. 对任意相位序列 $\vec\phi \in \mathbb{R}^{d+1}$,
     \begin{equation}
-        U := e^{i\phi_0 Z}\, U_A\, e^{i\phi_1 Z}\, U_A \cdots e^{i\phi_{d-1} Z}\, U_A\, e^{i\phi_d Z}
+        U := S(\phi_0)\,(U_A Z)\, S(\phi_1)\,(U_A Z)\, \cdots\, (U_A Z)\, S(\phi_d),
+        \qquad S(\phi_k) := e^{i\phi_k Z},
     \end{equation}
-    满足 $U = \begin{pmatrix} P(A) & \ast \\ \ast & \ast \end{pmatrix}$,
+    即相位旋转与 \textbf{qubitization 迭代算子 $O = U_A Z$} 交替作用 $d$ 次, 则
+    $U = \begin{pmatrix} P(A) & \ast \\ \ast & \ast \end{pmatrix}$,
     即 $U \in \mathrm{BE}_{1,a}(P(A))$, 其中 $P$ 满足 QSP 定理的三条条件.
-    电路结构为相位旋转 $e^{i\phi_j Z}$ 与 $U_A$ 交替作用 $O(d)$ 次.
+    电路结构: 交替施加 $U_A$ 与 $Z$($Z = 2\Pi - I$ 为辅助比特上的受控相位, 见 5.5 节),
+    共 $O(d)$ 次 $U_A$ 调用与 $O(d)$ 次单比特相位旋转.
 \end{Thm}
 
 \begin{Proof}
-    qubitization 在每个不变子空间 $H_i$ 上把 $U_A$ 化为反射矩阵
-    $[\lambda_i, \sqrt{1-\lambda_i^2}; \sqrt{1-\lambda_i^2}, -\lambda_i]$,
-    恰好是标量情形 $U_A(\lambda_i)$ 的形式(可相差一个全局相位), 因此标量 QSP 定理逐块成立.
+    由 5.5 节的 qubitization, 每个本征方向 $i$ 对应二维不变子空间 $H_i$,
+    $U_A Z$ 在其上是旋转角 $\theta_i$($\cos\theta_i = \lambda_i$)的旋转:
+    \begin{equation}
+        [U_A Z]_{B_i} = \begin{pmatrix} \lambda_i & -\sqrt{1-\lambda_i^2} \\
+            \sqrt{1-\lambda_i^2} & \lambda_i \end{pmatrix}
+        = O(\lambda_i),
+    \end{equation}
+    恰为标量 QSP 的 signal unitary $O(\lambda_i) = U_A(\lambda_i)Z$(§6.1)的形式.
+    因此标量 QSP 表示定理在\textbf{每个}二维子空间上逐块成立: 同一个相位序列在所有本征方向
+    上同步实现 $x_i \mapsto P(x_i)$, 投影回成功子空间即得
+    $\big(\bra{0^a}\otimes I\big)U\big(\ket{0^a}\otimes I\big) = P(A)$.
 \end{Proof}
+
+电路示意($d = 3$; 每个 step 为 qubitization 迭代算子 $U_A Z$, 虚线辅助比特 $\ket{0^a}$ 标志成功子空间):
+\begin{equation*}
+\Qcircuit @C=1em @R=.9em {
+    \lstick{\ket{0^a}} & \gate{S(\phi_0)} & \multigate{1}{U_A Z} & \gate{S(\phi_1)} & \multigate{1}{U_A Z} & \gate{S(\phi_2)} & \multigate{1}{U_A Z} & \gate{S(\phi_3)} & \rstick{\ket{0^a}} \qw \\
+    \lstick{\ket{\psi}} & \qw & \ghost{U_A Z} & \qw & \ghost{U_A Z} & \qw & \ghost{U_A Z} & \qw & \rstick{P(A)\ket{\psi}} \qw
+}
+\end{equation*}
+与标量 QSP 电路(§6.1)的唯一区别是把 $O(x)$ 换成 $U_A Z$; 零相位时退化为 $(U_A Z)^d = T_d(A)$ 的 walk 电路.
 
 \begin{Eg}[Chebyshev 多项式与相位因子]
     取所有相位为零, 则 $U = (U_A Z)^d$, 恰好回到 qubitization 给出的
-    $T_d(A)$ 的 block-encoding. 更一般地, 由于 $U_A e^{i\phi_j Z}$ 中的 $Z$ 可以吸收进
-    相位因子($e^{i\phi Z}$ 与 $Z$ 的恒等式), QET 电路无需单独实现 $Z$ 门.
+    $T_d(A)$ 的 block-encoding —— 这正是 QET 电路以 $U_A Z$ 为 step 的原因.
+    更一般地, 由于 $Z$ 与 $S(\phi_k) = e^{i\phi_k Z}$ 对易, 每个 step 的 $Z$ 可与相邻的
+    相位旋转合并($S(\phi_k)Z$ 仍是辅助比特上的对角相位门), 电路实现时只需 $U_A$ 与
+    单比特相位交替, 无需单独的 $Z$ 门.
 \end{Eg}
 
 \begin{Eg}[实部多项式与一般多项式]
@@ -1277,7 +1370,11 @@ $\vec\phi = (\phi_0, \dots, \phi_d)$ 使 QSP 电路实现该多项式:
 
 \textbf{量子奇异值变换(quantum singular value transformation, QSVT)}是现代量子线性代数中
 最核心的统一框架之一. QSP 解决的是标量问题 $x \mapsto P(x)$($x \in [-1,1]$);
-QSVT 把这一标量多项式变换提升到一般矩阵的\textbf{奇异值}上: 设
+QSVT 把这一标量多项式变换提升到一般矩阵的\textbf{奇异值}上. 与上一章 QET 只适用于厄米矩阵
+(特征值变换)不同, 一般矩阵没有特征值分解, 但 block-encoding 为其\textbf{每一个奇异值}
+都提供一个二维信号子空间(§7.3), 于是同一个标量 QSP 相位序列可以在所有这些子空间中同时
+起作用 —— "QSP 表示定理 + 奇异值分解 + block-encoding"三者合流, 正是 QSVT 的机制
+(§7.8 给出完整论证). 形式地, 设
 \begin{equation}
     A = \sum_j \sigma_j \ket{u_j}\bra{v_j}
 \end{equation}
@@ -1322,6 +1419,15 @@ QSVT 的核心目标是实现 $\sigma_j \mapsto P(\sigma_j)$, 即矩阵层面的
     \end{equation}
 \end{Def}
 
+\begin{Note}[记号警示: 与普通矩阵函数的区别]
+    这里的 $f(A) := U f(\Sigma) V^\dagger$ 是\textbf{奇异值意义}下的(对称)变换, 与普通矩阵
+    多项式 $P(A) = \sum_k c_k A^k$(幂级数/谱定义, 见 Module1)在一般非厄米矩阵上\textbf{不同}:
+    例如 $P(x) = x^2$ 时 $P(A) = A^2 = U\Sigma V^\dagger U\Sigma V^\dagger \ne U\Sigma^2 V^\dagger$
+    (因为 $V^\dagger U \ne I$). 只有当 $A$ 厄米(从而左右奇异向量一致)时二者才相同;
+    7.7 节将专门澄清这一区别. 本讲义中 $f^{(\mathrm{SV})}$、$f^\triangleleft$、$f^\triangleright$
+    均指奇异值变换, 而非普通矩阵函数.
+\end{Note}
+
 \subsection{Projected unitary encoding 与二维奇异值子空间}
 
 更一般地, QSVT 的输入模型可以抽象为\textbf{projected unitary encoding}: 设 $\Pi$,
@@ -1349,7 +1455,7 @@ $(\phi_0, \dots, \phi_d)$ 同时作用于所有奇异值子空间, 实现 $x_j \
 
 对 $A = U\Sigma V^\dagger$, 设 $U_A \in \mathrm{BE}_{1,a}(A)$.
 对右奇异向量 $\ket{v_i}$ 与左奇异向量 $\ket{u_i}$
-($A\ket{v_i} = \lambda_i\ket{u_i}$, $A^\dagger\ket{u_i} = \lambda_i\ket{v_i}$),
+($A\ket{v_i} = \sigma_i\ket{u_i}$, $A^\dagger\ket{u_i} = \sigma_i\ket{v_i}$),
 $U_A$ 把二维子空间 $H_i = \mathrm{span}\{\ket{0^a}\ket{v_i}, \ket{\Phi_i}\}$ 映射到
 $H'_i = \mathrm{span}\{\ket{0^a}\ket{u_i}, \ket{\Phi'_i}\}$, 且矩阵表示为反射.
 因此与 Hermitian 情形完全平行地:
@@ -1395,16 +1501,30 @@ $H'_i = \mathrm{span}\{\ket{0^a}\ket{u_i}, \ket{\Phi'_i}\}$, 且矩阵表示为�
 由于奇异值动力学在左右奇异子空间之间往返
 ($\ket{v_j} \xrightarrow{A} \ket{u_j} \xrightarrow{A^\dagger} \ket{v_j}$),
 一般 QSVT 电路会自然交替使用 $U_A$ 与 $U_A^\dagger$ —— 这是一般 QSVT 与 Hermitian 情形
-($U_A^\dagger = U_A$, 只需 $U_A$)的本质区别.
+($U_A^\dagger = U_A$, 只需 $U_A$)的本质区别. 从 7.4 节的 walk 结构看, 每个"来回"
+$(U_A Z U_A^\dagger Z)$ 在奇异值子空间内旋转 $2\theta_j$、给出 $T_2(x_j)$(即两次 $U_A$ 调用
+贡献两个多项式度); QSP 相位序列则进一步在 $U_A$ 与 $U_A^\dagger$ 之间插入可调相位,
+实现一般的 $P(x_j)$.
 
 对 projected unitary encoding, 定义输入、输出信号空间上的反射
 \begin{equation}
     R_\Pi := 2\Pi - I, \qquad R_{\widetilde\Pi} := 2\widetilde\Pi - I.
 \end{equation}
 QSVT 的电路由 $U_A$, $U_A^\dagger$ 与信号空间上的相位旋转 $e^{i\phi_k(2\Pi - I)}$,
-$e^{i\phi_k(2\widetilde\Pi - I)}$ 交替组合而成: 在每个奇异值子空间中, 该高维电路
+$e^{i\phi_k(2\widetilde\Pi - I)}$ 交替组合而成: 对标准方阵 block-encoding
+($\Pi = \widetilde\Pi = \ket{0^a}\bra{0^a}\otimes I$), 这里的 $2\Pi - I$ 正是 5.5 节的
+$Z$ 门(辅助比特为 $\ket{0^a}$ 时翻转相位), 电路即"$U_A$/$U_A^\dagger$ 与 $Z$ 交替",
+与 QET(§6.4)和 walk(§7.4)的记号完全一致. 在每个奇异值子空间中, 该高维电路
 等价于一个普通的 QSP sequence, 因此最终实现 $x_j \mapsto P(x_j)$; 相位设计问题
-本质上仍然是 QSP phase synthesis.
+本质上仍然是 QSP phase synthesis. 电路示意($d = 3$, 奇多项式, $U_A$ 与 $U_A^\dagger$ 交替):
+\begin{equation*}
+\Qcircuit @C=1em @R=.9em {
+    \lstick{\ket{0^a}} & \gate{S(\phi_0)} & \multigate{1}{U_A} & \gate{S(\phi_1)} & \multigate{1}{U_A^\dagger} & \gate{S(\phi_2)} & \multigate{1}{U_A} & \gate{S(\phi_3)} & \rstick{\ket{0^a}} \qw \\
+    \lstick{\ket{\psi}} & \qw & \ghost{U_A} & \qw & \ghost{U_A^\dagger} & \qw & \ghost{U_A} & \qw & \rstick{P(A)\ket{\psi}} \qw
+}
+\end{equation*}
+偶多项式时以 $U_A^\dagger$ 结尾(输出在右奇异子空间, 即 $P^\triangleleft(A)$);
+相位旋转 $S(\phi_k) = e^{i\phi_k Z}$ 与 QET 相同, 故"相位综合"问题与 QSP 完全一致.
 
 \subsection{QSVT 与普通矩阵多项式的区别}
 
@@ -1435,7 +1555,7 @@ $V^\dagger W \ne I$). 只有当 $A$ 厄米(从而 $\ket{u_j} \propto \ket{v_j}$)
     \begin{equation}
         \ket{z_i^\pm} = \frac{1}{\sqrt{2}}\big(\ket{0}\ket{v_i} \pm \ket{1}\ket{u_i}\big),
         \qquad
-        \bar{A}\ket{z_i^\pm} = \pm \lambda_i \ket{z_i^\pm}.
+        \bar{A}\ket{z_i^\pm} = \pm \sigma_i \ket{z_i^\pm},
     \end{equation}
 \end{Def}
 
@@ -1454,7 +1574,11 @@ $V^\dagger W \ne I$). 只有当 $A$ 厄米(从而 $\ket{u_j} \propto \ket{v_j}$)
     \end{equation}
     特别地, 对偶函数 $f$, $f(\bar{A})\ket{0}\ket{\psi} = \ket{0}f_{\mathrm{even}}^\triangleleft(A)\ket{\psi}$;
     对奇函数 $f$, $f(\bar{A})\ket{0}\ket{\psi} = \ket{1}f(A)\ket{\psi}$ ——
-    信号比特的测量结果是\textbf{确定性}的, 这正是 QSVT 不需要后选择(在偶函数情形)的原因.
+    在左上块内信号比特分别只有 $\ket{0}$/$\ket{1}$ 分量, 因此测量信号比特的结果是
+    \textbf{确定性}的: 偶(奇)函数情形无需对信号比特做后选择来区分成功分支. 需要说明的是,
+    完整的辅助寄存器($\ket{0^a}\ket{0}$)测量概率为
+    $\norm{f_{\mathrm{even}}^\triangleleft(A)\ket{\psi}}^2$(偶函数情形), 当 $|f(\sigma_j)|=1$
+    (如酉变换 $e^{-itx}$ 的精确多项式实现)时等于 $1$.
 \end{Prop}
 
 \begin{Note}
@@ -1471,7 +1595,7 @@ $V^\dagger W \ne I$). 只有当 $A$ 厄米(从而 $\ket{u_j} \propto \ket{v_j}$)
 \end{equation}
 即求逆本质上需要实现 $\sigma \mapsto 1/\sigma$. 注意其方向与 QSVT 奇多项式输出
 $\sum_j P(\sigma_j)\ket{u_j}\bra{v_j}$ \textbf{互为共轭转置}: 直接对 $U_A$ 施加 QSVT 得到的
-是 $c(A^{-1})^\dagger$; 为制备 $A^{-1}\ket{b}$, 应对 $A^\dagger$ 的 block-encoding(即
+是与 $(A^{-1})^\dagger$ 成比例的变换; 为制备 $A^{-1}\ket{b}$, 应对 $A^\dagger$ 的 block-encoding(即
 $U_A^\dagger$)施加同一 QSVT(查询 $U_A^\dagger$ 与查询 $U_A$ 代价等价), 或利用厄米膨胀的
 $\ket{1} \to \ket{0}$ 分支(由矩阵膨胀一节的块结构, 对奇函数 $f$ 有
 $f(\bar A)\ket{1}\ket{\psi} = \ket{0} f_{\mathrm{odd}}(A)^\dagger \ket{\psi}$, 对
@@ -1548,7 +1672,7 @@ block-encoding 为矩阵的\textbf{每一个}奇异值 $\sigma_j$ 都提供一�
     \begin{equation}
         O\!\Big(t + \frac{\log(1/\varepsilon)}{\log\log(1/\varepsilon)}\Big),
     \end{equation}
-    其中每个 $U_H$ 调用一次. 该复杂度匹配哈密顿量模拟的查询下界
+    其中电路深度按 $U_H$ 的调用次数计. 该复杂度匹配哈密顿量模拟的查询下界
     $\Omega(t + \log(1/\varepsilon)/\log\log(1/\varepsilon))$ —— 相比 Trotter 方法
     $L = O(t^{1+1/p}\varepsilon^{-1/p})$ 的\textbf{乘性}依赖, 这里 $t$ 与
     $\log(1/\varepsilon)$ 是\textbf{加性}关系, 这是本质改进.
@@ -1609,8 +1733,8 @@ $p(A) \in \mathrm{BE}_{1,a+1}(p(A))$.
 \end{Note}
 
 \begin{Note}[Grover 搜索与固定点振幅放大的重访]
-    在 QSVT 视角下, Grover 迭代正是对奇异值 $1/\sqrt{N}$ 的奇多项式变换
-    ($p(x) \approx 1$ 于 $x \in [1/\sqrt{N}, 1]$); 单比特 QSP 电路统一了
+    在 QSVT 视角下, Grover 迭代正是对奇异值区间 $[1/\sqrt{N}, 1]$ 的奇多项式变换
+    ($p(x) \approx 1$ 于其上); 单比特 QSP 电路统一了
     反射序列的几何. 更重要的是, \textbf{固定点振幅放大(fixed-point amplitude amplification)}: 用单调逼近 1 的
     多项式变换旋转角, 可以在\textbf{未知}成功概率 $p$ 的情形下使最终成功概率
     任意接近 1 —— 解决了 Module2 中普通振幅放大"需要知道 $p$"的根本缺陷.

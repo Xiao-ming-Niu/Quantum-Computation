@@ -1,0 +1,35 @@
+
+=========================
+QSP Hamiltonian Simulation Algorithm Algorithm Result
+=========================
+Status: success
+
+Input parameters:
+  - Hamiltonian: [[0.6+0.j 0.2+0.j]
+ [0.2+0.j 0.2+0.j]]
+  - Evolution time: 1.0
+  - error: 0.0001
+  - degree: 15
+  - beta: 0.7
+
+Runtime logs:
+  - Stage 1: Formatting and validating input.
+  -     Block-encoded Hamiltonian with α=1.0000 using 1 qubits.
+  - Stage 2: Estimating required QSP degree and time slicing.
+  -     Chosen time slices: 1, slice time: 1.0000, target degree per slice: 11.
+  - Stage 3: Constructing QSP circuit for one time slice and composing by matrix power.
+  -     Approximating the real component (cos) for t = 1.0000
+  -     Approximating the imaginary component (sin) for t = 1.0000
+  -     Combining cos and sin components via LCU to construct the final QSP circuit for one slice.
+  - Stage 4: Computing exact and approximate evolution matrices for error estimation.
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\hamiltonian_simulation\qsp/qsp_hamiltonian_simulation_algorithm_circuit.svg
+
+Output information:
+  - Approximate evolution matrix: [[ 0.80761415-0.55571102j -0.07684937-0.18176584j]
+ [-0.07684937-0.18176584j  0.96131288-0.19217933j]]
+  - Exact evolution matrix: [[ 0.80761415-0.55571102j -0.07684937-0.18176584j]
+ [-0.07684937-0.18176584j  0.96131288-0.19217933j]]
+  - Frobenius norm of error: 1.2005791794521563e-12
+
+Summary:
+  QSP simulation completed with Frobenius norm error: 1.20e-12

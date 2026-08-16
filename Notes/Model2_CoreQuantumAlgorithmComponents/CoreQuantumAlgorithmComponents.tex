@@ -342,6 +342,20 @@ $j = \sum_i j_i 2^i$ 得 $U^j = \prod_i U^{j_i 2^i}$, 于是
 (实现 $U^j$ 的代价与 $j$ 无关, 例如 $U = R_z(\varphi)$), 该分解比直接实现 $\mathcal{U}$
 指数级节省资源.
 
+以 $t = 4$ 位相位寄存器为例, $\mathcal{U}$ 的电路为(第 $i$ 个相位比特控制 $U^{2^i}$):
+\begin{equation*}
+\Qcircuit @C=.9em @R=.9em {
+    \lstick{\ket{0}} & \gate{H} & \ctrl{4} & \qw & \qw & \qw & \qw & \qw & \multigate{3}{U_{\mathrm{FT}}^\dagger} & \meter & \rstick{\tilde j_{t-1}} \qw \\
+    \lstick{\ket{0}} & \gate{H} & \qw & \ctrl{3} & \qw & \qw & \qw & \qw & \ghost{U_{\mathrm{FT}}^\dagger} & \meter & \rstick{\vdots} \qw \\
+    \lstick{\ket{0}} & \gate{H} & \qw & \qw & \ctrl{2} & \qw & \qw & \qw & \ghost{U_{\mathrm{FT}}^\dagger} & \meter & \rstick{\tilde j_1} \qw \\
+    \lstick{\ket{0}} & \gate{H} & \qw & \qw & \qw & \ctrl{1} & \qw & \qw & \ghost{U_{\mathrm{FT}}^\dagger} & \meter & \rstick{\tilde j_0} \qw \\
+    \lstick{\ket{\psi}} & \qw & \gate{U^{2^{t-1}}} & \gate{U^{2^{t-2}}} & \gate{U^{2^1}} & \gate{U^{2^0}} & \qw & \qw & \qw & \qw & \rstick{\ket{\psi}} \qw
+}
+\end{equation*}
+其中 $j = \sum_i j_i 2^i$ 为相位寄存器的二进制展开, 最高位 $j_{t-1}$ 控制 $U^{2^{t-1}}$、
+最低位 $j_0$ 控制 $U^{2^0}$; 随后施加逆 QFT $U_{\mathrm{FT}}^\dagger$ 并逐比特测量.
+快速前推时每个受控 $U^{2^i}$ 的成本与 $2^i$ 无关, 总电路深度与 $t = O(\log T)$ 成正比.
+
 \subsection{QFT 基 QPE 电路}
 
 设 $T = 2^t$, 其中 $t$ 为\textbf{相位寄存器(phase register)}比特数. QPE 的电路结构为:
@@ -626,6 +640,44 @@ $R_0$ 可以由 $n$ 比特受控 $X$ 门与辅助比特 $\ket{-}$ 实现.
     成功概率至少 $1 - 4/N$, 查询数为 $O(\sqrt{N})$; 这两点由下文的
     Grover 迭代定理保证, 结合经典验证即可把失败概率压到任意小的常数.
 \end{Eg}
+
+\begin{figure}[H]
+\centering
+\begin{equation*}
+\Qcircuit @C=1em @R=.9em {
+    \lstick{\ket{0}^{\otimes n}} & \gate{H^{\otimes n}} & \multigate{1}{U_f} & \multigate{1}{R_0} & \qw & \qw & \qw & \qw & \qw & \meter & \rstick{\tilde x} \qw \\
+    \lstick{\ket{1}} & \gate{H} & \ghost{U_f} & \ghost{R_0} & \qw & \qw & \qw & \qw & \qw & \qw & \qw
+}
+\end{equation*}
+
+\vspace{2pt}
+\noindent 一次迭代 = oracle $U_f$ + 扩散 $R_0$, 重复 $k^*$ 次后测量; 两步的具体实现如下.
+
+\vspace{2pt}
+\begin{equation*}
+\Qcircuit @C=1em @R=.9em {
+    \lstick{\ket{x}} & \multigate{1}{U_f} & \qw & \qw & \rstick{\ket{x}} \qw \\
+    \lstick{\ket{-}} & \ghost{U_f} & \qw & \qw & \rstick{(-1)^{f(x)}\ket{-}} \qw
+}
+\end{equation*}
+
+\vspace{2pt}
+\begin{equation*}
+\Qcircuit @C=1em @R=.9em {
+    \lstick{\ket{x_0}} & \gate{H} & \gate{X} & \ctrl{3} & \gate{X} & \gate{H} & \qw \\
+    \lstick{\ket{x_1}} & \gate{H} & \gate{X} & \ctrl{2} & \gate{X} & \gate{H} & \qw \\
+    \lstick{\ket{x_2}} & \gate{H} & \gate{X} & \ctrl{1} & \gate{X} & \gate{H} & \qw \\
+    \lstick{\ket{-}} & \qw & \qw & \targ & \qw & \qw & \qw
+}
+\end{equation*}
+\caption{Grover 迭代电路. 上图: \textbf{相位反冲} —— 辅助比特取 $\ket{-}$ 时, 比特 oracle
+$U_f\ket{x}\ket{y}=\ket{x}\ket{y\oplus f(x)}$ 等价于相位 oracle $U_f\ket{x}=(-1)^{f(x)}\ket{x}$
+(标记态被附加 $-1$ 相位). 下图: 扩散算子 $R_0 = 2\ket{\phi_0}\bra{\phi_0}-I
+= H^{\otimes 3}(2\ket{0^3}\bra{0^3}-I)H^{\otimes 3}$ 的显式实现($n=3$ 示意): $X^{\otimes 3}$
+把 $2\ket{0^3}\bra{0^3}-I$ 化为对 $\ket{1^3}$ 的相位翻转, 再以 $\ket{-}$ 辅助比特为目标的
+C$^3$NOT 实现之(三个控制点经竖线指向同一目标). 每次迭代后辅助比特回到 $\ket{-}$, 可复用.}
+\label{fig:grover-circuit}
+\end{figure}
 
 \begin{Thm}[Grover 迭代] \label{thm:grover}
     记 $\theta = 2\arcsin(1/\sqrt{N})$, 分解

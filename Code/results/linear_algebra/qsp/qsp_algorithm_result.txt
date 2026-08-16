@@ -1,0 +1,35 @@
+
+=========================
+QSP Algorithm Algorithm Result
+=========================
+Status: success
+
+Input parameters:
+  - Evolution time (t): 1.0
+  - Polynomial degree (d): 10
+  - Test eigenvalue (x): 0.5
+
+Runtime logs:
+  - Stage 1: Target function analysis and phase sequence optimization
+  -   Target evolution operator: cos(1.0000 * x)
+  -   Optimization algorithm: L-BFGS-B (sampling points: 21)
+  - Stage 2: Construct QSP quantum circuit building blocks
+  -   Mount initial phase rotation: Rz(0.9716)
+  -   Loop mount 10 groups [signal operator W(x) + phase rotation Rz]
+  - Stage 3: Execute quantum simulation calculation
+  -   Underlying simulation computation time: 0.004993 seconds
+  - Stage 4: Accuracy comparison analysis and post-processing
+  -   Test point x = 0.5
+  -   Theoretical expected real part: 0.877583, simulated real part: 0.878829
+  -   Absolute error (L2): 7.696138e-03
+  - Stage 5: Export quantum circuit diagram
+  -   Circuit diagram saved: g:\GithubProjects\Quantum-Computation\Code\results\linear_algebra\qsp/qsp_algorithm_circuit.svg
+
+Output information:
+  - Estimated value: (0.8788294852399935+0.007594453626644921j)
+  - Ideal value: 0.8775825618903728
+  - Absolute error: 0.0076961382346661085
+  - Computation time (s): 0.00499272346496582
+
+Summary:
+  QSP simulation completed with absolute error 7.696138e-03 for test eigenvalue x=0.5 at evolution time t=1.0 using polynomial degree d=10.
